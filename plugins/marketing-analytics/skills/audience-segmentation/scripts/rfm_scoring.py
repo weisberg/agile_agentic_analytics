@@ -86,8 +86,24 @@ def load_transactions(
     ValueError
         If required columns are missing.
     """
-    # TODO: Implement file loading, column validation, date parsing
-    raise NotImplementedError("load_transactions not yet implemented")
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"Transactions file not found: {filepath}")
+
+    df = pd.read_csv(filepath)
+
+    required_columns = {date_column, customer_id_column, amount_column}
+    missing = required_columns - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    df[date_column] = pd.to_datetime(df[date_column])
+    logger.info(
+        "Loaded %d transactions for %d customers",
+        len(df),
+        df[customer_id_column].nunique(),
+    )
+    return df
 
 
 def compute_rfm(
@@ -123,8 +139,28 @@ def compute_rfm(
         - frequency (int): number of transactions
         - monetary (float): total spend
     """
-    # TODO: Filter to analysis window, group by customer, compute R/F/M
-    raise NotImplementedError("compute_rfm not yet implemented")
+    if analysis_date is None:
+        analysis_date = datetime.now()
+
+    analysis_date = pd.Timestamp(analysis_date)
+    cutoff_date = analysis_date - pd.Timedelta(days=window_days)
+
+    df = transactions.copy()
+    df[date_column] = pd.to_datetime(df[date_column])
+    df = df[df[date_column] >= cutoff_date]
+
+    grouped = df.groupby(customer_id_column).agg(
+        recency=(date_column, lambda x: (analysis_date - x.max()).days),
+        frequency=(date_column, "count"),
+        monetary=(amount_column, "sum"),
+    )
+
+    grouped["recency"] = grouped["recency"].astype(int)
+    grouped["frequency"] = grouped["frequency"].astype(int)
+    grouped["monetary"] = grouped["monetary"].astype(float)
+
+    logger.info("Computed RFM for %d customers", len(grouped))
+    return grouped
 
 
 def assign_quintiles(
@@ -153,8 +189,37 @@ def assign_quintiles(
         - rfm_composite (str): Concatenated score string, e.g., "543"
         - rfm_weighted (float): Weighted composite score
     """
-    # TODO: Apply pd.qcut with fallback to pd.cut, invert recency, compute composites
-    raise NotImplementedError("assign_quintiles not yet implemented")
+    result = rfm_df.copy()
+    labels = list(range(1, n_bins + 1))
+
+    def _safe_qcut(series: pd.Series, ascending: bool = True) -> pd.Series:
+        """Apply qcut with fallback to rank-based cut for non-unique edges."""
+        order = labels if ascending else labels[::-1]
+        try:
+            return pd.qcut(series, q=n_bins, labels=order, duplicates="raise").astype(int)
+        except ValueError:
+            ranks = series.rank(method="first", ascending=ascending)
+            return pd.cut(ranks, bins=n_bins, labels=labels).astype(int)
+
+    # Recency: lower is better, so invert (ascending=False means low recency -> high score)
+    result["r_score"] = _safe_qcut(result["recency"], ascending=False)
+    result["f_score"] = _safe_qcut(result["frequency"], ascending=True)
+    result["m_score"] = _safe_qcut(result["monetary"], ascending=True)
+
+    result["rfm_composite"] = (
+        result["r_score"].astype(str)
+        + result["f_score"].astype(str)
+        + result["m_score"].astype(str)
+    )
+
+    result["rfm_weighted"] = (
+        DEFAULT_RFM_WEIGHTS["recency"] * result["r_score"]
+        + DEFAULT_RFM_WEIGHTS["frequency"] * result["f_score"]
+        + DEFAULT_RFM_WEIGHTS["monetary"] * result["m_score"]
+    )
+
+    logger.info("Assigned quintile scores to %d customers", len(result))
+    return result
 
 
 def label_segments(
@@ -183,8 +248,46 @@ def label_segments(
     ValueError
         If any customer is not assigned to a segment (rules are not exhaustive).
     """
-    # TODO: Iterate rules, apply range checks, assign segment names
-    raise NotImplementedError("label_segments not yet implemented")
+    if rules is None:
+        rules = SEGMENT_RULES
+
+    result = rfm_scored.copy()
+    result["segment"] = None
+
+    for rule in rules:
+        r_min, r_max = rule["R"]
+        f_min, f_max = rule["F"]
+        m_min, m_max = rule["M"]
+
+        mask = (
+            (result["segment"].isna())
+            & (result["r_score"] >= r_min)
+            & (result["r_score"] <= r_max)
+            & (result["f_score"] >= f_min)
+            & (result["f_score"] <= f_max)
+            & (result["m_score"] >= m_min)
+            & (result["m_score"] <= m_max)
+        )
+        result.loc[mask, "segment"] = rule["name"]
+
+    # Catch-all: any unassigned customers become "Lost"
+    unassigned = result["segment"].isna()
+    if unassigned.any():
+        result.loc[unassigned, "segment"] = "Lost"
+        logger.warning(
+            "%d customers matched no rule and were assigned 'Lost'",
+            unassigned.sum(),
+        )
+
+    # Verify exhaustiveness
+    still_null = result["segment"].isna()
+    if still_null.any():
+        raise ValueError(
+            f"{still_null.sum()} customers could not be assigned to any segment"
+        )
+
+    logger.info("Segment distribution:\n%s", result["segment"].value_counts().to_string())
+    return result
 
 
 def save_rfm_boundaries(
@@ -203,8 +306,21 @@ def save_rfm_boundaries(
     output_path : str or Path
         Path to write the boundaries JSON file.
     """
-    # TODO: Compute quantile boundaries, write to JSON
-    raise NotImplementedError("save_rfm_boundaries not yet implemented")
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    boundaries: dict[str, Any] = {
+        "analysis_date": analysis_date.strftime("%Y-%m-%d"),
+    }
+
+    for metric in ("recency", "frequency", "monetary"):
+        quantiles = rfm_df[metric].quantile([0.0, 0.2, 0.4, 0.6, 0.8, 1.0]).tolist()
+        boundaries[f"{metric}_boundaries"] = [round(v, 2) for v in quantiles]
+
+    with open(output_path, "w") as f:
+        json.dump(boundaries, f, indent=2)
+
+    logger.info("Saved RFM boundaries to %s", output_path)
 
 
 def run_rfm_pipeline(
@@ -241,5 +357,31 @@ def run_rfm_pipeline(
     pd.DataFrame
         Complete RFM-scored DataFrame with segment labels.
     """
-    # TODO: Orchestrate the full pipeline
-    raise NotImplementedError("run_rfm_pipeline not yet implemented")
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if analysis_date is None:
+        analysis_date = datetime.now()
+
+    # 1. Load transactions
+    transactions = load_transactions(transactions_path)
+
+    # 2. Compute raw RFM
+    rfm_df = compute_rfm(
+        transactions,
+        analysis_date=analysis_date,
+        window_days=window_days,
+    )
+
+    # 3. Assign quintile scores
+    rfm_scored = assign_quintiles(rfm_df, n_bins=n_bins)
+
+    # 4. Label segments
+    rfm_labeled = label_segments(rfm_scored)
+
+    # 5. Save outputs
+    save_rfm_boundaries(rfm_df, analysis_date, output_dir / "rfm_boundaries.json")
+    rfm_labeled.to_csv(output_dir / "rfm_segments.csv")
+    logger.info("RFM pipeline complete. Results saved to %s", output_dir)
+
+    return rfm_labeled

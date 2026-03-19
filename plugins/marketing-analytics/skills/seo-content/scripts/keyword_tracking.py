@@ -23,11 +23,12 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
+import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -77,10 +78,28 @@ def load_search_console_data(input_path: str | Path) -> pd.DataFrame:
         FileNotFoundError: If the input file does not exist.
         ValueError: If required columns are missing.
     """
-    # TODO: Load CSV, validate required columns
-    # Required: query, page, clicks, impressions, ctr, position, date
-    # Parse date column to datetime
-    raise NotImplementedError("GSC data loading not yet implemented")
+    path = Path(input_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+
+    df = pd.read_csv(path)
+
+    required_columns = {"query", "page", "clicks", "impressions", "ctr", "position", "date"}
+    missing = required_columns - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date").reset_index(drop=True)
+
+    logger.info(
+        "Loaded %d rows from %s (date range: %s to %s)",
+        len(df),
+        input_path,
+        df["date"].min().date(),
+        df["date"].max().date(),
+    )
+    return df
 
 
 def compute_rolling_averages(
@@ -105,8 +124,24 @@ def compute_rolling_averages(
         DataFrame with additional rolling average columns named
         "{metric}_rolling_{window_days}d".
     """
-    # TODO: Group by (query, page), sort by date, apply rolling mean
-    raise NotImplementedError("Rolling average computation not yet implemented")
+    if metrics is None:
+        metrics = ["position", "clicks", "impressions"]
+
+    df = df.sort_values(["query", "page", "date"]).copy()
+
+    for metric in metrics:
+        col_name = f"{metric}_rolling_{window_days}d"
+        df[col_name] = (
+            df.groupby(["query", "page"])[metric]
+            .transform(lambda s: s.rolling(window=window_days, min_periods=1).mean())
+        )
+
+    logger.info(
+        "Computed %d-day rolling averages for metrics: %s",
+        window_days,
+        metrics,
+    )
+    return df
 
 
 def detect_position_changes(
@@ -133,10 +168,63 @@ def detect_position_changes(
         A list of KeywordMover objects sorted by absolute position change
         descending.
     """
-    # TODO: Compute current vs. comparison period averages
-    # Classify: improved (lower position), declined (higher position)
+    max_date = df["date"].max()
+    current_start = max_date - pd.Timedelta(days=current_period_days - 1)
+    comparison_end = current_start - pd.Timedelta(days=1)
+    comparison_start = comparison_end - pd.Timedelta(days=comparison_period_days - 1)
+
+    current_df = df[df["date"] >= current_start]
+    comparison_df = df[(df["date"] >= comparison_start) & (df["date"] <= comparison_end)]
+
+    current_agg = (
+        current_df.groupby(["query", "page"])
+        .agg(
+            current_position=("position", "mean"),
+            current_clicks=("clicks", "sum"),
+            current_impressions=("impressions", "sum"),
+        )
+        .reset_index()
+    )
+
+    comparison_agg = (
+        comparison_df.groupby(["query", "page"])
+        .agg(
+            previous_position=("position", "mean"),
+            previous_clicks=("clicks", "sum"),
+            previous_impressions=("impressions", "sum"),
+        )
+        .reset_index()
+    )
+
+    merged = current_agg.merge(comparison_agg, on=["query", "page"], how="inner")
+    merged["position_change"] = merged["previous_position"] - merged["current_position"]
+
     # Filter by threshold
-    raise NotImplementedError("Position change detection not yet implemented")
+    significant = merged[merged["position_change"].abs() >= threshold]
+
+    movers: list[KeywordMover] = []
+    for _, row in significant.iterrows():
+        direction: Literal["improved", "declined"] = (
+            "improved" if row["position_change"] > 0 else "declined"
+        )
+        movers.append(
+            KeywordMover(
+                query=row["query"],
+                page=row["page"],
+                previous_position=round(float(row["previous_position"]), 2),
+                current_position=round(float(row["current_position"]), 2),
+                position_change=round(float(row["position_change"]), 2),
+                direction=direction,
+                previous_clicks=float(row["previous_clicks"]),
+                current_clicks=float(row["current_clicks"]),
+                previous_impressions=float(row["previous_impressions"]),
+                current_impressions=float(row["current_impressions"]),
+            )
+        )
+
+    movers.sort(key=lambda m: abs(m.position_change), reverse=True)
+    logger.info("Detected %d keyword movers (threshold=%.1f)", len(movers), threshold)
+    return movers
 
 
 def identify_new_keywords(
@@ -157,8 +245,44 @@ def identify_new_keywords(
     Returns:
         A list of KeywordMover objects with direction="new".
     """
-    # TODO: Find query-page pairs present in current but absent in lookback
-    raise NotImplementedError("New keyword identification not yet implemented")
+    max_date = df["date"].max()
+    current_start = max_date - pd.Timedelta(days=current_period_days - 1)
+    lookback_end = current_start - pd.Timedelta(days=1)
+    lookback_start = lookback_end - pd.Timedelta(days=lookback_days - 1)
+
+    current_df = df[df["date"] >= current_start]
+    lookback_df = df[(df["date"] >= lookback_start) & (df["date"] <= lookback_end)]
+
+    current_keys = set(
+        current_df.groupby(["query", "page"]).groups.keys()
+    )
+    lookback_keys = set(
+        lookback_df.groupby(["query", "page"]).groups.keys()
+    ) if len(lookback_df) > 0 else set()
+
+    new_keys = current_keys - lookback_keys
+
+    new_keywords: list[KeywordMover] = []
+    for query, page in new_keys:
+        subset = current_df[(current_df["query"] == query) & (current_df["page"] == page)]
+        new_keywords.append(
+            KeywordMover(
+                query=query,
+                page=page,
+                previous_position=0.0,
+                current_position=round(float(subset["position"].mean()), 2),
+                position_change=0.0,
+                direction="new",
+                previous_clicks=0.0,
+                current_clicks=float(subset["clicks"].sum()),
+                previous_impressions=0.0,
+                current_impressions=float(subset["impressions"].sum()),
+            )
+        )
+
+    new_keywords.sort(key=lambda m: m.current_impressions, reverse=True)
+    logger.info("Identified %d new keywords", len(new_keywords))
+    return new_keywords
 
 
 def identify_lost_keywords(
@@ -179,8 +303,46 @@ def identify_lost_keywords(
     Returns:
         A list of KeywordMover objects with direction="lost".
     """
-    # TODO: Find query-page pairs present in lookback but absent in current
-    raise NotImplementedError("Lost keyword identification not yet implemented")
+    max_date = df["date"].max()
+    current_start = max_date - pd.Timedelta(days=current_period_days - 1)
+    lookback_end = current_start - pd.Timedelta(days=1)
+    lookback_start = lookback_end - pd.Timedelta(days=lookback_days - 1)
+
+    current_df = df[df["date"] >= current_start]
+    lookback_df = df[(df["date"] >= lookback_start) & (df["date"] <= lookback_end)]
+
+    current_keys = set(
+        current_df.groupby(["query", "page"]).groups.keys()
+    ) if len(current_df) > 0 else set()
+    lookback_keys = set(
+        lookback_df.groupby(["query", "page"]).groups.keys()
+    ) if len(lookback_df) > 0 else set()
+
+    lost_keys = lookback_keys - current_keys
+
+    lost_keywords: list[KeywordMover] = []
+    for query, page in lost_keys:
+        subset = lookback_df[
+            (lookback_df["query"] == query) & (lookback_df["page"] == page)
+        ]
+        lost_keywords.append(
+            KeywordMover(
+                query=query,
+                page=page,
+                previous_position=round(float(subset["position"].mean()), 2),
+                current_position=0.0,
+                position_change=0.0,
+                direction="lost",
+                previous_clicks=float(subset["clicks"].sum()),
+                current_clicks=0.0,
+                previous_impressions=float(subset["impressions"].sum()),
+                current_impressions=0.0,
+            )
+        )
+
+    lost_keywords.sort(key=lambda m: m.previous_impressions, reverse=True)
+    logger.info("Identified %d lost keywords", len(lost_keywords))
+    return lost_keywords
 
 
 def compute_keyword_trends(
@@ -205,9 +367,66 @@ def compute_keyword_trends(
         classification (improving if slope < -0.5, declining if > 0.5,
         stable otherwise).
     """
-    # TODO: Group by (query, page), fit linear trend on position
-    # Classify based on slope thresholds
-    raise NotImplementedError("Keyword trend computation not yet implemented")
+    rolling_col = f"position_rolling_{window_days}d"
+    if rolling_col not in df.columns:
+        df = compute_rolling_averages(df, window_days=window_days, metrics=["position"])
+
+    # Filter by minimum impressions
+    kw_impressions = df.groupby(["query", "page"])["impressions"].sum()
+    eligible = kw_impressions[kw_impressions >= min_impressions].index
+
+    trends: list[KeywordTrend] = []
+    for query, page in eligible:
+        subset = df[(df["query"] == query) & (df["page"] == page)].sort_values("date")
+        if len(subset) < 2:
+            continue
+
+        dates = subset["date"].dt.strftime("%Y-%m-%d").tolist()
+        positions = subset["position"].tolist()
+        clicks = subset["clicks"].tolist()
+        impressions = subset["impressions"].tolist()
+        rolling_positions = subset[rolling_col].tolist()
+
+        # Fit linear regression: position vs. ordinal day index
+        x = np.arange(len(subset), dtype=float)
+        y = np.array(rolling_positions, dtype=float)
+        valid_mask = ~np.isnan(y)
+        if valid_mask.sum() < 2:
+            continue
+
+        x_valid = x[valid_mask]
+        y_valid = y[valid_mask]
+        coeffs = np.polyfit(x_valid, y_valid, 1)
+        slope = float(coeffs[0])
+
+        # Classify trend: lower position = better ranking, so negative slope = improving
+        if slope < -0.5:
+            direction: Literal["improving", "stable", "declining"] = "improving"
+        elif slope > 0.5:
+            direction = "declining"
+        else:
+            direction = "stable"
+
+        trends.append(
+            KeywordTrend(
+                query=query,
+                page=page,
+                dates=dates,
+                positions=[round(p, 2) for p in positions],
+                clicks=[round(c, 2) for c in clicks],
+                impressions=[round(i, 2) for i in impressions],
+                rolling_avg_position=[round(r, 2) if not np.isnan(r) else None for r in rolling_positions],
+                trend_direction=direction,
+                trend_slope=round(slope, 4),
+            )
+        )
+
+    logger.info(
+        "Computed trends for %d keywords (min_impressions=%d)",
+        len(trends),
+        min_impressions,
+    )
+    return trends
 
 
 def identify_organic_paid_overlap(
@@ -228,9 +447,50 @@ def identify_organic_paid_overlap(
         A list of dicts with query, organic_position, organic_clicks,
         and estimated_savings_opportunity flag.
     """
-    # TODO: Load paid keywords, match against organic queries
-    # Flag keywords ranking in top 3 organically as savings opportunities
-    raise NotImplementedError("Organic/paid overlap analysis not yet implemented")
+    if paid_keywords_path is None:
+        return []
+
+    paid_path = Path(paid_keywords_path)
+    if not paid_path.exists():
+        logger.warning("Paid keywords file not found: %s", paid_keywords_path)
+        return []
+
+    paid_df = pd.read_csv(paid_path)
+    if "keyword" not in paid_df.columns:
+        logger.warning("Paid keywords CSV missing 'keyword' column")
+        return []
+
+    paid_keywords = set(paid_df["keyword"].str.lower().str.strip())
+
+    # Aggregate organic data per query
+    organic_agg = (
+        df.groupby("query")
+        .agg(
+            organic_position=("position", "mean"),
+            organic_clicks=("clicks", "sum"),
+            organic_impressions=("impressions", "sum"),
+        )
+        .reset_index()
+    )
+
+    organic_agg["query_lower"] = organic_agg["query"].str.lower().str.strip()
+    overlap = organic_agg[organic_agg["query_lower"].isin(paid_keywords)]
+
+    results: list[dict[str, Any]] = []
+    for _, row in overlap.iterrows():
+        # Flag keywords ranking in top 3 organically as savings opportunities
+        savings_opportunity = row["organic_position"] <= 3.0
+        results.append({
+            "query": row["query"],
+            "organic_position": round(float(row["organic_position"]), 2),
+            "organic_clicks": float(row["organic_clicks"]),
+            "organic_impressions": float(row["organic_impressions"]),
+            "estimated_savings_opportunity": savings_opportunity,
+        })
+
+    results.sort(key=lambda r: r["organic_clicks"], reverse=True)
+    logger.info("Found %d organic/paid keyword overlaps", len(results))
+    return results
 
 
 def generate_keyword_report(
@@ -254,9 +514,54 @@ def generate_keyword_report(
     Returns:
         A summary dict with counts for each category and the output path.
     """
-    # TODO: Serialize all results to JSON
-    # Include metadata: analysis_date, date_range, thresholds used
-    raise NotImplementedError("Keyword report generation not yet implemented")
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Classify movers
+    improved = [m for m in movers if m.direction == "improved"]
+    declined = [m for m in movers if m.direction == "declined"]
+
+    # Classify trends
+    improving_trends = [t for t in trends if t.trend_direction == "improving"]
+    declining_trends = [t for t in trends if t.trend_direction == "declining"]
+    stable_trends = [t for t in trends if t.trend_direction == "stable"]
+
+    report = {
+        "metadata": {
+            "analysis_date": date.today().isoformat(),
+            "total_keywords_tracked": len(trends),
+        },
+        "movers": {
+            "improved": [asdict(m) for m in improved],
+            "declined": [asdict(m) for m in declined],
+        },
+        "new_keywords": [asdict(m) for m in new_keywords],
+        "lost_keywords": [asdict(m) for m in lost_keywords],
+        "trends": {
+            "improving": [asdict(t) for t in improving_trends],
+            "declining": [asdict(t) for t in declining_trends],
+            "stable_count": len(stable_trends),
+        },
+        "organic_paid_overlap": overlap,
+    }
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, default=str)
+
+    summary = {
+        "movers_improved": len(improved),
+        "movers_declined": len(declined),
+        "new_keywords": len(new_keywords),
+        "lost_keywords": len(lost_keywords),
+        "trends_improving": len(improving_trends),
+        "trends_declining": len(declining_trends),
+        "trends_stable": len(stable_trends),
+        "organic_paid_overlaps": len(overlap),
+        "output_path": str(output_path),
+    }
+
+    logger.info("Keyword report written to %s", output_path)
+    return summary
 
 
 def run_keyword_tracking(
@@ -284,8 +589,40 @@ def run_keyword_tracking(
     Returns:
         A summary dict with counts and output file path.
     """
-    # TODO: Orchestrate the full pipeline
-    raise NotImplementedError("Keyword tracking pipeline not yet implemented")
+    # 1. Load data
+    df = load_search_console_data(input_path)
+
+    # 2. Compute rolling averages
+    df = compute_rolling_averages(df, window_days=rolling_window_days)
+
+    # 3. Detect position changes
+    movers = detect_position_changes(
+        df, threshold=position_change_threshold
+    )
+
+    # 4. Identify new and lost keywords
+    new_keywords = identify_new_keywords(df)
+    lost_keywords = identify_lost_keywords(df)
+
+    # 5. Compute trends
+    trends = compute_keyword_trends(
+        df, min_impressions=min_impressions, window_days=rolling_window_days
+    )
+
+    # 6. Organic/paid overlap
+    overlap = identify_organic_paid_overlap(df, paid_keywords_path)
+
+    # 7. Generate report
+    summary = generate_keyword_report(
+        movers=movers,
+        new_keywords=new_keywords,
+        lost_keywords=lost_keywords,
+        trends=trends,
+        overlap=overlap,
+        output_path=output_path,
+    )
+
+    return summary
 
 
 if __name__ == "__main__":

@@ -46,9 +46,34 @@ def authenticate_gsc(credentials_path: str) -> Any:
         FileNotFoundError: If the credentials file does not exist.
         ValueError: If the credentials file is malformed.
     """
-    # TODO: Implement OAuth 2.0 service account authentication
-    # Use googleapiclient.discovery.build with webmasters v3
-    raise NotImplementedError("GSC authentication not yet implemented")
+    cred_path = Path(credentials_path)
+    if not cred_path.exists():
+        raise FileNotFoundError(
+            f"Credentials file not found: {credentials_path}"
+        )
+
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+    except ImportError:
+        raise ImportError(
+            "google-auth and google-api-python-client are required. "
+            "Install with: pip install google-auth google-api-python-client"
+        )
+
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path,
+            scopes=["https://www.googleapis.com/auth/webmasters.readonly"],
+        )
+    except (json.JSONDecodeError, KeyError, ValueError) as exc:
+        raise ValueError(
+            f"Malformed credentials file: {credentials_path}"
+        ) from exc
+
+    service = build("webmasters", "v3", credentials=credentials)
+    logger.info("Successfully authenticated with Google Search Console API")
+    return service
 
 
 def build_query_request(
@@ -83,8 +108,23 @@ def build_query_request(
     if dimensions is None:
         dimensions = ["query", "page", "date"]
 
-    # TODO: Build and return the request payload dict
-    raise NotImplementedError("Query request builder not yet implemented")
+    row_limit = min(row_limit, 25_000)
+
+    request_body: dict[str, Any] = {
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+        "dimensions": dimensions,
+        "type": search_type,
+        "rowLimit": row_limit,
+        "startRow": start_row,
+        "dataState": data_state,
+        "aggregationType": aggregation_type,
+    }
+
+    if dimension_filters:
+        request_body["dimensionFilterGroups"] = dimension_filters
+
+    return request_body
 
 
 def execute_paginated_query(
@@ -119,13 +159,77 @@ def execute_paginated_query(
     Raises:
         RuntimeError: If the API returns an error response.
     """
-    # TODO: Implement pagination loop
-    # 1. Set row_limit=25000, start_row=0
-    # 2. Execute query, collect rows
-    # 3. If response has 25000 rows, increment start_row and repeat
-    # 4. Apply exponential backoff on rate limit errors (HTTP 429)
-    # 5. Stop when response has < 25000 rows or max_rows reached
-    raise NotImplementedError("Paginated query execution not yet implemented")
+    if dimensions is None:
+        dimensions = ["query", "page", "date"]
+
+    all_rows: list[dict[str, Any]] = []
+    row_limit = 25_000
+    start_row = 0
+    max_retries = 5
+
+    while True:
+        request_body = build_query_request(
+            start_date=start_date,
+            end_date=end_date,
+            dimensions=dimensions,
+            search_type=search_type,
+            row_limit=row_limit,
+            start_row=start_row,
+            dimension_filters=dimension_filters,
+        )
+
+        response = None
+        for attempt in range(max_retries):
+            try:
+                response = (
+                    service.searchanalytics()
+                    .query(siteUrl=site_url, body=request_body)
+                    .execute()
+                )
+                break
+            except Exception as exc:
+                exc_str = str(exc)
+                # Handle rate limiting (HTTP 429) with exponential backoff
+                if "429" in exc_str or "rate" in exc_str.lower():
+                    wait_time = 2 ** attempt
+                    logger.warning(
+                        "Rate limited, retrying in %ds (attempt %d/%d)",
+                        wait_time,
+                        attempt + 1,
+                        max_retries,
+                    )
+                    time.sleep(wait_time)
+                else:
+                    raise RuntimeError(
+                        f"GSC API error: {exc}"
+                    ) from exc
+
+        if response is None:
+            raise RuntimeError(
+                "GSC API request failed after all retries"
+            )
+
+        rows = response.get("rows", [])
+        all_rows.extend(rows)
+
+        logger.info(
+            "Fetched %d rows (startRow=%d, total so far=%d)",
+            len(rows),
+            start_row,
+            len(all_rows),
+        )
+
+        # Stop conditions
+        if len(rows) < row_limit:
+            break
+
+        start_row += row_limit
+
+        if max_rows is not None and len(all_rows) >= max_rows:
+            all_rows = all_rows[:max_rows]
+            break
+
+    return all_rows
 
 
 def extract_with_date_chunking(
@@ -157,12 +261,46 @@ def extract_with_date_chunking(
     Returns:
         Combined list of row dicts across all date chunks.
     """
-    # TODO: Implement date chunking strategy
-    # 1. Generate list of (chunk_start, chunk_end) date pairs
-    # 2. For each chunk, call execute_paginated_query
-    # 3. Concatenate all results
-    # 4. Log progress after each chunk
-    raise NotImplementedError("Date-chunked extraction not yet implemented")
+    # Generate date chunks
+    chunks: list[tuple[date, date]] = []
+    chunk_start = start_date
+    while chunk_start <= end_date:
+        chunk_end = min(chunk_start + timedelta(days=chunk_days - 1), end_date)
+        chunks.append((chunk_start, chunk_end))
+        chunk_start = chunk_end + timedelta(days=1)
+
+    all_rows: list[dict[str, Any]] = []
+    total_chunks = len(chunks)
+
+    for idx, (cs, ce) in enumerate(chunks, 1):
+        logger.info(
+            "Processing chunk %d/%d: %s to %s",
+            idx,
+            total_chunks,
+            cs.isoformat(),
+            ce.isoformat(),
+        )
+
+        chunk_rows = execute_paginated_query(
+            service=service,
+            site_url=site_url,
+            start_date=cs,
+            end_date=ce,
+            dimensions=dimensions,
+            search_type=search_type,
+            dimension_filters=dimension_filters,
+        )
+        all_rows.extend(chunk_rows)
+
+        logger.info(
+            "Chunk %d/%d complete: %d rows (total: %d)",
+            idx,
+            total_chunks,
+            len(chunk_rows),
+            len(all_rows),
+        )
+
+    return all_rows
 
 
 def flatten_gsc_rows(
@@ -182,9 +320,18 @@ def flatten_gsc_rows(
         A list of flat dicts with dimension names as keys plus metric
         columns (clicks, impressions, ctr, position).
     """
-    # TODO: Map row["keys"][i] to dimensions[i] for each row
-    # Include clicks, impressions, ctr, position from row metrics
-    raise NotImplementedError("Row flattening not yet implemented")
+    flat_rows: list[dict[str, Any]] = []
+    for row in rows:
+        flat: dict[str, Any] = {}
+        keys = row.get("keys", [])
+        for i, dim in enumerate(dimensions):
+            flat[dim] = keys[i] if i < len(keys) else None
+        flat["clicks"] = row.get("clicks", 0.0)
+        flat["impressions"] = row.get("impressions", 0.0)
+        flat["ctr"] = row.get("ctr", 0.0)
+        flat["position"] = row.get("position", 0.0)
+        flat_rows.append(flat)
+    return flat_rows
 
 
 def save_to_csv(
@@ -206,10 +353,23 @@ def save_to_csv(
     Raises:
         ValueError: If rows is empty.
     """
-    # TODO: Write rows to CSV with DictWriter
-    # Ensure parent directories exist
-    # Return count of rows written
-    raise NotImplementedError("CSV export not yet implemented")
+    if not rows:
+        raise ValueError("Cannot write CSV: rows list is empty")
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if columns is None:
+        columns = list(rows[0].keys())
+
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=columns, extrasaction="ignore")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+    logger.info("Wrote %d rows to %s", len(rows), output_path)
+    return len(rows)
 
 
 def extract_gsc_data(
@@ -244,16 +404,53 @@ def extract_gsc_data(
         A summary dict with keys: row_count, date_range, output_path,
         extraction_duration_seconds.
     """
-    # TODO: Orchestrate the full extraction pipeline
+    pipeline_start = time.time()
+
+    if dimensions is None:
+        dimensions = ["query", "page", "date"]
+
     # 1. Authenticate
-    # 2. Parse date strings to date objects
-    # 3. Execute query (chunked or single)
+    service = authenticate_gsc(credentials_path)
+
+    # 2. Parse date strings
+    sd = date.fromisoformat(start_date)
+    ed = date.fromisoformat(end_date)
+
+    # 3. Execute query
+    if use_date_chunking:
+        raw_rows = extract_with_date_chunking(
+            service=service,
+            site_url=site_url,
+            start_date=sd,
+            end_date=ed,
+            chunk_days=chunk_days,
+            dimensions=dimensions,
+            search_type=search_type,
+        )
+    else:
+        raw_rows = execute_paginated_query(
+            service=service,
+            site_url=site_url,
+            start_date=sd,
+            end_date=ed,
+            dimensions=dimensions,
+            search_type=search_type,
+        )
+
     # 4. Flatten rows
+    flat_rows = flatten_gsc_rows(raw_rows, dimensions)
+
     # 5. Save to CSV
+    row_count = save_to_csv(flat_rows, output_path)
+
     # 6. Return summary
-    raise NotImplementedError(
-        "End-to-end GSC extraction pipeline not yet implemented"
-    )
+    duration = time.time() - pipeline_start
+    return {
+        "row_count": row_count,
+        "date_range": {"start": start_date, "end": end_date},
+        "output_path": str(output_path),
+        "extraction_duration_seconds": round(duration, 2),
+    }
 
 
 if __name__ == "__main__":

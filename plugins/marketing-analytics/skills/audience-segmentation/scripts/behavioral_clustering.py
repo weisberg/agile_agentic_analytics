@@ -78,8 +78,24 @@ def load_behavioral_events(
     ValueError
         If required columns are missing.
     """
-    # TODO: Implement file loading, column validation, timestamp parsing
-    raise NotImplementedError("load_behavioral_events not yet implemented")
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"Events file not found: {filepath}")
+
+    df = pd.read_csv(filepath)
+
+    required_columns = {user_id_column, event_column, timestamp_column}
+    missing = required_columns - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    df[timestamp_column] = pd.to_datetime(df[timestamp_column])
+    logger.info(
+        "Loaded %d events for %d users",
+        len(df),
+        df[user_id_column].nunique(),
+    )
+    return df
 
 
 def engineer_features(
@@ -114,8 +130,70 @@ def engineer_features(
     pd.DataFrame
         User-level feature matrix indexed by user_id.
     """
-    # TODO: Sessionize events, compute per-user aggregates, derive features
-    raise NotImplementedError("engineer_features not yet implemented")
+    df = events.copy()
+    df[timestamp_column] = pd.to_datetime(df[timestamp_column])
+    reference_date = df[timestamp_column].max()
+
+    # --- Engagement recency & intensity ---
+    user_agg = df.groupby(user_id_column).agg(
+        engagement_recency=(
+            timestamp_column,
+            lambda x: (reference_date - x.max()).days,
+        ),
+        engagement_intensity=(event_column, "count"),
+        first_event=(timestamp_column, "min"),
+        last_event=(timestamp_column, "max"),
+    )
+
+    # --- Session frequency: approximate sessions per week ---
+    # Active span in weeks (minimum 1 week to avoid division by zero)
+    active_span_weeks = (
+        (user_agg["last_event"] - user_agg["first_event"]).dt.total_seconds()
+        / (7 * 24 * 3600)
+    ).clip(lower=1.0)
+    # Approximate sessions as distinct event-days
+    sessions_per_user = (
+        df.assign(_date=df[timestamp_column].dt.date)
+        .groupby(user_id_column)["_date"]
+        .nunique()
+    )
+    user_agg = user_agg.join(sessions_per_user.rename("_n_sessions"))
+    user_agg["session_frequency"] = user_agg["_n_sessions"] / active_span_weeks
+
+    # --- Average page depth: events per session-day ---
+    user_agg["avg_page_depth"] = (
+        user_agg["engagement_intensity"] / user_agg["_n_sessions"]
+    )
+
+    # --- Content affinity: proportion of events per event type ---
+    event_counts = df.groupby([user_id_column, event_column]).size().unstack(fill_value=0)
+    event_proportions = event_counts.div(event_counts.sum(axis=1), axis=0)
+    event_proportions.columns = [
+        f"content_affinity_{col}" for col in event_proportions.columns
+    ]
+    user_agg = user_agg.join(event_proportions)
+
+    # --- Channel preference (if 'channel' column exists) ---
+    if "channel" in df.columns:
+        channel_counts = (
+            df.groupby([user_id_column, "channel"]).size().unstack(fill_value=0)
+        )
+        channel_proportions = channel_counts.div(channel_counts.sum(axis=1), axis=0)
+        channel_proportions.columns = [
+            f"channel_preference_{col}" for col in channel_proportions.columns
+        ]
+        user_agg = user_agg.join(channel_proportions)
+
+    # Drop helper columns
+    user_agg = user_agg.drop(
+        columns=["first_event", "last_event", "_n_sessions"], errors="ignore"
+    )
+
+    # Fill any remaining NaN (e.g. users with a single event type) with 0
+    user_agg = user_agg.fillna(0.0)
+
+    logger.info("Engineered %d features for %d users", user_agg.shape[1], len(user_agg))
+    return user_agg
 
 
 def remove_low_variance_features(
@@ -136,8 +214,14 @@ def remove_low_variance_features(
     pd.DataFrame
         Filtered feature matrix with low-variance columns removed.
     """
-    # TODO: Compute variance per column, drop those below threshold
-    raise NotImplementedError("remove_low_variance_features not yet implemented")
+    variances = feature_matrix.var()
+    keep_cols = variances[variances >= variance_threshold].index.tolist()
+    dropped = set(feature_matrix.columns) - set(keep_cols)
+
+    if dropped:
+        logger.info("Removed %d low-variance features: %s", len(dropped), dropped)
+
+    return feature_matrix[keep_cols]
 
 
 # ---------------------------------------------------------------------------
@@ -169,8 +253,24 @@ def scale_features(
     ValueError
         If method is not one of the supported options.
     """
-    # TODO: Select scaler based on method, fit_transform, return both
-    raise NotImplementedError("scale_features not yet implemented")
+    from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
+
+    scalers = {
+        "standard": StandardScaler,
+        "robust": RobustScaler,
+        "minmax": MinMaxScaler,
+    }
+
+    if method not in scalers:
+        raise ValueError(
+            f"Unsupported scaling method '{method}'. Choose from: {list(scalers)}"
+        )
+
+    scaler = scalers[method]()
+    X_scaled = scaler.fit_transform(feature_matrix.values)
+
+    logger.info("Scaled %d features using %s", feature_matrix.shape[1], method)
+    return X_scaled, scaler
 
 
 def apply_pca(
@@ -194,8 +294,18 @@ def apply_pca(
     tuple[np.ndarray, PCA]
         Reduced feature array and fitted PCA object.
     """
-    # TODO: Fit PCA with n_components=variance_threshold, log explained variance
-    raise NotImplementedError("apply_pca not yet implemented")
+    from sklearn.decomposition import PCA
+
+    pca = PCA(n_components=variance_threshold, random_state=random_state)
+    X_reduced = pca.fit_transform(X_scaled)
+
+    logger.info(
+        "PCA reduced %d -> %d components (%.1f%% variance explained)",
+        X_scaled.shape[1],
+        X_reduced.shape[1],
+        pca.explained_variance_ratio_.sum() * 100,
+    )
+    return X_reduced, pca
 
 
 # ---------------------------------------------------------------------------
@@ -228,8 +338,48 @@ def find_optimal_k(
         - 'inertias' (dict[int, float]): Inertia per k tested.
         - 'best_silhouette' (float): Silhouette score at optimal_k.
     """
-    # TODO: Loop over k_range, fit KMeans, compute silhouette and inertia
-    raise NotImplementedError("find_optimal_k not yet implemented")
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+
+    silhouette_scores: dict[int, float] = {}
+    inertias: dict[int, float] = {}
+    best_k = k_range[0]
+    best_score = -1.0
+
+    for k in range(k_range[0], k_range[1]):
+        model = KMeans(
+            n_clusters=k,
+            init="k-means++",
+            n_init=10,
+            max_iter=300,
+            random_state=random_state,
+        )
+        labels = model.fit_predict(X)
+        score = silhouette_score(X, labels)
+        silhouette_scores[k] = float(score)
+        inertias[k] = float(model.inertia_)
+
+        logger.debug("k=%d  silhouette=%.4f  inertia=%.2f", k, score, model.inertia_)
+
+        if score > best_score:
+            best_k = k
+            best_score = score
+
+    if best_score < DEFAULT_MIN_SILHOUETTE:
+        logger.warning(
+            "Best silhouette score %.4f is below threshold %.2f; "
+            "data may not have clear cluster structure",
+            best_score,
+            DEFAULT_MIN_SILHOUETTE,
+        )
+
+    logger.info("Optimal k=%d with silhouette=%.4f", best_k, best_score)
+    return {
+        "optimal_k": best_k,
+        "silhouette_scores": silhouette_scores,
+        "inertias": inertias,
+        "best_silhouette": best_score,
+    }
 
 
 def run_kmeans(
@@ -253,8 +403,19 @@ def run_kmeans(
     tuple[np.ndarray, KMeans]
         Cluster label array and fitted KMeans model.
     """
-    # TODO: Fit KMeans with k-means++ init, return labels and model
-    raise NotImplementedError("run_kmeans not yet implemented")
+    from sklearn.cluster import KMeans
+
+    model = KMeans(
+        n_clusters=n_clusters,
+        init="k-means++",
+        n_init=10,
+        max_iter=300,
+        random_state=random_state,
+    )
+    labels = model.fit_predict(X)
+
+    logger.info("K-Means fitted with %d clusters", n_clusters)
+    return labels, model
 
 
 # ---------------------------------------------------------------------------
@@ -281,8 +442,32 @@ def estimate_dbscan_eps(
     float
         Estimated epsilon value based on the k-distance elbow.
     """
-    # TODO: Compute k-nearest neighbor distances, find elbow point
-    raise NotImplementedError("estimate_dbscan_eps not yet implemented")
+    from sklearn.neighbors import NearestNeighbors
+
+    n_features = X.shape[1]
+    k = max(2, k_multiplier * n_features)
+    # Ensure k does not exceed n_samples - 1
+    k = min(k, X.shape[0] - 1)
+
+    nbrs = NearestNeighbors(n_neighbors=k).fit(X)
+    distances, _ = nbrs.kneighbors(X)
+    k_distances = np.sort(distances[:, -1])
+
+    # Find elbow using maximum second derivative (curvature)
+    if len(k_distances) < 3:
+        eps = float(k_distances[-1])
+    else:
+        # Compute second derivative of the sorted k-distance curve
+        d1 = np.diff(k_distances)
+        d2 = np.diff(d1)
+        elbow_idx = int(np.argmax(d2)) + 1  # offset by 1 due to diff
+        eps = float(k_distances[elbow_idx])
+
+    # Sanity: eps should be positive
+    eps = max(eps, 1e-6)
+
+    logger.info("Estimated DBSCAN eps=%.4f (k=%d)", eps, k)
+    return eps
 
 
 def run_dbscan(
@@ -310,8 +495,54 @@ def run_dbscan(
         - Diagnostics dict with keys: 'n_clusters', 'noise_count',
           'noise_pct', 'silhouette' (excluding noise).
     """
-    # TODO: Estimate eps/min_samples if not provided, fit DBSCAN, compute diagnostics
-    raise NotImplementedError("run_dbscan not yet implemented")
+    from sklearn.cluster import DBSCAN
+    from sklearn.metrics import silhouette_score
+
+    if eps is None:
+        eps = estimate_dbscan_eps(X)
+
+    if min_samples is None:
+        min_samples = max(
+            DEFAULT_DBSCAN_MIN_SAMPLES_FLOOR,
+            int(DEFAULT_DBSCAN_MIN_SAMPLES_RATIO * len(X)),
+        )
+
+    model = DBSCAN(eps=eps, min_samples=min_samples)
+    labels = model.fit_predict(X)
+
+    n_clusters = len(set(labels) - {-1})
+    noise_count = int((labels == -1).sum())
+    noise_pct = noise_count / len(labels) * 100 if len(labels) > 0 else 0.0
+
+    # Compute silhouette excluding noise, only if >= 2 clusters exist
+    sil_score = None
+    non_noise_mask = labels != -1
+    if n_clusters >= 2 and non_noise_mask.sum() > n_clusters:
+        sil_score = float(silhouette_score(X[non_noise_mask], labels[non_noise_mask]))
+
+    diagnostics: dict[str, Any] = {
+        "n_clusters": n_clusters,
+        "noise_count": noise_count,
+        "noise_pct": round(noise_pct, 2),
+        "silhouette": sil_score,
+    }
+
+    if noise_pct > 30:
+        logger.warning(
+            "DBSCAN noise percentage %.1f%% is high; consider increasing eps", noise_pct
+        )
+    if n_clusters < 2:
+        logger.warning(
+            "DBSCAN found %d cluster(s); consider falling back to K-Means", n_clusters
+        )
+
+    logger.info(
+        "DBSCAN: %d clusters, %d noise points (%.1f%%)",
+        n_clusters,
+        noise_count,
+        noise_pct,
+    )
+    return labels, model, diagnostics
 
 
 # ---------------------------------------------------------------------------
@@ -341,8 +572,36 @@ def profile_clusters(
         Per-cluster profile with mean, median, and std of each feature,
         plus cluster size and percentage.
     """
-    # TODO: Group by label, compute statistics, identify distinguishing features
-    raise NotImplementedError("profile_clusters not yet implemented")
+    if feature_names is None:
+        feature_names = list(feature_matrix.columns)
+
+    df = feature_matrix.copy()
+    df.columns = feature_names
+    df = df.copy()
+    df["cluster"] = labels
+
+    total = len(df)
+    profiles_list = []
+
+    for cluster_id in sorted(df["cluster"].unique()):
+        cluster_data = df[df["cluster"] == cluster_id].drop(columns=["cluster"])
+        size = len(cluster_data)
+
+        stats: dict[str, Any] = {
+            "cluster": cluster_id,
+            "size": size,
+            "pct": round(size / total * 100, 2),
+        }
+        for feat in feature_names:
+            stats[f"{feat}_mean"] = round(float(cluster_data[feat].mean()), 4)
+            stats[f"{feat}_median"] = round(float(cluster_data[feat].median()), 4)
+            stats[f"{feat}_std"] = round(float(cluster_data[feat].std()), 4)
+
+        profiles_list.append(stats)
+
+    profiles = pd.DataFrame(profiles_list).set_index("cluster")
+    logger.info("Profiled %d clusters", len(profiles))
+    return profiles
 
 
 # ---------------------------------------------------------------------------
@@ -390,5 +649,57 @@ def run_clustering_pipeline(
     dict
         Pipeline results including labels, profiles, and diagnostics.
     """
-    # TODO: Orchestrate the full pipeline
-    raise NotImplementedError("run_clustering_pipeline not yet implemented")
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Load events
+    events = load_behavioral_events(events_path)
+
+    # 2. Engineer features
+    feature_matrix = engineer_features(events)
+
+    # 3. Remove low-variance features
+    feature_matrix = remove_low_variance_features(feature_matrix)
+
+    # 4. Scale features
+    X_scaled, scaler = scale_features(feature_matrix, method=scaling)
+
+    # 5. Optionally apply PCA
+    pca_model = None
+    X_cluster = X_scaled
+    if use_pca and X_scaled.shape[1] > 2:
+        X_cluster, pca_model = apply_pca(X_cluster, random_state=random_state)
+
+    # 6. Cluster
+    diagnostics: dict[str, Any] = {}
+    if method == "kmeans":
+        opt = find_optimal_k(X_cluster, random_state=random_state)
+        labels, model = run_kmeans(
+            X_cluster, n_clusters=opt["optimal_k"], random_state=random_state
+        )
+        diagnostics.update(opt)
+    elif method == "dbscan":
+        labels, model, dbscan_diag = run_dbscan(X_cluster)
+        diagnostics.update(dbscan_diag)
+    else:
+        raise ValueError(f"Unsupported clustering method '{method}'. Use 'kmeans' or 'dbscan'.")
+
+    # 7. Profile clusters
+    profiles = profile_clusters(feature_matrix, labels)
+
+    # 8. Save results
+    assignments = feature_matrix.copy()
+    assignments["cluster"] = labels
+    assignments.to_csv(output_dir / "cluster_assignments.csv")
+    profiles.to_csv(output_dir / "cluster_profiles.csv")
+
+    logger.info("Clustering pipeline complete. Results saved to %s", output_dir)
+
+    return {
+        "labels": labels,
+        "profiles": profiles,
+        "diagnostics": diagnostics,
+        "model": model,
+        "scaler": scaler,
+        "pca": pca_model,
+    }

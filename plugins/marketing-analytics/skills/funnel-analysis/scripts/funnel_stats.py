@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from itertools import combinations
 from pathlib import Path
 from typing import Optional
 
@@ -166,14 +167,31 @@ def wilson_score_interval(
     Raises:
         ValueError: If k > n or n <= 0 or k < 0.
     """
-    # TODO: Implement Wilson score interval formula:
-    #   z = norm.ppf(1 - (1 - confidence_level) / 2)
-    #   p_hat = k / n
-    #   center = (p_hat + z**2 / (2*n)) / (1 + z**2 / n)
-    #   margin = z / (1 + z**2 / n) * sqrt(p_hat*(1-p_hat)/n + z**2/(4*n**2))
-    #   lower = max(0, center - margin)
-    #   upper = min(1, center + margin)
-    raise NotImplementedError("wilson_score_interval not yet implemented")
+    if n <= 0:
+        raise ValueError(f"n must be positive, got {n}")
+    if k < 0:
+        raise ValueError(f"k must be non-negative, got {k}")
+    if k > n:
+        raise ValueError(f"k ({k}) cannot exceed n ({n})")
+
+    z = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+    p_hat = k / n
+
+    denominator = 1 + z**2 / n
+    center = (p_hat + z**2 / (2 * n)) / denominator
+    margin = z / denominator * np.sqrt(p_hat * (1 - p_hat) / n + z**2 / (4 * n**2))
+
+    lower = max(0.0, center - margin)
+    upper = min(1.0, center + margin)
+
+    return WilsonInterval(
+        point_estimate=p_hat,
+        lower=lower,
+        upper=upper,
+        confidence_level=confidence_level,
+        n=n,
+        k=k,
+    )
 
 
 def compute_funnel_stats(
@@ -193,11 +211,85 @@ def compute_funnel_stats(
     Returns:
         A FunnelStats with per-stage and overall statistical summaries.
     """
-    # TODO: Implement:
-    #   1. For each stage, compute Wilson CI for conversion and drop-off
-    #   2. Compute time-to-next-stage distributions from user_results
-    #   3. Compute overall conversion Wilson CI
-    raise NotImplementedError("compute_funnel_stats not yet implemented")
+    num_stages = len(funnel_result.steps)
+    stages: list[StageStats] = []
+
+    for i in range(num_stages):
+        entered = funnel_result.stage_counts[i]
+
+        if i < num_stages - 1:
+            converted = funnel_result.stage_counts[i + 1]
+        else:
+            # Final stage: "converted" means completed (no next stage)
+            converted = funnel_result.stage_counts[i]
+
+        dropped = entered - converted
+
+        # Wilson CIs for conversion and drop-off
+        if entered > 0:
+            conversion_ci = wilson_score_interval(converted, entered, confidence_level)
+            drop_off_ci = WilsonInterval(
+                point_estimate=1 - conversion_ci.point_estimate,
+                lower=max(0.0, 1 - conversion_ci.upper),
+                upper=min(1.0, 1 - conversion_ci.lower),
+                confidence_level=confidence_level,
+                n=entered,
+                k=dropped,
+            )
+        else:
+            conversion_ci = WilsonInterval(0.0, 0.0, 0.0, confidence_level, 0, 0)
+            drop_off_ci = WilsonInterval(0.0, 0.0, 0.0, confidence_level, 0, 0)
+
+        # Compute time-to-next-stage from user_results
+        median_time = None
+        time_percentiles: dict[int, float] = {}
+
+        if i < num_stages - 1:
+            times: list[float] = []
+            for ur in funnel_result.user_results:
+                if i in ur.stage_timestamps and (i + 1) in ur.stage_timestamps:
+                    ts_current = pd.Timestamp(ur.stage_timestamps[i])
+                    ts_next = pd.Timestamp(ur.stage_timestamps[i + 1])
+                    elapsed = (ts_next - ts_current).total_seconds()
+                    if elapsed >= 0:
+                        times.append(elapsed)
+
+            if times:
+                times_arr = np.array(times)
+                median_time = float(np.median(times_arr))
+                for p in [25, 50, 75, 90]:
+                    time_percentiles[p] = float(np.percentile(times_arr, p))
+
+        stages.append(StageStats(
+            stage_index=i,
+            stage_name=funnel_result.steps[i],
+            entered=entered,
+            converted=converted,
+            dropped=dropped,
+            conversion_rate=conversion_ci,
+            drop_off_rate=drop_off_ci,
+            median_time_to_next=median_time,
+            time_to_next_percentiles=time_percentiles,
+        ))
+
+    # Overall conversion
+    total_entered = funnel_result.total_entered
+    total_completed = funnel_result.total_completed
+
+    if total_entered > 0:
+        overall_ci = wilson_score_interval(
+            total_completed, total_entered, confidence_level
+        )
+    else:
+        overall_ci = WilsonInterval(0.0, 0.0, 0.0, confidence_level, 0, 0)
+
+    return FunnelStats(
+        funnel_name=funnel_result.funnel_name,
+        stages=stages,
+        overall_conversion=overall_ci,
+        total_entered=total_entered,
+        total_completed=total_completed,
+    )
 
 
 def compute_time_to_convert(
@@ -226,8 +318,112 @@ def compute_time_to_convert(
             - "n_observed": count of users who completed transition
             - "n_censored": count of users censored at this transition
     """
-    # TODO: Implement time-to-convert with optional censoring
-    raise NotImplementedError("compute_time_to_convert not yet implemented")
+    if percentiles is None:
+        percentiles = [25, 50, 75, 90]
+
+    num_stages = len(funnel_result.steps)
+    results: list[dict] = []
+
+    for i in range(num_stages - 1):
+        observed_times: list[float] = []
+        n_censored = 0
+
+        for ur in funnel_result.user_results:
+            if i not in ur.stage_timestamps:
+                # User didn't reach this stage, skip
+                continue
+
+            ts_current = pd.Timestamp(ur.stage_timestamps[i])
+
+            if (i + 1) in ur.stage_timestamps:
+                # Observed: user made it to the next stage
+                ts_next = pd.Timestamp(ur.stage_timestamps[i + 1])
+                elapsed = (ts_next - ts_current).total_seconds()
+                if elapsed >= 0:
+                    observed_times.append(elapsed)
+            else:
+                # Censored: user reached stage i but not i+1
+                n_censored += 1
+
+        n_observed = len(observed_times)
+
+        if n_observed == 0:
+            results.append({
+                "from_stage": i,
+                "to_stage": i + 1,
+                "median_seconds": None,
+                "percentiles": {p: None for p in percentiles},
+                "n_observed": 0,
+                "n_censored": n_censored,
+            })
+            continue
+
+        times_arr = np.array(sorted(observed_times))
+
+        if handle_censored and n_censored > 0:
+            # Kaplan-Meier estimation for censored data
+            # Combine observed and censored into a sorted event list
+            # For censored observations, we don't know exact time; use max
+            # observed time as conservative censoring time
+            max_observed = times_arr[-1] if len(times_arr) > 0 else 0.0
+
+            # Build KM survival curve from observed times only, adjusting
+            # the risk set to account for censored observations
+            total_at_risk = n_observed + n_censored
+            unique_times = np.unique(times_arr)
+            survival = 1.0
+            km_times: list[float] = [0.0]
+            km_survival: list[float] = [1.0]
+
+            remaining_censored = n_censored
+            events_processed = 0
+
+            for t in unique_times:
+                events_at_t = int(np.sum(times_arr == t))
+
+                # Risk set: total - events already processed - censored
+                # distributed proportionally
+                risk_set = total_at_risk - events_processed
+                if risk_set <= 0:
+                    break
+
+                survival *= (1 - events_at_t / risk_set)
+                km_times.append(float(t))
+                km_survival.append(survival)
+                events_processed += events_at_t
+
+            # Compute percentiles from KM curve
+            km_times_arr = np.array(km_times)
+            km_survival_arr = np.array(km_survival)
+
+            pct_results: dict[int, float | None] = {}
+            for p in percentiles:
+                target_survival = 1 - p / 100.0
+                indices = np.where(km_survival_arr <= target_survival)[0]
+                if len(indices) > 0:
+                    pct_results[p] = float(km_times_arr[indices[0]])
+                else:
+                    # Survival never drops below target; use max observed
+                    pct_results[p] = float(max_observed)
+
+            median_seconds = pct_results.get(50)
+        else:
+            # No censoring adjustment, use observed times directly
+            pct_results = {}
+            for p in percentiles:
+                pct_results[p] = float(np.percentile(times_arr, p))
+            median_seconds = float(np.median(times_arr))
+
+        results.append({
+            "from_stage": i,
+            "to_stage": i + 1,
+            "median_seconds": median_seconds,
+            "percentiles": pct_results,
+            "n_observed": n_observed,
+            "n_censored": n_censored,
+        })
+
+    return results
 
 
 def chi_squared_comparison(
@@ -264,9 +460,67 @@ def chi_squared_comparison(
     Raises:
         ValueError: If any count is negative or converted > total.
     """
-    # TODO: Implement chi-squared test using scipy.stats.chi2_contingency
-    #   with Yates correction for small expected counts
-    raise NotImplementedError("chi_squared_comparison not yet implemented")
+    if cohort_a_converted < 0 or cohort_b_converted < 0:
+        raise ValueError("Converted counts must be non-negative")
+    if cohort_a_total < 0 or cohort_b_total < 0:
+        raise ValueError("Total counts must be non-negative")
+    if cohort_a_converted > cohort_a_total:
+        raise ValueError(
+            f"Cohort A converted ({cohort_a_converted}) > total ({cohort_a_total})"
+        )
+    if cohort_b_converted > cohort_b_total:
+        raise ValueError(
+            f"Cohort B converted ({cohort_b_converted}) > total ({cohort_b_total})"
+        )
+
+    # Build 2x2 contingency table
+    # [[converted_A, not_converted_A], [converted_B, not_converted_B]]
+    table = np.array([
+        [cohort_a_converted, cohort_a_total - cohort_a_converted],
+        [cohort_b_converted, cohort_b_total - cohort_b_converted],
+    ])
+
+    # Determine whether to use Yates correction: check expected cell counts
+    row_totals = table.sum(axis=1)
+    col_totals = table.sum(axis=0)
+    grand_total = table.sum()
+
+    if grand_total == 0:
+        return CohortComparison(
+            stage_index=stage_index,
+            stage_name=stage_name,
+            cohort_a_name=cohort_a_name,
+            cohort_b_name=cohort_b_name,
+            cohort_a_rate=0.0,
+            cohort_b_rate=0.0,
+            chi_squared_statistic=0.0,
+            p_value=1.0,
+            significant=False,
+            relative_difference=0.0,
+        )
+
+    expected = np.outer(row_totals, col_totals) / grand_total
+    use_yates = bool(np.any(expected < 5))
+
+    chi2_stat, p_value, _, _ = stats.chi2_contingency(table, correction=use_yates)
+
+    rate_a = cohort_a_converted / cohort_a_total if cohort_a_total > 0 else 0.0
+    rate_b = cohort_b_converted / cohort_b_total if cohort_b_total > 0 else 0.0
+
+    relative_diff = (rate_b - rate_a) / rate_a if rate_a > 0 else 0.0
+
+    return CohortComparison(
+        stage_index=stage_index,
+        stage_name=stage_name,
+        cohort_a_name=cohort_a_name,
+        cohort_b_name=cohort_b_name,
+        cohort_a_rate=rate_a,
+        cohort_b_rate=rate_b,
+        chi_squared_statistic=float(chi2_stat),
+        p_value=float(p_value),
+        significant=p_value < alpha,
+        relative_difference=relative_diff,
+    )
 
 
 def compare_cohort_funnels(
@@ -288,9 +542,59 @@ def compare_cohort_funnels(
     Returns:
         A list of CohortComparison results for all pairwise stage comparisons.
     """
-    # TODO: Implement pairwise comparison with Bonferroni correction:
-    #   adjusted_alpha = alpha / num_comparisons
-    raise NotImplementedError("compare_cohort_funnels not yet implemented")
+    cohort_names = list(cohort_funnels.keys())
+    if len(cohort_names) < 2:
+        return []
+
+    # Get number of stages from first cohort
+    first_funnel = next(iter(cohort_funnels.values()))
+    num_stages = len(first_funnel.steps)
+
+    # Count total pairwise comparisons for Bonferroni correction
+    num_pairs = len(list(combinations(cohort_names, 2)))
+    num_comparisons = num_pairs * num_stages
+
+    if correction == "bonferroni" and num_comparisons > 0:
+        adjusted_alpha = alpha / num_comparisons
+    else:
+        adjusted_alpha = alpha
+
+    results: list[CohortComparison] = []
+
+    for i in range(num_stages):
+        for name_a, name_b in combinations(cohort_names, 2):
+            funnel_a = cohort_funnels[name_a]
+            funnel_b = cohort_funnels[name_b]
+
+            entered_a = funnel_a.stage_counts[i]
+            entered_b = funnel_b.stage_counts[i]
+
+            if i < num_stages - 1:
+                converted_a = funnel_a.stage_counts[i + 1]
+                converted_b = funnel_b.stage_counts[i + 1]
+            else:
+                # Final stage: use the count itself as converted
+                converted_a = funnel_a.stage_counts[i]
+                converted_b = funnel_b.stage_counts[i]
+
+            # Skip if both cohorts have zero entries
+            if entered_a == 0 and entered_b == 0:
+                continue
+
+            comparison = chi_squared_comparison(
+                stage_name=funnel_a.steps[i],
+                stage_index=i,
+                cohort_a_name=name_a,
+                cohort_a_converted=converted_a,
+                cohort_a_total=entered_a,
+                cohort_b_name=name_b,
+                cohort_b_converted=converted_b,
+                cohort_b_total=entered_b,
+                alpha=adjusted_alpha,
+            )
+            results.append(comparison)
+
+    return results
 
 
 def rank_bottlenecks(
@@ -320,11 +624,53 @@ def rank_bottlenecks(
         A list of BottleneckScore entries sorted by composite score descending,
         with rank 1 being the highest-priority bottleneck.
     """
-    # TODO: Implement bottleneck scoring:
-    #   1. Compute revenue_proximity = 1 / (total_stages - stage_index)
-    #   2. Compute composite score with configurable exponents
-    #   3. Sort descending and assign ranks
-    raise NotImplementedError("rank_bottlenecks not yet implemented")
+    if total_stages is None:
+        total_stages = len(funnel_stats.stages)
+
+    scores: list[BottleneckScore] = []
+
+    for stage in funnel_stats.stages:
+        i = stage.stage_index
+
+        # Skip the final stage (no drop-off from funnel perspective)
+        if i >= total_stages - 1:
+            continue
+
+        drop_off = stage.drop_off_rate.point_estimate
+        volume = stage.entered
+
+        # revenue_proximity = 1 / (total_stages - stage_index)
+        distance_to_end = total_stages - i
+        if distance_to_end <= 0:
+            revenue_proximity = 1.0
+        else:
+            revenue_proximity = 1.0 / distance_to_end
+
+        # Composite score with configurable exponents
+        composite = (
+            (drop_off ** weight_dropoff)
+            * (volume ** weight_volume_exp)
+            * (revenue_proximity ** weight_proximity)
+        )
+
+        scores.append(BottleneckScore(
+            stage_index=i,
+            stage_name=stage.stage_name,
+            drop_off_rate=drop_off,
+            volume=volume,
+            revenue_proximity=revenue_proximity,
+            composite_score=composite,
+            rank=0,  # Will be assigned after sorting
+        ))
+
+    # Sort by composite score descending
+    scores.sort(key=lambda s: s.composite_score, reverse=True)
+
+    # Assign ranks
+    for rank, score in enumerate(scores, start=1):
+        score.rank = rank
+
+    return scores
 
 
 def save_bottleneck_ranking(
@@ -339,8 +685,24 @@ def save_bottleneck_ranking(
         bottlenecks: Ranked list of BottleneckScore entries.
         filepath: Output path for the JSON file.
     """
-    # TODO: Implement JSON serialization of bottleneck ranking
-    raise NotImplementedError("save_bottleneck_ranking not yet implemented")
+    filepath = Path(filepath)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    output = [
+        {
+            "rank": b.rank,
+            "stage_index": b.stage_index,
+            "stage_name": b.stage_name,
+            "drop_off_rate": b.drop_off_rate,
+            "volume": b.volume,
+            "revenue_proximity": b.revenue_proximity,
+            "composite_score": b.composite_score,
+        }
+        for b in bottlenecks
+    ]
+
+    with open(filepath, "w") as f:
+        json.dump(output, f, indent=2)
 
 
 def save_funnel_stats(
@@ -356,12 +718,49 @@ def save_funnel_stats(
         funnel_stats: The complete statistical summary.
         filepath: Output path for the JSON file.
     """
-    # TODO: Implement JSON serialization of FunnelStats
-    raise NotImplementedError("save_funnel_stats not yet implemented")
+    filepath = Path(filepath)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    def _wilson_to_dict(wi: WilsonInterval) -> dict:
+        return {
+            "point_estimate": wi.point_estimate,
+            "lower": wi.lower,
+            "upper": wi.upper,
+            "confidence_level": wi.confidence_level,
+            "n": wi.n,
+            "k": wi.k,
+        }
+
+    output = {
+        "funnel_name": funnel_stats.funnel_name,
+        "total_entered": funnel_stats.total_entered,
+        "total_completed": funnel_stats.total_completed,
+        "overall_conversion": _wilson_to_dict(funnel_stats.overall_conversion),
+        "stages": [
+            {
+                "stage_index": s.stage_index,
+                "stage_name": s.stage_name,
+                "entered": s.entered,
+                "converted": s.converted,
+                "dropped": s.dropped,
+                "conversion_rate": _wilson_to_dict(s.conversion_rate),
+                "drop_off_rate": _wilson_to_dict(s.drop_off_rate),
+                "median_time_to_next": s.median_time_to_next,
+                "time_to_next_percentiles": {
+                    str(k): v for k, v in s.time_to_next_percentiles.items()
+                },
+            }
+            for s in funnel_stats.stages
+        ],
+    }
+
+    with open(filepath, "w") as f:
+        json.dump(output, f, indent=2)
 
 
 if __name__ == "__main__":
     import sys
+    from build_funnel import FunnelResult, UserFunnelResult
 
     funnel_results_path = (
         sys.argv[1] if len(sys.argv) > 1
@@ -371,7 +770,47 @@ if __name__ == "__main__":
         sys.argv[2] if len(sys.argv) > 2
         else "workspace/analysis/bottleneck_ranking.json"
     )
+    stats_output_path = (
+        sys.argv[3] if len(sys.argv) > 3
+        else "workspace/analysis/funnel_stats.json"
+    )
 
-    # TODO: Load FunnelResult from JSON, compute stats, rank bottlenecks, save
-    print("funnel_stats.py: Load funnel results, compute stats, rank bottlenecks")
-    raise NotImplementedError("CLI entrypoint not yet implemented")
+    # Load FunnelResult from JSON
+    with open(funnel_results_path, "r") as f:
+        raw = json.load(f)
+
+    user_results = [
+        UserFunnelResult(
+            entity_id=ur["entity_id"],
+            furthest_stage=ur["furthest_stage"],
+            stage_timestamps={int(k): v for k, v in ur["stage_timestamps"].items()},
+            completed=ur["completed"],
+        )
+        for ur in raw["user_results"]
+    ]
+
+    funnel_result = FunnelResult(
+        funnel_name=raw["funnel_name"],
+        steps=raw["steps"],
+        stage_counts=raw["stage_counts"],
+        stage_conversion_rates=raw["stage_conversion_rates"],
+        stage_drop_off_rates=raw["stage_drop_off_rates"],
+        total_entered=raw["total_entered"],
+        total_completed=raw["total_completed"],
+        overall_conversion_rate=raw["overall_conversion_rate"],
+        user_results=user_results,
+    )
+
+    funnel_stats = compute_funnel_stats(funnel_result)
+    bottlenecks = rank_bottlenecks(funnel_stats)
+
+    save_funnel_stats(funnel_stats, stats_output_path)
+    save_bottleneck_ranking(bottlenecks, bottleneck_output_path)
+
+    print(f"Funnel stats computed for '{funnel_stats.funnel_name}'")
+    print(f"Overall conversion: {funnel_stats.overall_conversion.point_estimate:.2%} "
+          f"[{funnel_stats.overall_conversion.lower:.2%}, "
+          f"{funnel_stats.overall_conversion.upper:.2%}]")
+    if bottlenecks:
+        print(f"Top bottleneck: {bottlenecks[0].stage_name} "
+              f"(score: {bottlenecks[0].composite_score:.2f})")

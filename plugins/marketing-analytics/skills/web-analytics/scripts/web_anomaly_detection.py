@@ -15,7 +15,7 @@ Dependencies:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -94,9 +94,43 @@ def validate_time_series(
         ValueError: If the time series has insufficient history, missing
             dates, or non-numeric metric values.
     """
-    # TODO: Check that df has at least min_history_days rows, no large
-    # date gaps, and that metric_column is numeric and non-null.
-    raise NotImplementedError("validate_time_series not yet implemented")
+    if date_column not in df.columns:
+        raise ValueError(f"Date column '{date_column}' not found in DataFrame")
+    if metric_column not in df.columns:
+        raise ValueError(f"Metric column '{metric_column}' not found in DataFrame")
+
+    # Ensure the metric column is numeric.
+    if not pd.api.types.is_numeric_dtype(df[metric_column]):
+        raise ValueError(
+            f"Metric column '{metric_column}' must be numeric, "
+            f"got {df[metric_column].dtype}"
+        )
+
+    # Check for all-null metric.
+    if df[metric_column].isna().all():
+        raise ValueError(f"Metric column '{metric_column}' contains only null values")
+
+    # Parse dates and check history length.
+    dates = pd.to_datetime(df[date_column])
+    unique_dates = dates.dropna().dt.normalize().unique()
+    n_days = len(unique_dates)
+
+    if n_days < min_history_days:
+        raise ValueError(
+            f"Insufficient history: {n_days} days available, "
+            f"{min_history_days} required"
+        )
+
+    # Check for large date gaps (more than 3 consecutive missing days).
+    sorted_dates = pd.DatetimeIndex(sorted(unique_dates))
+    gaps = sorted_dates[1:] - sorted_dates[:-1]
+    max_gap = gaps.max() if len(gaps) > 0 else pd.Timedelta(0)
+    if max_gap > pd.Timedelta(days=3):
+        raise ValueError(
+            f"Large date gap detected: {max_gap.days} consecutive days missing"
+        )
+
+    return True
 
 
 def run_stl_decomposition(
@@ -115,9 +149,17 @@ def run_stl_decomposition(
     Returns:
         Tuple of (trend, seasonal, residual) Series.
     """
-    # TODO: Use statsmodels.tsa.seasonal.STL with robust=True.
-    # Return the three decomposition components.
-    raise NotImplementedError("run_stl_decomposition not yet implemented")
+    from statsmodels.tsa.seasonal import STL
+
+    # Fill any internal missing values via linear interpolation for STL.
+    filled = series.copy()
+    if filled.isna().any():
+        filled = filled.interpolate(method="linear").ffill().bfill()
+
+    stl = STL(filled, period=period, robust=True)
+    result = stl.fit()
+
+    return result.trend, result.seasonal, result.resid
 
 
 def compute_z_scores(residuals: pd.Series) -> pd.Series:
@@ -132,9 +174,21 @@ def compute_z_scores(residuals: pd.Series) -> pd.Series:
     Returns:
         Series of Z-scores aligned with the input index.
     """
-    # TODO: Compute median and MAD of residuals, then Z = (r - median) / MAD.
-    # Handle MAD = 0 edge case.
-    raise NotImplementedError("compute_z_scores not yet implemented")
+    median = residuals.median()
+    mad = np.median(np.abs(residuals - median))
+
+    # Scale MAD to be consistent with standard deviation for normal data.
+    # MAD * 1.4826 ≈ std for a normal distribution.
+    scaled_mad = mad * 1.4826
+
+    if scaled_mad == 0:
+        # If MAD is zero (constant residuals), fall back to mean/std.
+        std = residuals.std()
+        if std == 0:
+            return pd.Series(0.0, index=residuals.index)
+        return (residuals - residuals.mean()) / std
+
+    return (residuals - median) / scaled_mad
 
 
 def detect_anomalies(
@@ -159,9 +213,56 @@ def detect_anomalies(
         List of Anomaly objects for flagged dates, sorted by absolute
         Z-score descending.
     """
-    # TODO: Validate time series, run STL decomposition, compute Z-scores,
-    # filter by threshold, exclude suppression dates, build Anomaly objects.
-    raise NotImplementedError("detect_anomalies not yet implemented")
+    validate_time_series(df, date_column, metric_column, config.min_history_days)
+
+    # Build daily aggregated series.
+    ts_df = df[[date_column, metric_column]].copy()
+    ts_df[date_column] = pd.to_datetime(ts_df[date_column])
+    daily = (
+        ts_df.groupby(date_column)[metric_column]
+        .sum()
+        .sort_index()
+    )
+    daily.index = pd.DatetimeIndex(daily.index)
+
+    # Fill any missing dates in the range with zero to get a continuous series.
+    full_range = pd.date_range(daily.index.min(), daily.index.max(), freq="D")
+    daily = daily.reindex(full_range, fill_value=0)
+
+    trend, seasonal, residual = run_stl_decomposition(daily, config.seasonal_period)
+    z_scores = compute_z_scores(residual)
+
+    expected = trend + seasonal
+
+    anomalies: list[Anomaly] = []
+    for dt, z in z_scores.items():
+        if abs(z) < config.z_score_threshold:
+            continue
+
+        anomaly_dt = dt.date() if hasattr(dt, "date") else dt
+
+        # Suppress known events.
+        if anomaly_dt in config.suppression_dates:
+            continue
+
+        observed = float(daily.loc[dt])
+        exp_val = float(expected.loc[dt])
+        direction = "above" if z > 0 else "below"
+
+        anomalies.append(
+            Anomaly(
+                metric_name=metric_column,
+                anomaly_date=anomaly_dt,
+                observed_value=observed,
+                expected_value=exp_val,
+                z_score=float(z),
+                direction=direction,
+            )
+        )
+
+    # Sort by absolute Z-score descending.
+    anomalies.sort(key=lambda a: abs(a.z_score), reverse=True)
+    return anomalies
 
 
 def decompose_root_causes(
@@ -188,9 +289,86 @@ def decompose_root_causes(
         - "contribution": signed contribution to the anomaly
         - "pct_contribution": percentage of total anomaly explained
     """
-    # TODO: For each dimension, group by dimension value, compute
-    # observed - expected for the anomaly date, rank by contribution.
-    raise NotImplementedError("decompose_root_causes not yet implemented")
+    result: dict[str, list[dict[str, Any]]] = {}
+
+    # Identify the date column (first column that parses as dates).
+    date_col: str | None = None
+    for col in df.columns:
+        if col.lower() in ("date", "event_date", "report_date"):
+            date_col = col
+            break
+    if date_col is None:
+        # Fallback: try to find a datetime-ish column.
+        for col in df.columns:
+            try:
+                pd.to_datetime(df[col].head(5))
+                date_col = col
+                break
+            except Exception:
+                continue
+    if date_col is None:
+        return result
+
+    df_copy = df.copy()
+    df_copy["_parsed_date"] = pd.to_datetime(df_copy[date_col]).dt.date
+
+    # Data on the anomaly date.
+    anomaly_data = df_copy[df_copy["_parsed_date"] == anomaly_date]
+
+    # Baseline: data from 4 comparable day-of-week periods prior.
+    anomaly_weekday = anomaly_date.weekday()
+    baseline_mask = (
+        (df_copy["_parsed_date"] < anomaly_date)
+        & (df_copy["_parsed_date"].apply(lambda d: d.weekday()) == anomaly_weekday)
+    )
+    baseline_data = df_copy[baseline_mask]
+
+    # Count how many baseline days we have.
+    baseline_dates = baseline_data["_parsed_date"].unique()
+    n_baseline_days = len(baseline_dates)
+    if n_baseline_days == 0:
+        return result
+
+    for dim in dimensions:
+        if dim not in df.columns:
+            continue
+
+        # Observed values on anomaly date, grouped by dimension value.
+        observed = anomaly_data.groupby(dim)[metric_column].sum()
+
+        # Expected values: average across baseline same-weekday dates.
+        baseline_grouped = baseline_data.groupby(dim)[metric_column].sum()
+        expected = baseline_grouped / n_baseline_days
+
+        # Align on the union of dimension values.
+        all_values = set(observed.index) | set(expected.index)
+        contributions: list[dict[str, Any]] = []
+        total_deviation = 0.0
+
+        for val in all_values:
+            obs = float(observed.get(val, 0.0))
+            exp = float(expected.get(val, 0.0))
+            contrib = obs - exp
+            total_deviation += contrib
+            contributions.append(
+                {"value": str(val), "contribution": contrib, "pct_contribution": 0.0}
+            )
+
+        # Compute percentage contributions.
+        abs_total = abs(total_deviation) if total_deviation != 0 else 1.0
+        for entry in contributions:
+            entry["pct_contribution"] = round(
+                (entry["contribution"] / abs_total) * 100.0
+                if abs_total != 0
+                else 0.0,
+                2,
+            )
+
+        # Sort by absolute contribution descending.
+        contributions.sort(key=lambda x: abs(x["contribution"]), reverse=True)
+        result[dim] = contributions
+
+    return result
 
 
 def run_anomaly_detection(
@@ -210,9 +388,59 @@ def run_anomaly_detection(
     Returns:
         Flat list of all detected Anomaly objects across all metrics.
     """
-    # TODO: Load data, iterate over metrics, detect anomalies, decompose
-    # root causes, serialize to JSON, write to output_path.
-    raise NotImplementedError("run_anomaly_detection not yet implemented")
+    if config is None:
+        config = AnomalyConfig()
+
+    # Load data.
+    suffix = input_path.suffix.lower()
+    if suffix == ".json":
+        df = pd.read_json(input_path)
+    else:
+        df = pd.read_csv(input_path)
+
+    # Detect the date column.
+    date_column = "date"
+    for candidate in ("date", "event_date", "report_date"):
+        if candidate in df.columns:
+            date_column = candidate
+            break
+
+    all_anomalies: list[Anomaly] = []
+
+    for metric in metrics:
+        if metric not in df.columns:
+            continue
+
+        try:
+            anomalies = detect_anomalies(df, date_column, metric, config)
+        except ValueError:
+            # Insufficient data or validation failure for this metric — skip.
+            continue
+
+        # Decompose root causes for each anomaly.
+        available_dims = [
+            d for d in config.decomposition_dimensions if d in df.columns
+        ]
+        for anomaly in anomalies:
+            if available_dims:
+                anomaly.root_causes = decompose_root_causes(
+                    df, anomaly.anomaly_date, metric, available_dims
+                )
+
+        all_anomalies.extend(anomalies)
+
+    # Serialize to JSON.
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    serializable = []
+    for a in all_anomalies:
+        d = asdict(a)
+        d["anomaly_date"] = a.anomaly_date.isoformat()
+        serializable.append(d)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(serializable, f, indent=2, default=str)
+
+    return all_anomalies
 
 
 if __name__ == "__main__":

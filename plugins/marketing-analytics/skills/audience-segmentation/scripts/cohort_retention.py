@@ -83,13 +83,67 @@ def assign_cohorts(
         If dimension is 'first_channel' but channel_column is not provided
         or not present in the data.
     """
-    # TODO: Find first transaction per customer, extract cohort dimension
-    raise NotImplementedError("assign_cohorts not yet implemented")
+    df = transactions.copy()
+    df[date_column] = pd.to_datetime(df[date_column])
+
+    if dimension == "first_channel":
+        if channel_column is None or channel_column not in df.columns:
+            raise ValueError(
+                "dimension='first_channel' requires a valid channel_column "
+                f"present in the data. Got channel_column={channel_column!r}"
+            )
+
+    # Sort by date so idxmin gives the first transaction
+    df = df.sort_values(date_column)
+
+    # Get the first transaction row per customer
+    first_idx = df.groupby(customer_id_column)[date_column].idxmin()
+    first_txn = df.loc[first_idx].copy()
+
+    # Build the cohort label
+    if dimension == "acquisition_month":
+        first_txn["cohort"] = first_txn[date_column].dt.to_period("M").astype(str)
+    elif dimension == "first_product":
+        first_txn["cohort"] = first_txn[product_column].astype(str)
+    elif dimension == "first_channel":
+        first_txn["cohort"] = first_txn[channel_column].astype(str)
+    else:
+        raise ValueError(f"Unsupported cohort dimension: {dimension}")
+
+    result = first_txn[[customer_id_column, "cohort", date_column]].rename(
+        columns={date_column: "first_transaction_date"}
+    )
+    result = result.reset_index(drop=True)
+
+    logger.info(
+        "Assigned %d customers to %d cohorts (%s)",
+        len(result),
+        result["cohort"].nunique(),
+        dimension,
+    )
+    return result
 
 
 # ---------------------------------------------------------------------------
 # Retention matrix
 # ---------------------------------------------------------------------------
+
+
+def _compute_period_offset(
+    txn_date: pd.Series,
+    first_date: pd.Series,
+    granularity: PeriodGranularity,
+) -> pd.Series:
+    """Return integer period offset between two date series."""
+    if granularity == "month":
+        return (
+            (txn_date.dt.year - first_date.dt.year) * 12
+            + (txn_date.dt.month - first_date.dt.month)
+        )
+    elif granularity == "week":
+        return ((txn_date - first_date).dt.days // 7).astype(int)
+    else:
+        raise ValueError(f"Unsupported granularity: {granularity}")
 
 
 def build_retention_matrix(
@@ -134,8 +188,55 @@ def build_retention_matrix(
     ValueError
         If any retention value exceeds 100% (mathematical inconsistency).
     """
-    # TODO: Compute period offsets, pivot to retention matrix, validate <= 100%
-    raise NotImplementedError("build_retention_matrix not yet implemented")
+    df = transactions.copy()
+    df[date_column] = pd.to_datetime(df[date_column])
+
+    # Merge cohort info
+    merged = df.merge(
+        cohort_assignments[[customer_id_column, "cohort", "first_transaction_date"]],
+        on=customer_id_column,
+        how="inner",
+    )
+    merged["first_transaction_date"] = pd.to_datetime(merged["first_transaction_date"])
+
+    # Compute period offset
+    merged["period_offset"] = _compute_period_offset(
+        merged[date_column], merged["first_transaction_date"], granularity
+    )
+
+    # Keep only offsets in [0, n_periods]
+    merged = merged[(merged["period_offset"] >= 0) & (merged["period_offset"] <= n_periods)]
+
+    # Cohort sizes
+    cohort_sizes = cohort_assignments.groupby("cohort")[customer_id_column].nunique()
+
+    # Unique active customers per cohort per period
+    active = (
+        merged.groupby(["cohort", "period_offset"])[customer_id_column]
+        .nunique()
+        .reset_index(name="active_customers")
+    )
+
+    # Pivot to matrix
+    pivot = active.pivot(index="cohort", columns="period_offset", values="active_customers")
+    pivot = pivot.reindex(columns=range(0, n_periods + 1)).fillna(0)
+
+    # Compute retention percentages
+    retention = pivot.div(cohort_sizes, axis=0) * 100
+    retention = retention.fillna(0.0)
+
+    # Cap at 100% (should not exceed, but ensure contract)
+    if (retention > 100).any().any():
+        logger.warning("Retention values exceeding 100%% detected; capping at 100%%")
+        retention = retention.clip(upper=100.0)
+
+    # Final validation
+    if (retention > 100).any().any():
+        raise ValueError("Retention values exceed 100%% after capping")
+
+    retention.columns.name = "period"
+    logger.info("Built retention matrix: %d cohorts x %d periods", *retention.shape)
+    return retention
 
 
 # ---------------------------------------------------------------------------
@@ -161,8 +262,17 @@ def compute_churn_rates(
         Churn rate matrix with the same shape as the retention matrix.
         Period 0 is NaN (no prior period). Values are in [0, 1].
     """
-    # TODO: Compute period-over-period churn from retention deltas
-    raise NotImplementedError("compute_churn_rates not yet implemented")
+    churn = pd.DataFrame(index=retention_matrix.index, columns=retention_matrix.columns)
+    churn.iloc[:, 0] = np.nan  # Period 0 has no prior period
+
+    for i in range(1, len(retention_matrix.columns)):
+        prev = retention_matrix.iloc[:, i - 1].replace(0, np.nan)
+        curr = retention_matrix.iloc[:, i]
+        churn.iloc[:, i] = (1 - curr / prev).clip(lower=0, upper=1)
+
+    churn = churn.astype(float)
+    logger.info("Computed churn rate matrix")
+    return churn
 
 
 def compute_revenue_per_user(
@@ -199,8 +309,40 @@ def compute_revenue_per_user(
         Revenue-per-user matrix with cohort labels as index and period
         offsets as columns.
     """
-    # TODO: Sum revenue per cohort per period, divide by cohort size
-    raise NotImplementedError("compute_revenue_per_user not yet implemented")
+    df = transactions.copy()
+    df[date_column] = pd.to_datetime(df[date_column])
+
+    merged = df.merge(
+        cohort_assignments[[customer_id_column, "cohort", "first_transaction_date"]],
+        on=customer_id_column,
+        how="inner",
+    )
+    merged["first_transaction_date"] = pd.to_datetime(merged["first_transaction_date"])
+
+    merged["period_offset"] = _compute_period_offset(
+        merged[date_column], merged["first_transaction_date"], granularity
+    )
+    merged = merged[(merged["period_offset"] >= 0) & (merged["period_offset"] <= n_periods)]
+
+    # Total revenue per cohort per period
+    rev_agg = (
+        merged.groupby(["cohort", "period_offset"])[amount_column]
+        .sum()
+        .reset_index(name="total_revenue")
+    )
+
+    # Cohort sizes (total customers, not just active ones)
+    cohort_sizes = cohort_assignments.groupby("cohort")[customer_id_column].nunique()
+
+    rev_pivot = rev_agg.pivot(index="cohort", columns="period_offset", values="total_revenue")
+    rev_pivot = rev_pivot.reindex(columns=range(0, n_periods + 1)).fillna(0)
+
+    # Divide by cohort size
+    rpu = rev_pivot.div(cohort_sizes, axis=0).fillna(0.0)
+    rpu.columns.name = "period"
+
+    logger.info("Computed revenue per user matrix")
+    return rpu
 
 
 def compute_ltv_trajectory(
@@ -218,8 +360,9 @@ def compute_ltv_trajectory(
     pd.DataFrame
         Cumulative revenue-per-user matrix (running sum across columns).
     """
-    # TODO: Cumulative sum across period columns
-    raise NotImplementedError("compute_ltv_trajectory not yet implemented")
+    ltv = revenue_per_user.cumsum(axis=1)
+    logger.info("Computed LTV trajectory")
+    return ltv
 
 
 # ---------------------------------------------------------------------------
@@ -249,8 +392,28 @@ def save_cohort_results(
     output_path : str or Path
         Path to write the output JSON file.
     """
-    # TODO: Convert DataFrames to nested dicts, write JSON
-    raise NotImplementedError("save_cohort_results not yet implemented")
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _df_to_dict(df: pd.DataFrame) -> dict:
+        """Convert DataFrame to nested dict with string keys."""
+        result = {}
+        for idx in df.index:
+            row = df.loc[idx]
+            result[str(idx)] = {str(col): round(float(val), 4) for col, val in row.items()}
+        return result
+
+    payload = {
+        "retention_matrix": _df_to_dict(retention_matrix),
+        "churn_matrix": _df_to_dict(churn_matrix),
+        "revenue_per_user": _df_to_dict(revenue_per_user),
+        "ltv_trajectory": _df_to_dict(ltv_trajectory),
+    }
+
+    with open(output_path, "w") as f:
+        json.dump(payload, f, indent=2, default=str)
+
+    logger.info("Saved cohort results to %s", output_path)
 
 
 # ---------------------------------------------------------------------------
@@ -294,5 +457,50 @@ def run_cohort_pipeline(
     dict[str, pd.DataFrame]
         Keys: 'retention', 'churn', 'revenue_per_user', 'ltv_trajectory'.
     """
-    # TODO: Orchestrate the full pipeline
-    raise NotImplementedError("run_cohort_pipeline not yet implemented")
+    from scripts.rfm_scoring import load_transactions
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Load transactions
+    transactions = load_transactions(transactions_path)
+
+    # 2. Assign cohorts
+    cohort_assignments = assign_cohorts(
+        transactions, dimension=dimension,
+    )
+
+    # 3. Build retention matrix
+    retention = build_retention_matrix(
+        transactions,
+        cohort_assignments,
+        granularity=granularity,
+        n_periods=n_periods,
+    )
+
+    # 4. Churn rates
+    churn = compute_churn_rates(retention)
+
+    # 5. Revenue per user
+    rpu = compute_revenue_per_user(
+        transactions,
+        cohort_assignments,
+        granularity=granularity,
+        n_periods=n_periods,
+    )
+
+    # 6. LTV trajectory
+    ltv = compute_ltv_trajectory(rpu)
+
+    # 7. Save
+    save_cohort_results(retention, churn, rpu, ltv, output_dir / "cohort_results.json")
+    retention.to_csv(output_dir / "retention_matrix.csv")
+
+    logger.info("Cohort pipeline complete. Results saved to %s", output_dir)
+
+    return {
+        "retention": retention,
+        "churn": churn,
+        "revenue_per_user": rpu,
+        "ltv_trajectory": ltv,
+    }

@@ -115,8 +115,29 @@ def load_revenue_data(
         ValueError: If required columns are missing or revenue contains
             non-numeric values.
     """
-    # TODO: Implement revenue data loading and validation
-    raise NotImplementedError("load_revenue_data not yet implemented")
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"Revenue file not found: {filepath}")
+
+    df = pd.read_csv(filepath)
+
+    required_columns = [user_id_column, revenue_column, timestamp_column]
+    missing = [c for c in required_columns if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    # Validate revenue is numeric
+    if not pd.api.types.is_numeric_dtype(df[revenue_column]):
+        try:
+            df[revenue_column] = pd.to_numeric(df[revenue_column])
+        except (ValueError, TypeError):
+            raise ValueError(
+                f"Revenue column '{revenue_column}' contains non-numeric values"
+            )
+
+    df[timestamp_column] = pd.to_datetime(df[timestamp_column])
+
+    return df
 
 
 def compute_revenue_per_converter(
@@ -146,11 +167,29 @@ def compute_revenue_per_converter(
     Raises:
         ValueError: If no funnel completers have matching revenue data.
     """
-    # TODO: Implement:
-    #   1. Get user IDs who completed funnel
-    #   2. Join with revenue data
-    #   3. Compute median or mean revenue
-    raise NotImplementedError("compute_revenue_per_converter not yet implemented")
+    # Get user IDs of funnel completers
+    completer_ids = {
+        ur.entity_id for ur in funnel_result.user_results if ur.completed
+    }
+
+    if not completer_ids:
+        raise ValueError("No funnel completers found")
+
+    # Filter revenue data to completers
+    completer_revenue = revenue_data[
+        revenue_data[user_id_column].astype(str).isin(completer_ids)
+    ]
+
+    if completer_revenue.empty:
+        raise ValueError("No matching revenue data for funnel completers")
+
+    # Aggregate revenue per user
+    user_revenue = completer_revenue.groupby(user_id_column)[revenue_column].sum()
+
+    if use_median:
+        return float(user_revenue.median())
+    else:
+        return float(user_revenue.mean())
 
 
 def compute_stage_revenue_per_converter(
@@ -178,10 +217,38 @@ def compute_stage_revenue_per_converter(
     Returns:
         Revenue per converter from this stage onward.
     """
-    # TODO: Implement stage-specific revenue per converter
-    raise NotImplementedError(
-        "compute_stage_revenue_per_converter not yet implemented"
-    )
+    # Get users who reached at least the given stage AND completed the funnel
+    qualified_ids = {
+        ur.entity_id
+        for ur in funnel_result.user_results
+        if ur.furthest_stage >= stage_index and ur.completed
+    }
+
+    if not qualified_ids:
+        # Fall back to overall completer revenue if no stage-specific data
+        try:
+            return compute_revenue_per_converter(
+                revenue_data, funnel_result,
+                user_id_column=user_id_column,
+                revenue_column=revenue_column,
+                use_median=use_median,
+            )
+        except ValueError:
+            return 0.0
+
+    qualified_revenue = revenue_data[
+        revenue_data[user_id_column].astype(str).isin(qualified_ids)
+    ]
+
+    if qualified_revenue.empty:
+        return 0.0
+
+    user_revenue = qualified_revenue.groupby(user_id_column)[revenue_column].sum()
+
+    if use_median:
+        return float(user_revenue.median())
+    else:
+        return float(user_revenue.mean())
 
 
 def project_improvement_scenario(
@@ -214,14 +281,21 @@ def project_improvement_scenario(
     Returns:
         An ImprovementScenario with projected additional converters and revenue.
     """
-    # TODO: Implement:
-    #   new_rate = min(1.0, current_conversion_rate + improvement_ppts / 100)
-    #   additional_passers = current_volume * (new_rate - current_conversion_rate)
-    #   additional_converters = additional_passers * downstream_conversion_rate
-    #   additional_revenue = additional_converters * revenue_per_converter
-    #   additional_revenue_pct = additional_revenue / total_current_revenue * 100
-    raise NotImplementedError(
-        "project_improvement_scenario not yet implemented"
+    new_rate = min(1.0, current_conversion_rate + improvement_ppts / 100.0)
+    additional_passers = current_volume * (new_rate - current_conversion_rate)
+    additional_converters = additional_passers * downstream_conversion_rate
+    additional_revenue = additional_converters * revenue_per_converter
+
+    if total_current_revenue > 0:
+        additional_revenue_pct = (additional_revenue / total_current_revenue) * 100.0
+    else:
+        additional_revenue_pct = 0.0
+
+    return ImprovementScenario(
+        improvement_ppts=improvement_ppts,
+        additional_converters=int(round(additional_converters)),
+        additional_revenue=round(additional_revenue, 2),
+        additional_revenue_pct=round(additional_revenue_pct, 2),
     )
 
 
@@ -257,13 +331,85 @@ def estimate_revenue_impact(
     Returns:
         A RevenueImpactReport with per-stage impact projections.
     """
-    # TODO: Implement:
-    #   1. Compute total current revenue from funnel completers
-    #   2. For each stage, compute revenue_per_converter
-    #   3. For each stage x scenario, call project_improvement_scenario
-    #   4. Attach bottleneck rank to each stage
-    #   5. Assemble RevenueImpactReport
-    raise NotImplementedError("estimate_revenue_impact not yet implemented")
+    if improvement_scenarios_ppts is None:
+        improvement_scenarios_ppts = [1.0, 5.0, 10.0]
+
+    # Build bottleneck rank lookup
+    bottleneck_rank_map: dict[int, int] = {
+        b.stage_index: b.rank for b in bottlenecks
+    }
+
+    # Compute total current revenue from funnel completers
+    completer_ids = {
+        ur.entity_id for ur in funnel_result.user_results if ur.completed
+    }
+    completer_revenue_df = revenue_data[
+        revenue_data[user_id_column].astype(str).isin(completer_ids)
+    ]
+    total_current_revenue = float(completer_revenue_df[revenue_column].sum())
+
+    # Compute downstream conversion rates for each stage
+    # downstream_conversion_rate[i] = P(complete funnel | reached stage i+1)
+    num_stages = len(funnel_stats.stages)
+    stage_impacts: list[StageRevenueImpact] = []
+
+    for stage in funnel_stats.stages:
+        i = stage.stage_index
+
+        # Skip last stage (no drop-off to improve)
+        if i >= num_stages - 1:
+            continue
+
+        current_rate = stage.conversion_rate.point_estimate
+        current_volume = stage.entered
+
+        # Compute downstream conversion rate: from stage i+1 to end
+        if i + 1 < num_stages and funnel_stats.stages[i + 1].entered > 0:
+            downstream_rate = (
+                funnel_stats.total_completed / funnel_stats.stages[i + 1].entered
+                if funnel_stats.stages[i + 1].entered > 0
+                else 0.0
+            )
+        else:
+            downstream_rate = 1.0
+
+        # Revenue per converter for this stage (median, conservative)
+        rev_per_converter = compute_stage_revenue_per_converter(
+            revenue_data, funnel_result, i,
+            user_id_column=user_id_column,
+            revenue_column=revenue_column,
+            use_median=True,
+        )
+
+        scenarios: list[ImprovementScenario] = []
+        for ppts in improvement_scenarios_ppts:
+            scenario = project_improvement_scenario(
+                current_volume=current_volume,
+                current_conversion_rate=current_rate,
+                improvement_ppts=ppts,
+                revenue_per_converter=rev_per_converter,
+                total_current_revenue=total_current_revenue,
+                downstream_conversion_rate=downstream_rate,
+            )
+            scenarios.append(scenario)
+
+        stage_impacts.append(StageRevenueImpact(
+            stage_index=i,
+            stage_name=stage.stage_name,
+            current_conversion_rate=current_rate,
+            current_volume=current_volume,
+            revenue_per_converter=rev_per_converter,
+            scenarios=scenarios,
+            bottleneck_rank=bottleneck_rank_map.get(i),
+        ))
+
+    return RevenueImpactReport(
+        funnel_name=funnel_stats.funnel_name,
+        total_current_revenue=round(total_current_revenue, 2),
+        currency=currency,
+        stages=stage_impacts,
+        analysis_period=analysis_period,
+    )
 
 
 def save_revenue_impact(
@@ -278,12 +424,48 @@ def save_revenue_impact(
         report: The revenue impact report to save.
         filepath: Output path for the JSON file.
     """
-    # TODO: Implement JSON serialization of RevenueImpactReport
-    raise NotImplementedError("save_revenue_impact not yet implemented")
+    filepath = Path(filepath)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    output = {
+        "funnel_name": report.funnel_name,
+        "total_current_revenue": report.total_current_revenue,
+        "currency": report.currency,
+        "analysis_period": report.analysis_period,
+        "methodology_note": report.methodology_note,
+        "stages": [
+            {
+                "stage_index": s.stage_index,
+                "stage_name": s.stage_name,
+                "current_conversion_rate": s.current_conversion_rate,
+                "current_volume": s.current_volume,
+                "revenue_per_converter": s.revenue_per_converter,
+                "bottleneck_rank": s.bottleneck_rank,
+                "scenarios": [
+                    {
+                        "improvement_ppts": sc.improvement_ppts,
+                        "additional_converters": sc.additional_converters,
+                        "additional_revenue": sc.additional_revenue,
+                        "additional_revenue_pct": sc.additional_revenue_pct,
+                    }
+                    for sc in s.scenarios
+                ],
+            }
+            for s in report.stages
+        ],
+    }
+
+    with open(filepath, "w") as f:
+        json.dump(output, f, indent=2)
 
 
 if __name__ == "__main__":
     import sys
+    from build_funnel import FunnelResult, UserFunnelResult
+    from funnel_stats import (
+        FunnelStats, BottleneckScore, StageStats, WilsonInterval,
+        compute_funnel_stats, rank_bottlenecks,
+    )
 
     funnel_results_path = (
         sys.argv[1] if len(sys.argv) > 1
@@ -302,6 +484,71 @@ if __name__ == "__main__":
         else "workspace/analysis/revenue_impact.json"
     )
 
-    # TODO: Load inputs, compute revenue impact, save results
-    print("revenue_impact.py: Load funnel + revenue data, project impact per stage")
-    raise NotImplementedError("CLI entrypoint not yet implemented")
+    # Load funnel results
+    with open(funnel_results_path, "r") as f:
+        raw = json.load(f)
+
+    user_results = [
+        UserFunnelResult(
+            entity_id=ur["entity_id"],
+            furthest_stage=ur["furthest_stage"],
+            stage_timestamps={int(k): v for k, v in ur["stage_timestamps"].items()},
+            completed=ur["completed"],
+        )
+        for ur in raw["user_results"]
+    ]
+
+    funnel_result = FunnelResult(
+        funnel_name=raw["funnel_name"],
+        steps=raw["steps"],
+        stage_counts=raw["stage_counts"],
+        stage_conversion_rates=raw["stage_conversion_rates"],
+        stage_drop_off_rates=raw["stage_drop_off_rates"],
+        total_entered=raw["total_entered"],
+        total_completed=raw["total_completed"],
+        overall_conversion_rate=raw["overall_conversion_rate"],
+        user_results=user_results,
+    )
+
+    # Load bottleneck ranking
+    with open(bottleneck_path, "r") as f:
+        bottleneck_raw = json.load(f)
+
+    bottlenecks = [
+        BottleneckScore(
+            stage_index=b["stage_index"],
+            stage_name=b["stage_name"],
+            drop_off_rate=b["drop_off_rate"],
+            volume=b["volume"],
+            revenue_proximity=b["revenue_proximity"],
+            composite_score=b["composite_score"],
+            rank=b["rank"],
+        )
+        for b in bottleneck_raw
+    ]
+
+    # Load revenue data
+    revenue_data = load_revenue_data(revenue_data_path)
+
+    # Compute funnel stats (needed for estimate_revenue_impact)
+    funnel_stats = compute_funnel_stats(funnel_result)
+
+    # Estimate revenue impact
+    report = estimate_revenue_impact(
+        funnel_stats=funnel_stats,
+        bottlenecks=bottlenecks,
+        revenue_data=revenue_data,
+        funnel_result=funnel_result,
+    )
+
+    save_revenue_impact(report, output_path)
+
+    print(f"Revenue impact report for '{report.funnel_name}'")
+    print(f"Total current revenue: {report.currency} {report.total_current_revenue:,.2f}")
+    for stage in report.stages:
+        if stage.scenarios:
+            best = stage.scenarios[-1]  # largest improvement scenario
+            print(f"  Stage {stage.stage_index} ({stage.stage_name}): "
+                  f"+{best.improvement_ppts}pp -> "
+                  f"+{report.currency} {best.additional_revenue:,.2f} "
+                  f"({best.additional_revenue_pct:+.1f}%)")

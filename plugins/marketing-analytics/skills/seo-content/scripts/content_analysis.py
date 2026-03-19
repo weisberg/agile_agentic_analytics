@@ -29,12 +29,14 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
+import numpy as np
 import pandas as pd
+from scipy import stats
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +101,20 @@ def load_content_inventory(
         FileNotFoundError: If the file does not exist.
         ValueError: If required columns are missing.
     """
-    # TODO: Load CSV, validate columns, parse publish_date
-    raise NotImplementedError("Content inventory loading not yet implemented")
+    path = Path(inventory_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Content inventory not found: {inventory_path}")
+
+    df = pd.read_csv(path)
+
+    required_columns = {"url", "title", "category", "publish_date"}
+    missing = required_columns - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    df["publish_date"] = pd.to_datetime(df["publish_date"], errors="coerce")
+    logger.info("Loaded content inventory with %d pages", len(df))
+    return df
 
 
 def load_web_metrics(
@@ -114,8 +128,16 @@ def load_web_metrics(
     Returns:
         Parsed JSON dict, or None if the file does not exist.
     """
-    # TODO: Load JSON if file exists, return None otherwise
-    raise NotImplementedError("Web metrics loading not yet implemented")
+    path = Path(metrics_path)
+    if not path.exists():
+        logger.info("Web metrics file not found at %s, skipping", metrics_path)
+        return None
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    logger.info("Loaded web metrics from %s", metrics_path)
+    return data
 
 
 def map_to_topic_clusters(
@@ -136,11 +158,68 @@ def map_to_topic_clusters(
     Returns:
         A list of TopicCluster objects with aggregated metrics.
     """
-    # TODO: Join GSC data with inventory on URL
-    # Group by cluster_column
-    # Aggregate clicks, impressions, position, CTR
-    # Identify pillar page as highest-traffic page per cluster
-    raise NotImplementedError("Topic cluster mapping not yet implemented")
+    # Aggregate GSC data to page level
+    page_agg = (
+        gsc_df.groupby("page")
+        .agg(
+            total_clicks=("clicks", "sum"),
+            total_impressions=("impressions", "sum"),
+            avg_position=("position", "mean"),
+            avg_ctr=("ctr", "mean"),
+        )
+        .reset_index()
+    )
+
+    # Join with inventory on URL
+    merged = page_agg.merge(
+        inventory_df[["url", cluster_column]],
+        left_on="page",
+        right_on="url",
+        how="inner",
+    )
+
+    clusters: list[TopicCluster] = []
+    for cluster_name, group in merged.groupby(cluster_column):
+        # Identify pillar page as the one with highest clicks
+        pillar_idx = group["total_clicks"].idxmax()
+        pillar_url = group.loc[pillar_idx, "page"]
+
+        clusters.append(
+            TopicCluster(
+                cluster_name=str(cluster_name),
+                pillar_url=pillar_url,
+                page_urls=group["page"].tolist(),
+                total_clicks=float(group["total_clicks"].sum()),
+                total_impressions=float(group["total_impressions"].sum()),
+                avg_position=round(float(group["avg_position"].mean()), 2),
+                avg_ctr=round(float(group["avg_ctr"].mean()), 4),
+                page_count=len(group),
+            )
+        )
+
+    clusters.sort(key=lambda c: c.total_clicks, reverse=True)
+    logger.info("Mapped pages to %d topic clusters", len(clusters))
+    return clusters
+
+
+def _mann_kendall_test(data: np.ndarray) -> tuple[float, float]:
+    """Run a simplified Mann-Kendall trend test.
+
+    Args:
+        data: 1-D array of observations ordered in time.
+
+    Returns:
+        (tau, p_value) where tau is the Kendall tau statistic and
+        p_value is the two-sided significance level.
+    """
+    n = len(data)
+    if n < 3:
+        return 0.0, 1.0
+
+    # Use scipy's kendalltau with an ordinal time index
+    x = np.arange(n, dtype=float)
+    tau, p_value = stats.kendalltau(x, data)
+    return float(tau), float(p_value)
 
 
 def detect_content_decay(
@@ -169,11 +248,105 @@ def detect_content_decay(
         A list of ContentDecayAlert objects for flagged pages, sorted
         by decline percentage descending.
     """
-    # TODO: Aggregate clicks by page and week/month
-    # Compare recent period to peak period
-    # Apply Mann-Kendall trend test for statistical significance
-    # Filter by threshold and minimum volume
-    raise NotImplementedError("Content decay detection not yet implemented")
+    max_date = gsc_df["date"].max()
+    lookback_start = max_date - pd.Timedelta(days=lookback_days)
+    recent_df = gsc_df[gsc_df["date"] >= lookback_start].copy()
+
+    # Aggregate clicks by page and week
+    recent_df["week"] = recent_df["date"].dt.to_period("W")
+    weekly = (
+        recent_df.groupby(["page", "week"])
+        .agg(weekly_clicks=("clicks", "sum"))
+        .reset_index()
+    )
+
+    # Sort weeks for each page
+    weekly["week_start"] = weekly["week"].apply(lambda w: w.start_time)
+    weekly = weekly.sort_values(["page", "week_start"])
+
+    # Build inventory lookup
+    inv_lookup: dict[str, dict[str, Any]] = {}
+    if inventory_df is not None:
+        for _, row in inventory_df.iterrows():
+            inv_lookup[row["url"]] = {
+                "title": str(row.get("title", "")),
+                "category": str(row.get("category", "")),
+                "publish_date": (
+                    row["publish_date"].strftime("%Y-%m-%d")
+                    if pd.notna(row.get("publish_date"))
+                    else None
+                ),
+            }
+
+    alerts: list[ContentDecayAlert] = []
+
+    for page, group in weekly.groupby("page"):
+        if len(group) < 3:
+            continue
+
+        clicks_series = group["weekly_clicks"].values
+        weeks = group["week_start"].values
+
+        # Identify peak and current periods
+        # Peak: best rolling 2-week window; Current: last 2 weeks
+        if len(clicks_series) < 2:
+            continue
+
+        # Find peak 2-week period
+        best_sum = 0.0
+        best_idx = 0
+        for i in range(len(clicks_series) - 1):
+            window_sum = clicks_series[i] + clicks_series[i + 1]
+            if window_sum > best_sum:
+                best_sum = window_sum
+                best_idx = i
+
+        peak_clicks = float(best_sum)
+        if peak_clicks < min_peak_clicks:
+            continue
+
+        # Current: last 2 weeks
+        current_clicks = float(clicks_series[-2] + clicks_series[-1]) if len(clicks_series) >= 2 else float(clicks_series[-1])
+
+        if peak_clicks == 0:
+            continue
+
+        decline_pct = ((peak_clicks - current_clicks) / peak_clicks) * 100.0
+
+        if decline_pct < decline_threshold_pct:
+            continue
+
+        # Mann-Kendall trend test on weekly clicks
+        tau, p_value = _mann_kendall_test(clicks_series)
+
+        # Only flag if the trend is statistically significant (p < 0.05)
+        # and tau is negative (declining)
+        if p_value >= 0.05 or tau >= 0:
+            continue
+
+        # Format period labels
+        peak_period = str(pd.Timestamp(weeks[best_idx]).date())
+        current_period = str(pd.Timestamp(weeks[-2]).date()) if len(weeks) >= 2 else str(pd.Timestamp(weeks[-1]).date())
+
+        meta = inv_lookup.get(str(page), {})
+        alerts.append(
+            ContentDecayAlert(
+                url=str(page),
+                title=meta.get("title", ""),
+                category=meta.get("category", ""),
+                peak_clicks_period=peak_period,
+                current_clicks_period=current_period,
+                peak_clicks=round(peak_clicks, 1),
+                current_clicks=round(current_clicks, 1),
+                decline_pct=round(decline_pct, 1),
+                trend_p_value=round(p_value, 6),
+                publish_date=meta.get("publish_date"),
+            )
+        )
+
+    alerts.sort(key=lambda a: a.decline_pct, reverse=True)
+    logger.info("Detected %d pages with content decay", len(alerts))
+    return alerts
 
 
 def identify_underperformers(
@@ -200,12 +373,77 @@ def identify_underperformers(
         A list of ContentUnderperformer objects sorted by CTR gap
         descending.
     """
-    # TODO: Build position-CTR curve from overall data
-    # Compare each page's actual CTR to expected CTR for its position
-    # Flag pages with CTR gap above threshold
-    raise NotImplementedError(
-        "Underperformer identification not yet implemented"
+    # Aggregate to page level
+    page_agg = (
+        gsc_df.groupby("page")
+        .agg(
+            impressions=("impressions", "sum"),
+            clicks=("clicks", "sum"),
+            avg_position=("position", "mean"),
+        )
+        .reset_index()
     )
+    page_agg["ctr"] = page_agg["clicks"] / page_agg["impressions"].replace(0, np.nan)
+
+    # Filter by minimum impressions
+    eligible = page_agg[page_agg["impressions"] >= min_impressions].copy()
+
+    if eligible.empty:
+        return []
+
+    # Build position-CTR curve from the overall dataset
+    # Bucket positions into integer ranges and compute average CTR per bucket
+    eligible["position_bucket"] = eligible["avg_position"].round(0).clip(1, 100).astype(int)
+
+    position_ctr_curve = (
+        eligible.groupby("position_bucket")["ctr"]
+        .mean()
+        .to_dict()
+    )
+
+    # Fallback CTR curve based on industry benchmarks for positions not in data
+    default_ctr_curve = {
+        1: 0.30, 2: 0.15, 3: 0.10, 4: 0.07, 5: 0.05,
+        6: 0.04, 7: 0.03, 8: 0.025, 9: 0.02, 10: 0.015,
+    }
+
+    def get_expected_ctr(position: float) -> float:
+        bucket = max(1, min(100, round(position)))
+        if bucket in position_ctr_curve:
+            return position_ctr_curve[bucket]
+        if bucket in default_ctr_curve:
+            return default_ctr_curve[bucket]
+        # For positions > 10, decay proportionally
+        return max(0.005, 0.015 * (10.0 / bucket))
+
+    # Build inventory lookup
+    inv_lookup: dict[str, str] = {}
+    if inventory_df is not None:
+        inv_lookup = dict(zip(inventory_df["url"], inventory_df["title"]))
+
+    underperformers: list[ContentUnderperformer] = []
+    for _, row in eligible.iterrows():
+        expected = get_expected_ctr(row["avg_position"])
+        actual = float(row["ctr"]) if pd.notna(row["ctr"]) else 0.0
+        gap = expected - actual
+
+        if gap >= ctr_gap_threshold:
+            underperformers.append(
+                ContentUnderperformer(
+                    url=str(row["page"]),
+                    title=inv_lookup.get(str(row["page"]), ""),
+                    impressions=float(row["impressions"]),
+                    clicks=float(row["clicks"]),
+                    ctr=round(actual, 4),
+                    avg_position=round(float(row["avg_position"]), 2),
+                    expected_ctr=round(expected, 4),
+                    ctr_gap=round(gap, 4),
+                )
+            )
+
+    underperformers.sort(key=lambda u: u.ctr_gap, reverse=True)
+    logger.info("Identified %d underperforming pages", len(underperformers))
+    return underperformers
 
 
 def score_content_freshness(
@@ -229,8 +467,70 @@ def score_content_freshness(
         DataFrame with columns: url, title, days_since_publish,
         current_monthly_clicks, freshness_score, update_priority.
     """
-    # TODO: Compute age, combine with traffic, assign priority
-    raise NotImplementedError("Content freshness scoring not yet implemented")
+    today = pd.Timestamp.now().normalize()
+
+    # Compute days since publish
+    inv = inventory_df.copy()
+    inv["days_since_publish"] = (today - inv["publish_date"]).dt.days
+    inv["days_since_publish"] = inv["days_since_publish"].fillna(0).astype(int)
+
+    # Get recent 30-day traffic per page
+    max_date = gsc_df["date"].max()
+    recent_start = max_date - pd.Timedelta(days=30)
+    recent_traffic = (
+        gsc_df[gsc_df["date"] >= recent_start]
+        .groupby("page")
+        .agg(current_monthly_clicks=("clicks", "sum"))
+        .reset_index()
+    )
+
+    result = inv.merge(
+        recent_traffic,
+        left_on="url",
+        right_on="page",
+        how="left",
+    )
+    result["current_monthly_clicks"] = result["current_monthly_clicks"].fillna(0)
+
+    # Freshness score: 0 (fresh) to 1 (stale)
+    # Normalized age with a sigmoid-like ramp around the stale threshold
+    result["freshness_score"] = result["days_since_publish"].apply(
+        lambda d: min(1.0, max(0.0, (d - stale_threshold_days / 2) / stale_threshold_days))
+    )
+
+    # Update priority: combine freshness score with traffic importance
+    # High traffic + stale = highest priority
+    max_clicks = result["current_monthly_clicks"].max()
+    if max_clicks > 0:
+        traffic_norm = result["current_monthly_clicks"] / max_clicks
+    else:
+        traffic_norm = 0.0
+
+    result["update_priority_score"] = (
+        result["freshness_score"] * 0.5 + traffic_norm * 0.5
+    )
+
+    # Assign priority labels
+    def priority_label(score: float) -> str:
+        if score >= 0.7:
+            return "high"
+        elif score >= 0.4:
+            return "medium"
+        else:
+            return "low"
+
+    result["update_priority"] = result["update_priority_score"].apply(priority_label)
+
+    output_cols = [
+        "url", "title", "days_since_publish",
+        "current_monthly_clicks", "freshness_score", "update_priority",
+    ]
+    # Keep only columns that exist
+    output_cols = [c for c in output_cols if c in result.columns]
+
+    result = result[output_cols].sort_values("freshness_score", ascending=False)
+    logger.info("Scored freshness for %d pages", len(result))
+    return result.reset_index(drop=True)
 
 
 def generate_content_report(
@@ -252,8 +552,34 @@ def generate_content_report(
     Returns:
         A summary dict with counts and the output path.
     """
-    # TODO: Serialize all results to JSON with metadata
-    raise NotImplementedError("Content report generation not yet implemented")
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    report: dict[str, Any] = {
+        "metadata": {
+            "analysis_date": date.today().isoformat(),
+        },
+        "topic_clusters": [asdict(c) for c in clusters],
+        "content_decay_alerts": [asdict(a) for a in decay_alerts],
+        "underperformers": [asdict(u) for u in underperformers],
+    }
+
+    if freshness_df is not None and not freshness_df.empty:
+        report["freshness_scores"] = freshness_df.to_dict(orient="records")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, default=str)
+
+    summary = {
+        "topic_clusters": len(clusters),
+        "decay_alerts": len(decay_alerts),
+        "underperformers": len(underperformers),
+        "freshness_scored_pages": len(freshness_df) if freshness_df is not None else 0,
+        "output_path": str(output_path),
+    }
+
+    logger.info("Content report written to %s", output_path)
+    return summary
 
 
 def run_content_analysis(
@@ -285,8 +611,64 @@ def run_content_analysis(
     Returns:
         A summary dict with counts and output file path.
     """
-    # TODO: Orchestrate the full content analysis pipeline
-    raise NotImplementedError("Content analysis pipeline not yet implemented")
+    # 1. Load GSC data
+    gsc_path = Path(gsc_input_path)
+    if not gsc_path.exists():
+        raise FileNotFoundError(f"GSC input not found: {gsc_input_path}")
+
+    gsc_df = pd.read_csv(gsc_path)
+    required = {"query", "page", "clicks", "impressions", "ctr", "position", "date"}
+    missing = required - set(gsc_df.columns)
+    if missing:
+        raise ValueError(f"GSC data missing columns: {missing}")
+    gsc_df["date"] = pd.to_datetime(gsc_df["date"])
+
+    # 2. Load content inventory
+    inventory_df: pd.DataFrame | None = None
+    try:
+        inventory_df = load_content_inventory(inventory_path)
+    except FileNotFoundError:
+        logger.warning("Content inventory not found, some analyses will be limited")
+
+    # 3. Load web metrics (optional)
+    _web_metrics = load_web_metrics(web_metrics_path)
+
+    # 4. Topic clustering
+    clusters: list[TopicCluster] = []
+    if inventory_df is not None:
+        clusters = map_to_topic_clusters(gsc_df, inventory_df)
+
+    # 5. Content decay detection
+    decay_alerts = detect_content_decay(
+        gsc_df,
+        inventory_df=inventory_df,
+        decline_threshold_pct=decay_threshold_pct,
+        lookback_days=decay_lookback_days,
+    )
+
+    # 6. Underperformer identification
+    underperformers = identify_underperformers(
+        gsc_df,
+        inventory_df=inventory_df,
+        min_impressions=min_impressions,
+        ctr_gap_threshold=ctr_gap_threshold,
+    )
+
+    # 7. Freshness scoring
+    freshness_df: pd.DataFrame | None = None
+    if inventory_df is not None:
+        freshness_df = score_content_freshness(inventory_df, gsc_df)
+
+    # 8. Generate report
+    summary = generate_content_report(
+        clusters=clusters,
+        decay_alerts=decay_alerts,
+        underperformers=underperformers,
+        freshness_df=freshness_df,
+        output_path=output_path,
+    )
+
+    return summary
 
 
 if __name__ == "__main__":

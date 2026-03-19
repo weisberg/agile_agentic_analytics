@@ -85,8 +85,33 @@ def load_segment_assignments(
     ValueError
         If required columns are missing or fewer than 2 periods are present.
     """
-    # TODO: Load file, validate columns, ensure at least 2 periods
-    raise NotImplementedError("load_segment_assignments not yet implemented")
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"Segment assignments file not found: {filepath}")
+
+    if filepath.suffix == ".json":
+        df = pd.read_json(filepath)
+    else:
+        df = pd.read_csv(filepath)
+
+    required_columns = {customer_id_column, segment_column, period_column}
+    missing = required_columns - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    n_periods = df[period_column].nunique()
+    if n_periods < 2:
+        raise ValueError(
+            f"At least 2 periods required for migration analysis, found {n_periods}"
+        )
+
+    logger.info(
+        "Loaded segment assignments: %d rows, %d customers, %d periods",
+        len(df),
+        df[customer_id_column].nunique(),
+        n_periods,
+    )
+    return df
 
 
 def build_transition_matrix(
@@ -126,8 +151,41 @@ def build_transition_matrix(
     ValueError
         If normalized and any row sum deviates from 100% beyond tolerance.
     """
-    # TODO: Merge periods on customer_id, crosstab, optionally normalize
-    raise NotImplementedError("build_transition_matrix not yet implemented")
+    # Merge on customers present in both periods
+    merged = assignments_period_a[[customer_id_column, segment_column]].merge(
+        assignments_period_b[[customer_id_column, segment_column]],
+        on=customer_id_column,
+        suffixes=("_from", "_to"),
+    )
+
+    # Build crosstab
+    matrix = pd.crosstab(
+        merged[f"{segment_column}_from"],
+        merged[f"{segment_column}_to"],
+    )
+
+    if normalize:
+        row_sums = matrix.sum(axis=1)
+        matrix = matrix.div(row_sums, axis=0) * 100
+        matrix = matrix.fillna(0.0)
+
+        # Validate row sums
+        actual_sums = matrix.sum(axis=1)
+        deviations = (actual_sums - 100).abs()
+        bad_rows = deviations[deviations > ROW_SUM_TOLERANCE * 100]
+        if len(bad_rows) > 0:
+            raise ValueError(
+                f"Transition matrix row sums deviate from 100%: "
+                f"{bad_rows.to_dict()}"
+            )
+
+    matrix.index.name = "from_segment"
+    matrix.columns.name = "to_segment"
+
+    logger.info(
+        "Built transition matrix: %d x %d segments", matrix.shape[0], matrix.shape[1]
+    )
+    return matrix
 
 
 def build_multi_period_transitions(
@@ -158,8 +216,28 @@ def build_multi_period_transitions(
         Mapping from period-pair label (e.g., '2026-01 -> 2026-02') to
         the corresponding transition matrix.
     """
-    # TODO: Sort periods, iterate consecutive pairs, build matrices
-    raise NotImplementedError("build_multi_period_transitions not yet implemented")
+    periods = sorted(segment_assignments[period_column].unique())
+    transitions: dict[str, pd.DataFrame] = {}
+
+    for i in range(len(periods) - 1):
+        period_a = periods[i]
+        period_b = periods[i + 1]
+        label = f"{period_a} -> {period_b}"
+
+        df_a = segment_assignments[segment_assignments[period_column] == period_a]
+        df_b = segment_assignments[segment_assignments[period_column] == period_b]
+
+        matrix = build_transition_matrix(
+            df_a,
+            df_b,
+            customer_id_column=customer_id_column,
+            segment_column=segment_column,
+            normalize=normalize,
+        )
+        transitions[label] = matrix
+        logger.info("Built transition matrix for %s", label)
+
+    return transitions
 
 
 def validate_transition_matrix(
@@ -186,8 +264,20 @@ def validate_transition_matrix(
         If any row sum exceeds the tolerance threshold, with details
         about which rows failed.
     """
-    # TODO: Check row sums, raise with details on failures
-    raise NotImplementedError("validate_transition_matrix not yet implemented")
+    row_sums = matrix.sum(axis=1)
+    deviations = (row_sums - 100).abs()
+    # tolerance is expressed as a fraction (e.g. 0.01 = 1%)
+    bad_rows = deviations[deviations > tolerance * 100]
+
+    if len(bad_rows) > 0:
+        details = {str(idx): round(float(val), 4) for idx, val in bad_rows.items()}
+        raise ValueError(
+            f"Transition matrix validation failed. Row sum deviations "
+            f"exceeding {tolerance * 100}%: {details}"
+        )
+
+    logger.info("Transition matrix validated: all rows sum to ~100%%")
+    return True
 
 
 def detect_notable_migrations(
@@ -216,8 +306,38 @@ def detect_notable_migrations(
         - 'percentage' (float): Percentage of origin segment that migrated
         - 'severity' (str): 'high' if > 10%, 'medium' if > 5%, 'low' otherwise
     """
-    # TODO: Check each notable pair in the matrix, flag those above threshold
-    raise NotImplementedError("detect_notable_migrations not yet implemented")
+    if notable_pairs is None:
+        notable_pairs = NOTABLE_MIGRATIONS
+
+    results: list[dict[str, Any]] = []
+
+    for pair in notable_pairs:
+        from_seg = pair["from"]
+        to_seg = pair["to"]
+
+        # Skip if the segment is not in the matrix
+        if from_seg not in matrix.index or to_seg not in matrix.columns:
+            continue
+
+        pct = float(matrix.loc[from_seg, to_seg])
+
+        if pct >= threshold_pct:
+            if pct > 10.0:
+                severity = "high"
+            elif pct > 5.0:
+                severity = "medium"
+            else:
+                severity = "low"
+
+            results.append({
+                "from_segment": from_seg,
+                "to_segment": to_seg,
+                "percentage": round(pct, 2),
+                "severity": severity,
+            })
+
+    logger.info("Detected %d notable migrations above %.1f%%", len(results), threshold_pct)
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -241,8 +361,27 @@ def save_migration_results(
     output_path : str or Path
         Path to write the output JSON file.
     """
-    # TODO: Convert DataFrames to nested dicts, combine with notable migrations, write
-    raise NotImplementedError("save_migration_results not yet implemented")
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payload: dict[str, Any] = {"transitions": {}, "notable_migrations": {}}
+
+    for label, matrix in transitions.items():
+        payload["transitions"][label] = {
+            str(row): {
+                str(col): round(float(matrix.loc[row, col]), 2)
+                for col in matrix.columns
+            }
+            for row in matrix.index
+        }
+
+    for label, migrations in notable_migrations.items():
+        payload["notable_migrations"][label] = migrations
+
+    with open(output_path, "w") as f:
+        json.dump(payload, f, indent=2)
+
+    logger.info("Saved migration results to %s", output_path)
 
 
 # ---------------------------------------------------------------------------
@@ -281,5 +420,35 @@ def run_migration_pipeline(
     dict[str, Any]
         Pipeline results including transition matrices and notable migrations.
     """
-    # TODO: Orchestrate the full pipeline
-    raise NotImplementedError("run_migration_pipeline not yet implemented")
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Load segment assignments
+    assignments = load_segment_assignments(segment_data_path)
+
+    # 2. Build transition matrices
+    transitions = build_multi_period_transitions(
+        assignments, normalize=normalize,
+    )
+
+    # 3. Validate matrices
+    if normalize:
+        for label, matrix in transitions.items():
+            validate_transition_matrix(matrix)
+            logger.info("Validated transition matrix: %s", label)
+
+    # 4. Detect notable migrations
+    all_notable: dict[str, list[dict[str, Any]]] = {}
+    for label, matrix in transitions.items():
+        notable = detect_notable_migrations(matrix, threshold_pct=threshold_pct)
+        all_notable[label] = notable
+
+    # 5. Save results
+    save_migration_results(transitions, all_notable, output_dir / "migration_results.json")
+
+    logger.info("Migration pipeline complete. Results saved to %s", output_dir)
+
+    return {
+        "transitions": transitions,
+        "notable_migrations": all_notable,
+    }

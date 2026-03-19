@@ -11,11 +11,13 @@ Dependencies:
 
 from __future__ import annotations
 
+import csv
 import json
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 
 @dataclass
@@ -62,6 +64,49 @@ class GA4ReportResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+# Known source aliases for UTM normalization.
+_SOURCE_ALIASES: dict[str, str] = {
+    "google.com": "google",
+    "www.google.com": "google",
+    "facebook.com": "facebook",
+    "www.facebook.com": "facebook",
+    "fb": "facebook",
+    "fb.com": "facebook",
+    "instagram.com": "instagram",
+    "www.instagram.com": "instagram",
+    "ig": "instagram",
+    "linkedin.com": "linkedin",
+    "www.linkedin.com": "linkedin",
+    "lnkd.in": "linkedin",
+    "twitter.com": "twitter",
+    "www.twitter.com": "twitter",
+    "t.co": "twitter",
+    "x.com": "twitter",
+    "bing.com": "bing",
+    "www.bing.com": "bing",
+    "youtube.com": "youtube",
+    "www.youtube.com": "youtube",
+    "yt": "youtube",
+}
+
+_MEDIUM_ALIASES: dict[str, str] = {
+    "referral": "referral",
+    "ref": "referral",
+    "cost-per-click": "cpc",
+    "ppc": "cpc",
+    "paid-search": "cpc",
+    "paid search": "cpc",
+    "email": "email",
+    "e-mail": "email",
+    "e_mail": "email",
+    "social": "social",
+    "social-media": "social",
+    "organic": "organic",
+    "none": "(none)",
+    "(not set)": "(none)",
+}
+
+
 def build_report_request(config: GA4ReportConfig) -> dict[str, Any]:
     """Build a GA4 Data API RunReport request body from a config.
 
@@ -72,10 +117,30 @@ def build_report_request(config: GA4ReportConfig) -> dict[str, Any]:
     Returns:
         Dict matching the GA4 Data API RunReport JSON request schema.
     """
-    # TODO: Construct the request body dict from config fields.
-    # Include dateRanges, dimensions, metrics, dimensionFilter, metricFilter,
-    # orderBys, limit, and offset.
-    raise NotImplementedError("build_report_request not yet implemented")
+    request: dict[str, Any] = {
+        "property": config.property_id,
+        "dateRanges": [
+            {
+                "startDate": config.start_date.isoformat(),
+                "endDate": config.end_date.isoformat(),
+            }
+        ],
+        "dimensions": [{"name": dim} for dim in config.dimensions],
+        "metrics": [{"name": metric} for metric in config.metrics],
+        "limit": config.limit,
+        "offset": config.offset,
+    }
+
+    if config.dimension_filter is not None:
+        request["dimensionFilter"] = config.dimension_filter
+
+    if config.metric_filter is not None:
+        request["metricFilter"] = config.metric_filter
+
+    if config.order_by is not None:
+        request["orderBys"] = config.order_by
+
+    return request
 
 
 def execute_report(config: GA4ReportConfig) -> GA4ReportResult:
@@ -93,9 +158,96 @@ def execute_report(config: GA4ReportConfig) -> GA4ReportResult:
     Raises:
         RuntimeError: If the API call fails or authentication is missing.
     """
-    # TODO: Initialize the BetaAnalyticsDataClient, call run_report,
-    # parse the response rows into dicts, and populate GA4ReportResult.
-    raise NotImplementedError("execute_report not yet implemented")
+    try:
+        from google.analytics.data_v1beta import BetaAnalyticsDataClient
+        from google.analytics.data_v1beta.types import (
+            DateRange,
+            Dimension,
+            FilterExpression,
+            Metric,
+            RunReportRequest,
+        )
+    except ImportError as exc:
+        raise RuntimeError(
+            "google-analytics-data package is required. "
+            "Install with: pip install google-analytics-data"
+        ) from exc
+
+    try:
+        client = BetaAnalyticsDataClient()
+    except Exception as exc:
+        raise RuntimeError(
+            "Failed to initialize GA4 client. Ensure "
+            "GOOGLE_APPLICATION_CREDENTIALS is set or application default "
+            "credentials are configured."
+        ) from exc
+
+    all_rows: list[dict[str, Any]] = []
+    current_offset = config.offset
+    total_row_count = 0
+    metadata: dict[str, Any] = {}
+
+    while True:
+        request_kwargs: dict[str, Any] = {
+            "property": config.property_id,
+            "date_ranges": [
+                DateRange(
+                    start_date=config.start_date.isoformat(),
+                    end_date=config.end_date.isoformat(),
+                )
+            ],
+            "dimensions": [Dimension(name=d) for d in config.dimensions],
+            "metrics": [Metric(name=m) for m in config.metrics],
+            "limit": config.limit,
+            "offset": current_offset,
+        }
+
+        try:
+            response = client.run_report(RunReportRequest(**request_kwargs))
+        except Exception as exc:
+            raise RuntimeError(f"GA4 API call failed: {exc}") from exc
+
+        # Parse rows from the response.
+        for row in response.rows:
+            row_dict: dict[str, Any] = {}
+            for i, dim_value in enumerate(row.dimension_values):
+                row_dict[config.dimensions[i]] = dim_value.value
+            for i, metric_value in enumerate(row.metric_values):
+                raw = metric_value.value
+                # Attempt numeric conversion.
+                try:
+                    row_dict[config.metrics[i]] = int(raw)
+                except ValueError:
+                    try:
+                        row_dict[config.metrics[i]] = float(raw)
+                    except ValueError:
+                        row_dict[config.metrics[i]] = raw
+            all_rows.append(row_dict)
+
+        total_row_count = response.row_count
+
+        # Capture quota metadata from the first page.
+        if not metadata and hasattr(response, "property_quota") and response.property_quota:
+            pq = response.property_quota
+            metadata["tokens_per_day_remaining"] = (
+                pq.tokens_per_day.remaining if pq.tokens_per_day else None
+            )
+            metadata["tokens_per_hour_remaining"] = (
+                pq.tokens_per_hour.remaining if pq.tokens_per_hour else None
+            )
+
+        # Pagination: if we got a full page, there may be more rows.
+        if len(response.rows) < config.limit:
+            break
+        current_offset += config.limit
+
+    metadata["total_api_row_count"] = total_row_count
+
+    return GA4ReportResult(
+        rows=all_rows,
+        row_count=len(all_rows),
+        metadata=metadata,
+    )
 
 
 def normalize_utm_parameters(
@@ -116,9 +268,34 @@ def normalize_utm_parameters(
     Returns:
         Tuple of (normalized_source, normalized_medium, normalized_campaign).
     """
-    # TODO: Lowercase, strip whitespace, decode percent-encoded chars,
-    # apply known alias mappings (e.g., "google.com" -> "google").
-    raise NotImplementedError("normalize_utm_parameters not yet implemented")
+    # Lowercase, strip whitespace, decode percent-encoded characters.
+    norm_source = unquote(source).strip().lower()
+    norm_medium = unquote(medium).strip().lower()
+    norm_campaign: str | None = None
+    if campaign is not None:
+        norm_campaign = unquote(campaign).strip().lower()
+
+    # Apply known source aliases.
+    norm_source = _SOURCE_ALIASES.get(norm_source, norm_source)
+
+    # Apply known medium aliases.
+    norm_medium = _MEDIUM_ALIASES.get(norm_medium, norm_medium)
+
+    # Normalize empty / sentinel values.
+    if norm_source in ("", "(not set)", "(none)", "not set", "null"):
+        norm_source = "(direct)"
+    if norm_medium in ("", "(not set)", "not set", "null"):
+        norm_medium = "(none)"
+    if norm_campaign is not None and norm_campaign in (
+        "",
+        "(not set)",
+        "not set",
+        "null",
+        "(none)",
+    ):
+        norm_campaign = None
+
+    return norm_source, norm_medium, norm_campaign
 
 
 def load_existing_data(output_path: Path) -> list[dict[str, Any]]:
@@ -131,9 +308,80 @@ def load_existing_data(output_path: Path) -> list[dict[str, Any]]:
         List of row dicts from the existing file. Empty list if the file
         does not exist.
     """
-    # TODO: Read existing file, parse rows, return as list of dicts.
-    # Support both CSV and JSON formats based on file extension.
-    raise NotImplementedError("load_existing_data not yet implemented")
+    if not output_path.exists():
+        return []
+
+    suffix = output_path.suffix.lower()
+
+    if suffix == ".json":
+        with open(output_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict) and "rows" in data:
+            return data["rows"]
+        return []
+
+    if suffix == ".csv":
+        rows: list[dict[str, Any]] = []
+        with open(output_path, "r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Attempt numeric conversion for each value.
+                parsed: dict[str, Any] = {}
+                for k, v in row.items():
+                    if v is None:
+                        parsed[k] = v
+                        continue
+                    try:
+                        parsed[k] = int(v)
+                    except ValueError:
+                        try:
+                            parsed[k] = float(v)
+                        except ValueError:
+                            parsed[k] = v
+                rows.append(parsed)
+        return rows
+
+    # Unsupported format — return empty.
+    return []
+
+
+def _deduplicate_rows(
+    rows: list[dict[str, Any]],
+    dimension_keys: list[str],
+) -> list[dict[str, Any]]:
+    """Remove duplicate rows based on dimension key columns.
+
+    Later rows (i.e., freshly extracted data) take precedence over earlier
+    rows when a duplicate key is found.
+    """
+    seen: dict[tuple[Any, ...], int] = {}
+    for idx, row in enumerate(rows):
+        key = tuple(row.get(k) for k in dimension_keys)
+        seen[key] = idx  # Last occurrence wins.
+    deduped_indices = sorted(seen.values())
+    return [rows[i] for i in deduped_indices]
+
+
+def _save_rows(rows: list[dict[str, Any]], output_path: Path) -> None:
+    """Write rows to disk in the format indicated by the file extension."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    suffix = output_path.suffix.lower()
+
+    if suffix == ".json":
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(rows, f, indent=2, default=str)
+    else:
+        # Default to CSV.
+        if not rows:
+            output_path.write_text("")
+            return
+        fieldnames = list(rows[0].keys())
+        with open(output_path, "w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
 
 
 def extract_and_save(
@@ -154,9 +402,18 @@ def extract_and_save(
     Returns:
         GA4ReportResult for the newly extracted data.
     """
-    # TODO: Call execute_report, optionally merge with existing data,
-    # deduplicate, and write to output_path.
-    raise NotImplementedError("extract_and_save not yet implemented")
+    result = execute_report(config)
+
+    if incremental:
+        existing_rows = load_existing_data(output_path)
+        combined = existing_rows + result.rows
+        deduped = _deduplicate_rows(combined, config.dimensions)
+    else:
+        deduped = result.rows
+
+    _save_rows(deduped, output_path)
+
+    return result
 
 
 if __name__ == "__main__":

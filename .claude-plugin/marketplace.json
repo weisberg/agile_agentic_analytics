@@ -1,0 +1,21 @@
+{
+  "name": "agile-agentic-analytics",
+  "owner": {
+    "name": "Brian Weisberg"
+  },
+  "metadata": {
+    "description": "A marketplace of Claude Code plugins for agile agentic analytics",
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "ab-testing",
+      "source": "./plugins/ab-testing",
+      "description": "Design, analyze, and review A/B tests with statistical rigor",
+      "version": "1.0.0",
+      "keywords": ["ab-testing", "experimentation", "statistics", "analytics"],
+      "license": "MIT"
+    }
+  ]
+}

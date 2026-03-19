@@ -1,0 +1,9 @@
+{
+  "defaults": {
+    "significance_level": 0.05,
+    "statistical_power": 0.80,
+    "test_sidedness": "two-sided",
+    "default_language": "python",
+    "report_audience": "technical"
+  }
+}

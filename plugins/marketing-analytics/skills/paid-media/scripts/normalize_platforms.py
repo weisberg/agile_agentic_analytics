@@ -1,63 +1,23 @@
-"""Platform data normalization for paid media analytics.
-
-Maps platform-specific campaign data exports (Google Ads, Meta Ads, LinkedIn Ads,
-TikTok Ads, DV360) into a unified media performance schema. Handles metric name
-mapping, attribution window labeling, currency conversion, and derived metric
-computation.
-
-All monetary calculations use Python's Decimal type to avoid floating-point
-rounding errors.
-"""
+"""Platform data normalization for paid media analytics."""
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Optional
 
-import pandas as pd
+try:
+    import pandas as pd
+except ModuleNotFoundError:  # pragma: no cover
+    pd = None  # type: ignore[assignment]
 
-
-# ---------------------------------------------------------------------------
-# Platform configuration
-# ---------------------------------------------------------------------------
 
 PLATFORM_METRIC_MAP: dict[str, dict[str, str]] = {
-    "google": {
-        "Impressions": "impressions",
-        "Clicks": "clicks",
-        "Cost": "spend",
-        "Conversions": "conversions",
-        "ConversionValue": "revenue",
-    },
-    "meta": {
-        "impressions": "impressions",
-        "outbound_clicks": "clicks",
-        "spend": "spend",
-        "actions_purchase": "conversions",
-        "action_values_purchase": "revenue",
-    },
-    "linkedin": {
-        "impressions": "impressions",
-        "clicks": "clicks",
-        "costInLocalCurrency": "spend",
-        "externalWebsiteConversions": "conversions",
-        "conversionValueInLocalCurrency": "revenue",
-    },
-    "tiktok": {
-        "impressions": "impressions",
-        "clicks": "clicks",
-        "spend": "spend",
-        "conversions": "conversions",
-        "value": "revenue",
-    },
-    "dv360": {
-        "impressions": "impressions",
-        "clicks": "clicks",
-        "revenue": "spend",
-        "totalConversions": "conversions",
-        "totalConversionValue": "revenue",
-    },
+    "google": {"Impressions": "impressions", "Clicks": "clicks", "Cost": "spend", "Conversions": "conversions", "ConversionValue": "revenue"},
+    "meta": {"impressions": "impressions", "outbound_clicks": "clicks", "spend": "spend", "actions_purchase": "conversions", "action_values_purchase": "revenue"},
+    "linkedin": {"impressions": "impressions", "clicks": "clicks", "costInLocalCurrency": "spend", "externalWebsiteConversions": "conversions", "conversionValueInLocalCurrency": "revenue"},
+    "tiktok": {"impressions": "impressions", "clicks": "clicks", "spend": "spend", "conversions": "conversions", "value": "revenue"},
+    "dv360": {"impressions": "impressions", "clicks": "clicks", "revenue": "spend", "totalConversions": "conversions", "totalConversionValue": "revenue"},
 }
 
 ATTRIBUTION_WINDOWS: dict[str, str] = {
@@ -71,159 +31,116 @@ ATTRIBUTION_WINDOWS: dict[str, str] = {
 SUPPORTED_PLATFORMS: list[str] = list(PLATFORM_METRIC_MAP.keys())
 
 
-# ---------------------------------------------------------------------------
-# Core functions
-# ---------------------------------------------------------------------------
+def _require_pandas() -> Any:
+    if pd is None:
+        raise ImportError("pandas is required for platform normalization")
+    return pd
+
+
+def _to_decimal(value: Any) -> Decimal:
+    try:
+        if value is None or value == "":
+            return Decimal("0")
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return Decimal("0")
+
+
+def _safe_divide(numerator: Decimal, denominator: Decimal) -> Decimal | None:
+    if denominator == 0:
+        return None
+    return numerator / denominator
 
 
 def load_platform_data(
     file_path: str | Path,
     platform: str,
-) -> pd.DataFrame:
-    """Load a platform-specific campaign CSV and return a raw DataFrame.
-
-    Parameters
-    ----------
-    file_path:
-        Path to the platform CSV export
-        (e.g., ``workspace/raw/campaign_spend_google.csv``).
-    platform:
-        One of ``google``, ``meta``, ``linkedin``, ``tiktok``, ``dv360``.
-
-    Returns
-    -------
-    pd.DataFrame
-        Raw data as read from the CSV. No transformations applied.
-
-    Raises
-    ------
-    ValueError
-        If *platform* is not in ``SUPPORTED_PLATFORMS``.
-    FileNotFoundError
-        If *file_path* does not exist.
-    """
-    # TODO: implement CSV loading with platform-specific parsing rules
-    raise NotImplementedError
+) -> Any:
+    pandas = _require_pandas()
+    if platform not in SUPPORTED_PLATFORMS:
+        raise ValueError(f"Unsupported platform: {platform}")
+    file_path = Path(file_path)
+    if not file_path.exists():
+        raise FileNotFoundError(file_path)
+    frame = pandas.read_csv(file_path)
+    if "date" not in frame.columns:
+        raise ValueError(f"{file_path.name} must include a date column")
+    frame["date"] = pandas.to_datetime(frame["date"])
+    return frame
 
 
 def rename_columns(
-    df: pd.DataFrame,
+    df: Any,
     platform: str,
-) -> pd.DataFrame:
-    """Rename platform-specific columns to the unified metric taxonomy.
-
-    Parameters
-    ----------
-    df:
-        Raw platform DataFrame with original column names.
-    platform:
-        Platform identifier used to look up the mapping in
-        ``PLATFORM_METRIC_MAP``.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with columns renamed to the unified schema.
-    """
-    # TODO: apply PLATFORM_METRIC_MAP renaming, handle missing columns gracefully
-    raise NotImplementedError
+) -> Any:
+    pandas = _require_pandas()
+    renamed = df.rename(columns=PLATFORM_METRIC_MAP[platform]).copy()
+    for column in ("campaign_id", "ad_group_id", "keyword", "currency", "date"):
+        if column not in renamed.columns:
+            renamed[column] = None if column != "currency" else "USD"
+    for metric in ("impressions", "clicks", "spend", "conversions", "revenue"):
+        if metric not in renamed.columns:
+            renamed[metric] = 0
+        renamed[metric] = renamed[metric].apply(_to_decimal)
+    renamed["platform"] = platform
+    return renamed
 
 
 def convert_google_micros(
-    df: pd.DataFrame,
+    df: Any,
     columns: list[str] | None = None,
-) -> pd.DataFrame:
-    """Convert Google Ads micro-unit columns to standard currency decimals.
-
-    Google Ads reports cost in micros (1,000,000 micros = 1 currency unit).
-    This function divides specified columns by 1e6 using ``Decimal`` arithmetic.
-
-    Parameters
-    ----------
-    df:
-        DataFrame containing Google Ads data with micro-unit columns.
-    columns:
-        Column names to convert. Defaults to ``["spend"]``.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with converted columns.
-    """
-    # TODO: divide specified columns by Decimal("1000000")
-    raise NotImplementedError
+) -> Any:
+    columns = columns or ["spend"]
+    converted = df.copy()
+    factor = Decimal("1000000")
+    for column in columns:
+        if column in converted.columns:
+            converted[column] = converted[column].apply(lambda value: _to_decimal(value) / factor)
+    return converted
 
 
 def normalize_currency(
-    df: pd.DataFrame,
+    df: Any,
     source_currency: str,
     target_currency: str = "USD",
     fx_rates: Optional[dict[str, Decimal]] = None,
-) -> pd.DataFrame:
-    """Convert monetary columns from source currency to target currency.
-
-    Parameters
-    ----------
-    df:
-        DataFrame with ``spend`` and ``revenue`` columns in *source_currency*.
-    source_currency:
-        ISO 4217 code of the source currency (e.g., ``"EUR"``).
-    target_currency:
-        ISO 4217 code of the target currency. Defaults to ``"USD"``.
-    fx_rates:
-        Mapping of date strings (``YYYY-MM-DD``) to exchange rates. If
-        ``None``, defaults to a rate of ``Decimal("1")`` (no conversion).
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with ``spend`` and ``revenue`` converted to *target_currency*.
-    """
-    # TODO: apply daily FX rates to spend and revenue columns using Decimal
-    raise NotImplementedError
+) -> Any:
+    normalized = df.copy()
+    if source_currency == target_currency:
+        normalized["reporting_currency"] = target_currency
+        return normalized
+    fx_rates = fx_rates or {}
+    for metric in ("spend", "revenue"):
+        if metric in normalized.columns:
+            normalized[metric] = normalized.apply(
+                lambda row: _to_decimal(row[metric])
+                * fx_rates.get(str(row["date"])[:10], fx_rates.get(source_currency, Decimal("1"))),
+                axis=1,
+            )
+    normalized["reporting_currency"] = target_currency
+    return normalized
 
 
 def add_attribution_label(
-    df: pd.DataFrame,
+    df: Any,
     platform: str,
-) -> pd.DataFrame:
-    """Add an ``attribution_window`` column describing the platform's default window.
-
-    Parameters
-    ----------
-    df:
-        Normalized DataFrame.
-    platform:
-        Platform identifier for looking up ``ATTRIBUTION_WINDOWS``.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with an ``attribution_window`` string column added.
-    """
-    # TODO: add column from ATTRIBUTION_WINDOWS lookup
-    raise NotImplementedError
+) -> Any:
+    labeled = df.copy()
+    labeled["attribution_window"] = ATTRIBUTION_WINDOWS[platform]
+    return labeled
 
 
-def compute_derived_metrics(df: pd.DataFrame) -> pd.DataFrame:
-    """Compute CPC, CTR, CPA, and ROAS from base metrics.
-
-    Uses ``Decimal`` division. Returns ``None`` for any derived metric where
-    the denominator is zero.
-
-    Parameters
-    ----------
-    df:
-        DataFrame with ``spend``, ``clicks``, ``impressions``, ``conversions``,
-        and ``revenue`` columns.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with ``cpc``, ``ctr``, ``cpa``, and ``roas`` columns added.
-    """
-    # TODO: safe Decimal division with zero-denominator handling
-    raise NotImplementedError
+def compute_derived_metrics(df: Any) -> Any:
+    derived = df.copy()
+    derived["cpm"] = derived.apply(
+        lambda row: _safe_divide(_to_decimal(row["spend"]) * Decimal("1000"), _to_decimal(row["impressions"])),
+        axis=1,
+    )
+    derived["cpc"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["spend"]), _to_decimal(row["clicks"])), axis=1)
+    derived["ctr"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["clicks"]), _to_decimal(row["impressions"])), axis=1)
+    derived["cpa"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["spend"]), _to_decimal(row["conversions"])), axis=1)
+    derived["roas"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["revenue"]), _to_decimal(row["spend"])), axis=1)
+    return derived
 
 
 def normalize_platform(
@@ -231,56 +148,31 @@ def normalize_platform(
     platform: str,
     target_currency: str = "USD",
     fx_rates: Optional[dict[str, Decimal]] = None,
-) -> pd.DataFrame:
-    """End-to-end normalization pipeline for a single platform.
-
-    Orchestrates loading, column renaming, currency conversion, attribution
-    labeling, and derived metric computation.
-
-    Parameters
-    ----------
-    file_path:
-        Path to the raw platform CSV.
-    platform:
-        Platform identifier.
-    target_currency:
-        Reporting currency. Defaults to ``"USD"``.
-    fx_rates:
-        Optional daily FX rates for currency conversion.
-
-    Returns
-    -------
-    pd.DataFrame
-        Fully normalized DataFrame conforming to the unified media schema.
-    """
-    # TODO: chain load -> rename -> currency -> attribution -> derived
-    raise NotImplementedError
+) -> Any:
+    frame = load_platform_data(file_path, platform)
+    frame = rename_columns(frame, platform)
+    if platform == "google":
+        frame = convert_google_micros(frame, columns=["spend", "revenue"])
+    frame = normalize_currency(frame, str(frame["currency"].iloc[0] or target_currency), target_currency=target_currency, fx_rates=fx_rates)
+    frame = add_attribution_label(frame, platform)
+    frame = compute_derived_metrics(frame)
+    frame["campaign_id"] = frame["campaign_id"].fillna(frame["platform"] + "_unknown_campaign")
+    return frame
 
 
 def unify_all_platforms(
     raw_dir: str | Path,
     target_currency: str = "USD",
     fx_rates: Optional[dict[str, Decimal]] = None,
-) -> pd.DataFrame:
-    """Normalize and concatenate data from all available platforms.
-
-    Scans *raw_dir* for files matching ``campaign_spend_{platform}.csv``,
-    normalizes each, and concatenates into a single DataFrame sorted by
-    ``(date, platform, campaign_id)``.
-
-    Parameters
-    ----------
-    raw_dir:
-        Directory containing raw platform CSVs.
-    target_currency:
-        Reporting currency for all monetary values.
-    fx_rates:
-        Optional daily FX rates.
-
-    Returns
-    -------
-    pd.DataFrame
-        Unified cross-platform DataFrame.
-    """
-    # TODO: discover platform files, normalize each, concatenate, sort
-    raise NotImplementedError
+) -> Any:
+    pandas = _require_pandas()
+    raw_dir = Path(raw_dir)
+    frames = []
+    for platform in SUPPORTED_PLATFORMS:
+        file_path = raw_dir / f"campaign_spend_{platform}.csv"
+        if file_path.exists():
+            frames.append(normalize_platform(file_path, platform, target_currency=target_currency, fx_rates=fx_rates))
+    if not frames:
+        raise FileNotFoundError(f"No paid media exports found in {raw_dir}")
+    combined = pandas.concat(frames, ignore_index=True)
+    return combined.sort_values(["date", "platform", "campaign_id"]).reset_index(drop=True)

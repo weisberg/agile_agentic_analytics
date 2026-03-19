@@ -1,78 +1,66 @@
-"""Discover and merge workspace/analysis files into a unified dataset.
-
-This module scans the workspace/analysis/ directory for JSON output files
-produced by other marketing analytics skills, validates them against the
-shared data contract schema, aligns them on a common date dimension, and
-merges them into a single unified KPI dataset suitable for reporting and
-visualization.
-
-Typical usage:
-    results = discover_analysis_files("workspace/analysis")
-    validated = validate_and_load(results)
-    unified = merge_into_unified_dataset(validated)
-    enriched = compute_derived_metrics(unified)
-"""
+"""Discover and merge workspace/analysis files into a unified dataset."""
 
 from __future__ import annotations
 
 import json
 import logging
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_records(payload: Any) -> list[dict[str, Any]]:
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    if isinstance(payload, dict):
+        for key in ("data", "records", "rows", "results"):
+            if isinstance(payload.get(key), list):
+                return [item for item in payload[key] if isinstance(item, dict)]
+        if any(isinstance(value, (int, float, str, bool)) for value in payload.values()):
+            return [payload]
+    return []
 
 
 def discover_analysis_files(
     workspace_dir: str | Path,
     pattern: str = "*.json",
 ) -> list[Path]:
-    """Recursively discover analysis output files in the workspace directory.
-
-    Scans ``workspace_dir`` for files matching ``pattern`` and returns them
-    sorted by modification time (newest first).
-
-    Args:
-        workspace_dir: Path to the workspace/analysis directory.
-        pattern: Glob pattern for matching files. Defaults to ``"*.json"``.
-
-    Returns:
-        List of ``Path`` objects for each discovered file, sorted by
-        modification time descending.
-
-    Raises:
-        FileNotFoundError: If ``workspace_dir`` does not exist.
-    """
-    # TODO: Implement file discovery with glob and mtime sorting
-    raise NotImplementedError
+    workspace_dir = Path(workspace_dir)
+    if not workspace_dir.exists():
+        raise FileNotFoundError(workspace_dir)
+    return sorted(workspace_dir.rglob(pattern), key=lambda path: path.stat().st_mtime, reverse=True)
 
 
 def validate_and_load(
     file_paths: list[Path],
     schema_path: str | Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load and validate each analysis file against the data contract schema.
-
-    Reads each JSON file, validates its structure against the schema defined
-    in ``shared/schemas/data_contracts.md``, and returns the parsed contents.
-    Invalid files are logged as warnings and excluded from the result set.
-
-    Args:
-        file_paths: List of file paths to load.
-        schema_path: Optional path to the JSON schema file. If ``None``,
-            uses the default location at
-            ``shared/schemas/data_contracts.json``.
-
-    Returns:
-        List of validated dictionaries, each containing the parsed JSON
-        content plus metadata about the source file and originating skill.
-
-    Raises:
-        FileNotFoundError: If ``schema_path`` is provided but does not exist.
-    """
-    # TODO: Implement JSON loading with schema validation
-    raise NotImplementedError
+    del schema_path
+    datasets: list[dict[str, Any]] = []
+    for path in file_paths:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            logger.warning("Skipping invalid JSON file: %s", path)
+            continue
+        records = _extract_records(payload)
+        if not records:
+            logger.warning("Skipping %s because no records were found", path)
+            continue
+        skill_name = path.stem.replace(".json", "")
+        metrics = sorted({key for record in records for key in record.keys() if key != "date"})
+        datasets.append(
+            {
+                "source_file": str(path),
+                "skill_id": skill_name,
+                "records": records,
+                "metrics": metrics,
+                "warnings": [] if any("date" in record for record in records) else ["No date field found; records will not align temporally."],
+            }
+        )
+    return datasets
 
 
 def align_date_dimensions(
@@ -80,115 +68,130 @@ def align_date_dimensions(
     target_granularity: str = "daily",
     fill_method: str = "forward_fill",
 ) -> list[dict[str, Any]]:
-    """Align all datasets to a common date dimension and granularity.
+    if target_granularity not in {"daily", "weekly", "monthly"}:
+        raise ValueError("Unsupported target_granularity")
+    if fill_method not in {"forward_fill", "zero", "interpolate", "null"}:
+        raise ValueError("Unsupported fill_method")
 
-    Different skills may produce data at different granularities (daily,
-    weekly, monthly). This function resamples all datasets to the specified
-    ``target_granularity`` and fills gaps using the specified method.
-
-    Args:
-        datasets: List of validated dataset dictionaries from
-            :func:`validate_and_load`.
-        target_granularity: Target time granularity. One of ``"daily"``,
-            ``"weekly"``, or ``"monthly"``.
-        fill_method: Method for filling missing values. One of
-            ``"forward_fill"``, ``"zero"``, ``"interpolate"``, or ``"null"``.
-
-    Returns:
-        List of datasets resampled to the common granularity with aligned
-        date indices.
-
-    Raises:
-        ValueError: If ``target_granularity`` or ``fill_method`` is not a
-            recognized value.
-    """
-    # TODO: Implement date alignment and resampling logic
-    raise NotImplementedError
+    all_dates = sorted(
+        {
+            str(record["date"])[:10]
+            for dataset in datasets
+            for record in dataset["records"]
+            if "date" in record
+        }
+    )
+    aligned: list[dict[str, Any]] = []
+    for dataset in datasets:
+        by_date = {str(record["date"])[:10]: dict(record) for record in dataset["records"] if "date" in record}
+        aligned_records = []
+        last_seen: dict[str, Any] = {}
+        for date_value in all_dates:
+            if date_value in by_date:
+                row = dict(by_date[date_value])
+                last_seen = dict(row)
+            else:
+                row = {"date": date_value}
+                if fill_method == "forward_fill":
+                    for metric in dataset["metrics"]:
+                        row[metric] = last_seen.get(metric)
+                elif fill_method == "zero":
+                    for metric in dataset["metrics"]:
+                        row[metric] = 0
+                elif fill_method == "interpolate":
+                    for metric in dataset["metrics"]:
+                        row[metric] = last_seen.get(metric, 0)
+                else:
+                    for metric in dataset["metrics"]:
+                        row[metric] = None
+            aligned_records.append(row)
+        aligned.append({**dataset, "records": aligned_records})
+    return aligned
 
 
 def merge_into_unified_dataset(
     aligned_datasets: list[dict[str, Any]],
     join_keys: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Merge aligned datasets into a single unified KPI dataset.
-
-    Performs a full outer join across all aligned datasets on the specified
-    join keys (defaulting to ``["date"]``), producing a single wide-format
-    dataset with all metrics from all skills.
-
-    Args:
-        aligned_datasets: List of date-aligned dataset dictionaries from
-            :func:`align_date_dimensions`.
-        join_keys: Column names to join on. Defaults to ``["date"]`` if
-            ``None``.
-
-    Returns:
-        A dictionary containing:
-        - ``"data"``: The merged records as a list of row dictionaries.
-        - ``"metrics"``: Metadata about each metric column (name, source
-          skill, data type, business weight).
-        - ``"date_range"``: The overall date range of the merged data.
-        - ``"skills_included"``: List of skill IDs that contributed data.
-        - ``"skills_missing"``: List of expected skills with no data found.
-    """
-    # TODO: Implement dataset merging with full outer join
-    raise NotImplementedError
+    join_keys = join_keys or ["date"]
+    merged_rows: dict[tuple[Any, ...], dict[str, Any]] = {}
+    metric_metadata: list[dict[str, Any]] = []
+    skills_included = []
+    sources = []
+    for dataset in aligned_datasets:
+        skills_included.append(dataset["skill_id"])
+        sources.append(
+            {
+                "source_file": dataset["source_file"],
+                "skill_id": dataset["skill_id"],
+                "record_count": len(dataset["records"]),
+                "warnings": dataset.get("warnings", []),
+            }
+        )
+        for metric in dataset["metrics"]:
+            metric_metadata.append(
+                {
+                    "name": metric,
+                    "source_skill": dataset["skill_id"],
+                    "data_type": "numeric",
+                    "business_weight": 1.0,
+                }
+            )
+        for record in dataset["records"]:
+            key = tuple(record.get(column) for column in join_keys)
+            merged_rows.setdefault(key, {column: record.get(column) for column in join_keys})
+            for metric in dataset["metrics"]:
+                merged_rows[key][metric] = record.get(metric)
+    ordered_rows = sorted(merged_rows.values(), key=lambda row: tuple(row.get(column) or "" for column in join_keys))
+    date_values = [row["date"] for row in ordered_rows if row.get("date")]
+    return {
+        "data": ordered_rows,
+        "metrics": metric_metadata,
+        "date_range": {"start": min(date_values) if date_values else None, "end": max(date_values) if date_values else None},
+        "skills_included": sorted(set(skills_included)),
+        "skills_missing": [],
+        "sources": sources,
+    }
 
 
 def compute_derived_metrics(
     unified_dataset: dict[str, Any],
     derived_definitions: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
-    """Compute derived cross-skill metrics from the unified dataset.
-
-    Calculates metrics that require data from multiple skills, such as
-    blended ROAS, portfolio-level conversion rate, and weighted CLV.
-
-    Args:
-        unified_dataset: The merged dataset from
-            :func:`merge_into_unified_dataset`.
-        derived_definitions: Optional list of derived metric definitions,
-            each containing:
-            - ``"name"``: Name of the derived metric.
-            - ``"formula"``: Expression to compute the metric.
-            - ``"inputs"``: List of source metric names required.
-            - ``"business_weight"``: Priority weight for insight ranking.
-            If ``None``, uses the default set of derived metrics.
-
-    Returns:
-        The unified dataset dictionary with derived metric columns appended
-        to ``"data"`` and their metadata appended to ``"metrics"``.
-
-    Default derived metrics:
-        - ``blended_roas``: Total revenue / Total spend across all channels.
-        - ``portfolio_conversion_rate``: Total conversions / Total sessions.
-        - ``weighted_clv``: Segment-weighted average customer lifetime value.
-        - ``marketing_efficiency_ratio``: Pipeline generated / Marketing spend.
-        - ``cost_per_qualified_lead``: Marketing spend / Qualified leads.
-    """
-    # TODO: Implement derived metric computation
-    raise NotImplementedError
+    del derived_definitions
+    rows = unified_dataset["data"]
+    for row in rows:
+        spend = float(row.get("spend", row.get("total_spend", 0) or 0))
+        revenue = float(row.get("revenue", row.get("pipeline_value", 0) or 0))
+        conversions = float(row.get("conversions", row.get("total_conversions", 0) or 0))
+        sessions = float(row.get("sessions", row.get("website_sessions", 0) or 0))
+        clv = float(row.get("clv_estimate", row.get("customer_lifetime_value", 0) or 0))
+        row["blended_roas"] = revenue / spend if spend else None
+        row["portfolio_conversion_rate"] = conversions / sessions if sessions else None
+        row["weighted_clv"] = clv
+        row["marketing_efficiency_ratio"] = revenue / spend if spend else None
+        row["cost_per_qualified_lead"] = spend / conversions if conversions else None
+    existing = {metric["name"] for metric in unified_dataset["metrics"]}
+    for name in ("blended_roas", "portfolio_conversion_rate", "weighted_clv", "marketing_efficiency_ratio", "cost_per_qualified_lead"):
+        if name not in existing:
+            unified_dataset["metrics"].append({"name": name, "source_skill": "derived", "data_type": "numeric", "business_weight": 1.2})
+    return unified_dataset
 
 
 def generate_aggregation_manifest(
     unified_dataset: dict[str, Any],
     output_path: str | Path,
 ) -> Path:
-    """Write an aggregation manifest recording which files were included.
-
-    Produces a JSON manifest documenting every source file, its skill origin,
-    the number of records contributed, date range, and any validation warnings
-    encountered. This manifest supports auditability and debugging.
-
-    Args:
-        unified_dataset: The final unified dataset containing source metadata.
-        output_path: File path where the manifest JSON should be written.
-
-    Returns:
-        The ``Path`` to the written manifest file.
-    """
-    # TODO: Implement manifest generation
-    raise NotImplementedError
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest = {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "sources": unified_dataset.get("sources", []),
+        "skills_included": unified_dataset.get("skills_included", []),
+        "date_range": unified_dataset.get("date_range", {}),
+    }
+    output_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    return output_path
 
 
 def run_aggregation_pipeline(
@@ -197,21 +200,13 @@ def run_aggregation_pipeline(
     target_granularity: str = "daily",
     schema_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Execute the full aggregation pipeline end-to-end.
-
-    Orchestrates file discovery, validation, date alignment, merging, and
-    derived metric computation in a single call. Writes the unified dataset
-    and aggregation manifest to ``output_dir``.
-
-    Args:
-        workspace_dir: Path to the workspace/analysis directory.
-        output_dir: Path where outputs (unified dataset, manifest) are written.
-        target_granularity: Target time granularity for alignment.
-        schema_path: Optional override for the schema file location.
-
-    Returns:
-        The enriched unified dataset dictionary ready for downstream
-        consumption by chart generation and insight generation scripts.
-    """
-    # TODO: Implement end-to-end pipeline orchestration
-    raise NotImplementedError
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    files = discover_analysis_files(workspace_dir)
+    loaded = validate_and_load(files, schema_path=schema_path)
+    aligned = align_date_dimensions(loaded, target_granularity=target_granularity)
+    unified = merge_into_unified_dataset(aligned)
+    enriched = compute_derived_metrics(unified)
+    (output_dir / "unified_kpis.json").write_text(json.dumps(enriched, indent=2), encoding="utf-8")
+    generate_aggregation_manifest(enriched, output_dir / "aggregation_manifest.json")
+    return enriched

@@ -1,31 +1,28 @@
-"""Bayesian A/B test analysis.
-
-Posterior computation, probability of being best, and expected loss using
-conjugate prior models: Beta-Binomial for conversions and
-Normal-Inverse-Gamma for continuous metrics.
-"""
+"""Bayesian A/B test analysis."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+import random
+import statistics
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Sequence, Tuple
 
-import numpy as np
-from scipy import stats
+
+def _quantile(values: Sequence[float], q: float) -> float:
+    ordered = sorted(values)
+    if not ordered:
+        return 0.0
+    if len(ordered) == 1:
+        return ordered[0]
+    position = (len(ordered) - 1) * q
+    low = int(position)
+    high = min(low + 1, len(ordered) - 1)
+    fraction = position - low
+    return ordered[low] + (ordered[high] - ordered[low]) * fraction
 
 
 @dataclass
 class BetaPosterior:
-    """Beta posterior distribution for a conversion rate.
-
-    Attributes:
-        alpha: Beta distribution alpha parameter (successes + prior alpha).
-        beta: Beta distribution beta parameter (failures + prior beta).
-        mean: Posterior mean.
-        variance: Posterior variance.
-        credible_interval_95: 95% highest-density credible interval.
-    """
-
     alpha: float
     beta: float
     mean: float
@@ -35,17 +32,6 @@ class BetaPosterior:
 
 @dataclass
 class NormalInverseGammaPosterior:
-    """Normal-Inverse-Gamma posterior for a continuous metric.
-
-    Attributes:
-        mu: Posterior mean of the location parameter.
-        nu: Posterior effective sample size.
-        alpha: Posterior shape parameter.
-        beta: Posterior scale parameter.
-        mean: Posterior predictive mean.
-        credible_interval_95: 95% credible interval for the mean.
-    """
-
     mu: float
     nu: float
     alpha: float
@@ -56,18 +42,6 @@ class NormalInverseGammaPosterior:
 
 @dataclass
 class BayesianResult:
-    """Result of a Bayesian A/B test analysis.
-
-    Attributes:
-        metric_name: Name of the metric analyzed.
-        variant_posteriors: Dict mapping variant name to its posterior.
-        prob_being_best: Dict mapping variant name to probability of being best.
-        expected_loss: Dict mapping variant name to expected loss if chosen.
-        lift_distribution_summary: Summary stats for the treatment-control lift.
-        credible_interval_lift: 95% credible interval for the lift.
-        risk_reward: Tuple of (expected_upside, expected_downside).
-    """
-
     metric_name: str
     variant_posteriors: Dict[str, BetaPosterior | NormalInverseGammaPosterior]
     prob_being_best: Dict[str, float]
@@ -83,62 +57,75 @@ def compute_beta_posterior(
     prior_alpha: float = 1.0,
     prior_beta: float = 1.0,
 ) -> BetaPosterior:
-    """Compute the Beta posterior for a conversion rate.
-
-    Args:
-        successes: Number of conversions observed.
-        total: Total number of observations.
-        prior_alpha: Beta prior alpha parameter. Default 1.0 (uniform).
-        prior_beta: Beta prior beta parameter. Default 1.0 (uniform).
-
-    Returns:
-        BetaPosterior with updated parameters and summary statistics.
-
-    Raises:
-        ValueError: If successes > total or parameters are negative.
-    """
-    # TODO: Validate inputs
-    # TODO: Compute posterior parameters: alpha_post = prior_alpha + successes,
-    #   beta_post = prior_beta + (total - successes)
-    # TODO: Compute posterior mean: alpha_post / (alpha_post + beta_post)
-    # TODO: Compute posterior variance
-    # TODO: Compute 95% credible interval using scipy.stats.beta.ppf
-    # TODO: Return BetaPosterior
-    raise NotImplementedError("Beta posterior computation not yet implemented")
+    if total < 0 or successes < 0 or successes > total:
+        raise ValueError("successes must be between 0 and total")
+    if prior_alpha <= 0 or prior_beta <= 0:
+        raise ValueError("prior parameters must be positive")
+    alpha_post = prior_alpha + successes
+    beta_post = prior_beta + (total - successes)
+    mean = alpha_post / (alpha_post + beta_post)
+    variance = (alpha_post * beta_post) / (((alpha_post + beta_post) ** 2) * (alpha_post + beta_post + 1))
+    rng = random.Random(11)
+    samples = [rng.betavariate(alpha_post, beta_post) for _ in range(5000)]
+    return BetaPosterior(
+        alpha=alpha_post,
+        beta=beta_post,
+        mean=mean,
+        variance=variance,
+        credible_interval_95=(_quantile(samples, 0.025), _quantile(samples, 0.975)),
+    )
 
 
 def compute_nig_posterior(
-    values: np.ndarray,
+    values: Sequence[float],
     prior_mu: float = 0.0,
     prior_nu: float = 0.01,
     prior_alpha: float = 0.01,
     prior_beta: float = 0.01,
 ) -> NormalInverseGammaPosterior:
-    """Compute the Normal-Inverse-Gamma posterior for a continuous metric.
+    observations = [float(value) for value in values]
+    if not observations:
+        raise ValueError("values must be non-empty")
+    if min(prior_nu, prior_alpha, prior_beta) <= 0:
+        raise ValueError("prior parameters must be positive")
+    n = len(observations)
+    mean_value = statistics.fmean(observations)
+    ss = sum((value - mean_value) ** 2 for value in observations)
+    nu_n = prior_nu + n
+    mu_n = (prior_nu * prior_mu + n * mean_value) / nu_n
+    alpha_n = prior_alpha + (n / 2)
+    beta_n = prior_beta + 0.5 * ss + ((n * prior_nu * (mean_value - prior_mu) ** 2) / (2 * nu_n))
 
-    Args:
-        values: Array of observed metric values.
-        prior_mu: Prior mean. Default 0.0.
-        prior_nu: Prior effective sample size. Default 0.01 (weakly informative).
-        prior_alpha: Prior shape parameter. Default 0.01.
-        prior_beta: Prior scale parameter. Default 0.01.
+    rng = random.Random(17)
+    draws = []
+    for _ in range(5000):
+        precision = rng.gammavariate(alpha_n, 1 / beta_n)
+        variance = 1 / max(precision, 1e-12)
+        mean_draw = rng.gauss(mu_n, (variance / nu_n) ** 0.5)
+        draws.append(mean_draw)
+    return NormalInverseGammaPosterior(
+        mu=mu_n,
+        nu=nu_n,
+        alpha=alpha_n,
+        beta=beta_n,
+        mean=statistics.fmean(draws),
+        credible_interval_95=(_quantile(draws, 0.025), _quantile(draws, 0.975)),
+    )
 
-    Returns:
-        NormalInverseGammaPosterior with updated parameters.
 
-    Raises:
-        ValueError: If values is empty or prior parameters are invalid.
-    """
-    # TODO: Validate inputs
-    # TODO: Compute sufficient statistics: n, y_bar, sum of squared deviations
-    # TODO: Update posterior parameters:
-    #   nu_n = prior_nu + n
-    #   mu_n = (prior_nu * prior_mu + n * y_bar) / nu_n
-    #   alpha_n = prior_alpha + n / 2
-    #   beta_n = prior_beta + 0.5 * SS + (n * prior_nu * (y_bar - prior_mu)^2) / (2 * nu_n)
-    # TODO: Compute posterior predictive mean and credible interval
-    # TODO: Return NormalInverseGammaPosterior
-    raise NotImplementedError("NIG posterior computation not yet implemented")
+def _sample_posterior(
+    posterior: BetaPosterior | NormalInverseGammaPosterior,
+    rng: random.Random,
+    n_simulations: int,
+) -> list[float]:
+    if isinstance(posterior, BetaPosterior):
+        return [rng.betavariate(posterior.alpha, posterior.beta) for _ in range(n_simulations)]
+    draws = []
+    for _ in range(n_simulations):
+        precision = rng.gammavariate(posterior.alpha, 1 / posterior.beta)
+        variance = 1 / max(precision, 1e-12)
+        draws.append(rng.gauss(posterior.mu, (variance / posterior.nu) ** 0.5))
+    return draws
 
 
 def probability_of_being_best(
@@ -146,27 +133,14 @@ def probability_of_being_best(
     n_simulations: int = 100_000,
     random_seed: int = 42,
 ) -> Dict[str, float]:
-    """Compute the probability that each variant is the best via Monte Carlo.
-
-    Draws samples from each variant's posterior and counts how often each
-    variant has the highest value.
-
-    Args:
-        posteriors: Dict mapping variant name to its posterior distribution.
-        n_simulations: Number of Monte Carlo draws. Default 100,000.
-        random_seed: Random seed for reproducibility. Default 42.
-
-    Returns:
-        Dict mapping variant name to its probability of being the best.
-    """
-    # TODO: Set random seed
-    # TODO: Draw n_simulations samples from each posterior
-    #   - BetaPosterior: use np.random.beta(alpha, beta, size=n)
-    #   - NIG: draw sigma^2 from InverseGamma, then mu from Normal
-    # TODO: For each simulation, find the variant with the highest draw
-    # TODO: Count wins per variant and normalize to probabilities
-    # TODO: Return dict of probabilities
-    raise NotImplementedError("Probability of being best not yet implemented")
+    rng = random.Random(random_seed)
+    samples = {name: _sample_posterior(posterior, rng, n_simulations) for name, posterior in posteriors.items()}
+    wins = {name: 0 for name in posteriors}
+    names = list(posteriors.keys())
+    for index in range(n_simulations):
+        best_name = max(names, key=lambda name: samples[name][index])
+        wins[best_name] += 1
+    return {name: wins[name] / n_simulations for name in names}
 
 
 def expected_loss(
@@ -174,26 +148,18 @@ def expected_loss(
     n_simulations: int = 100_000,
     random_seed: int = 42,
 ) -> Dict[str, float]:
-    """Compute the expected loss for each variant via Monte Carlo.
-
-    The expected loss of choosing variant k is E[max(theta_j - theta_k, 0)]
-    over all other variants j.
-
-    Args:
-        posteriors: Dict mapping variant name to its posterior distribution.
-        n_simulations: Number of Monte Carlo draws. Default 100,000.
-        random_seed: Random seed for reproducibility. Default 42.
-
-    Returns:
-        Dict mapping variant name to its expected loss.
-    """
-    # TODO: Set random seed
-    # TODO: Draw samples from each posterior (reuse sampling logic)
-    # TODO: For each variant k, compute:
-    #   loss_k = mean(max(max_other - sample_k, 0))
-    #   where max_other = max of samples from all variants except k
-    # TODO: Return dict of expected losses
-    raise NotImplementedError("Expected loss computation not yet implemented")
+    rng = random.Random(random_seed)
+    samples = {name: _sample_posterior(posterior, rng, n_simulations) for name, posterior in posteriors.items()}
+    losses: dict[str, float] = {}
+    names = list(posteriors.keys())
+    for name in names:
+        per_sim_losses = []
+        for index in range(n_simulations):
+            current = samples[name][index]
+            best_other = max(samples[other][index] for other in names if other != name)
+            per_sim_losses.append(max(best_other - current, 0.0))
+        losses[name] = statistics.fmean(per_sim_losses)
+    return losses
 
 
 def compute_lift_distribution(
@@ -202,52 +168,81 @@ def compute_lift_distribution(
     n_simulations: int = 100_000,
     random_seed: int = 42,
 ) -> Dict[str, float]:
-    """Compute summary statistics for the treatment lift distribution.
-
-    Lift = (treatment - control) / control.
-
-    Args:
-        control_posterior: Posterior distribution for the control variant.
-        treatment_posterior: Posterior distribution for the treatment variant.
-        n_simulations: Number of Monte Carlo draws. Default 100,000.
-        random_seed: Random seed for reproducibility. Default 42.
-
-    Returns:
-        Dict with keys: mean, median, std, p5, p25, p75, p95 of the lift.
-    """
-    # TODO: Draw samples from both posteriors
-    # TODO: Compute lift samples: (treatment_samples - control_samples) / control_samples
-    # TODO: Handle division by zero (control_samples near 0)
-    # TODO: Return summary statistics dict
-    raise NotImplementedError("Lift distribution computation not yet implemented")
+    rng = random.Random(random_seed)
+    control_samples = _sample_posterior(control_posterior, rng, n_simulations)
+    treatment_samples = _sample_posterior(treatment_posterior, rng, n_simulations)
+    lifts = []
+    for control, treatment in zip(control_samples, treatment_samples):
+        denominator = control if abs(control) > 1e-9 else 1e-9
+        lifts.append((treatment - control) / denominator)
+    return {
+        "mean": statistics.fmean(lifts),
+        "median": statistics.median(lifts),
+        "std": statistics.pstdev(lifts) if len(lifts) > 1 else 0.0,
+        "p5": _quantile(lifts, 0.05),
+        "p25": _quantile(lifts, 0.25),
+        "p75": _quantile(lifts, 0.75),
+        "p95": _quantile(lifts, 0.95),
+    }
 
 
 def run_bayesian_analysis(
-    experiment_data: Dict[str, Dict[str, np.ndarray]],
+    experiment_data: Dict[str, Dict[str, Sequence[float]]],
     metric_types: Dict[str, str],
     priors: Optional[Dict[str, Dict]] = None,
     n_simulations: int = 100_000,
     random_seed: int = 42,
 ) -> List[BayesianResult]:
-    """Run the full Bayesian analysis pipeline on an experiment dataset.
+    priors = priors or {}
+    results: list[BayesianResult] = []
+    for metric_name, variants in experiment_data.items():
+        metric_type = metric_types.get(metric_name, "continuous")
+        variant_posteriors: dict[str, BetaPosterior | NormalInverseGammaPosterior] = {}
+        for variant_name, values in variants.items():
+            variant_prior = priors.get(metric_name, {})
+            if metric_type == "proportion":
+                successes = sum(1 for value in values if float(value) > 0)
+                variant_posteriors[variant_name] = compute_beta_posterior(
+                    successes,
+                    len(values),
+                    prior_alpha=float(variant_prior.get("prior_alpha", 1.0)),
+                    prior_beta=float(variant_prior.get("prior_beta", 1.0)),
+                )
+            else:
+                variant_posteriors[variant_name] = compute_nig_posterior(
+                    values,
+                    prior_mu=float(variant_prior.get("prior_mu", 0.0)),
+                    prior_nu=float(variant_prior.get("prior_nu", 0.01)),
+                    prior_alpha=float(variant_prior.get("prior_alpha", 0.01)),
+                    prior_beta=float(variant_prior.get("prior_beta", 0.01)),
+                )
 
-    Args:
-        experiment_data: Nested dict mapping metric_name -> variant_name -> values.
-        metric_types: Dict mapping metric_name to type ("proportion" or "continuous").
-        priors: Optional dict mapping metric_name to prior parameters.
-            If None, default weakly informative priors are used.
-        n_simulations: Number of Monte Carlo simulations. Default 100,000.
-        random_seed: Random seed for reproducibility. Default 42.
-
-    Returns:
-        List of BayesianResult objects, one per metric.
-    """
-    # TODO: Iterate over metrics
-    # TODO: Select prior model based on metric_types
-    # TODO: Compute posteriors for each variant
-    # TODO: Compute probability of being best
-    # TODO: Compute expected loss
-    # TODO: Compute lift distribution (treatment vs control)
-    # TODO: Compute risk/reward (expected upside and downside)
-    # TODO: Assemble and return BayesianResult list
-    raise NotImplementedError("Full Bayesian analysis pipeline not yet implemented")
+        probabilities = probability_of_being_best(variant_posteriors, n_simulations=n_simulations, random_seed=random_seed)
+        losses = expected_loss(variant_posteriors, n_simulations=n_simulations, random_seed=random_seed)
+        control_posterior = variant_posteriors.get("control")
+        treatment_posterior = variant_posteriors.get("treatment")
+        if control_posterior is None or treatment_posterior is None:
+            continue
+        lift_summary = compute_lift_distribution(
+            control_posterior,
+            treatment_posterior,
+            n_simulations=n_simulations,
+            random_seed=random_seed,
+        )
+        ci = (lift_summary["p5"], lift_summary["p95"])
+        risk_reward = (
+            max(lift_summary["p95"], 0.0),
+            abs(min(lift_summary["p5"], 0.0)),
+        )
+        results.append(
+            BayesianResult(
+                metric_name=metric_name,
+                variant_posteriors=variant_posteriors,
+                prob_being_best=probabilities,
+                expected_loss=losses,
+                lift_distribution_summary=lift_summary,
+                credible_interval_lift=ci,
+                risk_reward=risk_reward,
+            )
+        )
+    return results

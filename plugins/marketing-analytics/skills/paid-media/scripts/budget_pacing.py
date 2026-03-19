@@ -1,37 +1,25 @@
-"""Budget pacing calculation for paid media campaigns.
-
-Tracks daily spend against monthly budget plans and projects month-end variance
-using exponential smoothing. Generates pacing alerts when projected spend
-deviates from plan beyond configurable thresholds.
-
-Per development guidelines, exponential smoothing is used instead of simple
-linear extrapolation to handle intra-month spend acceleration patterns. All
-monetary calculations use Python's Decimal type.
-"""
+"""Budget pacing calculation for paid media campaigns."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Optional
 
-import pandas as pd
+try:
+    import pandas as pd
+except ModuleNotFoundError:  # pragma: no cover
+    pd = None  # type: ignore[assignment]
 
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-
-DEFAULT_SMOOTHING_ALPHA: float = 0.3
-DEFAULT_WARNING_THRESHOLD: float = 0.10  # 10% variance
-DEFAULT_CRITICAL_THRESHOLD: float = 0.20  # 20% variance
+DEFAULT_SMOOTHING_ALPHA = 0.3
+DEFAULT_WARNING_THRESHOLD = 0.10
+DEFAULT_CRITICAL_THRESHOLD = 0.20
 
 
 @dataclass
 class PacingResult:
-    """Budget pacing result for a single campaign."""
-
     campaign_id: str
     platform: str
     budget_plan: Decimal
@@ -40,44 +28,23 @@ class PacingResult:
     days_remaining: int
     projected_spend: Decimal
     variance_pct: Decimal
-    alert_level: str  # "none", "warning", "critical"
+    alert_level: str
     daily_target_remaining: Optional[Decimal]
-
-
-# ---------------------------------------------------------------------------
-# Exponential smoothing
-# ---------------------------------------------------------------------------
 
 
 def exponential_smoothing(
     daily_spend: list[Decimal],
     alpha: float = DEFAULT_SMOOTHING_ALPHA,
 ) -> Decimal:
-    """Compute the exponentially smoothed daily spend rate.
-
-    Applies simple exponential smoothing (SES) to a sequence of daily spend
-    values and returns the smoothed estimate for the next day.
-
-    Parameters
-    ----------
-    daily_spend:
-        Chronologically ordered list of daily spend values (Decimal).
-    alpha:
-        Smoothing factor between 0 and 1. Higher values give more weight
-        to recent observations.
-
-    Returns
-    -------
-    Decimal
-        Smoothed daily spend rate estimate.
-
-    Raises
-    ------
-    ValueError
-        If *daily_spend* is empty or *alpha* is not in (0, 1].
-    """
-    # TODO: iterate daily_spend applying SES: s_t = alpha * x_t + (1 - alpha) * s_{t-1}
-    raise NotImplementedError
+    if not daily_spend:
+        raise ValueError("daily_spend cannot be empty")
+    if not 0 < alpha <= 1:
+        raise ValueError("alpha must be in (0, 1]")
+    smoothed = daily_spend[0]
+    alpha_decimal = Decimal(str(alpha))
+    for value in daily_spend[1:]:
+        smoothed = alpha_decimal * value + (Decimal("1") - alpha_decimal) * smoothed
+    return smoothed
 
 
 def apply_dow_seasonality(
@@ -85,32 +52,10 @@ def apply_dow_seasonality(
     days_remaining_by_dow: dict[int, int],
     dow_factors: dict[int, Decimal],
 ) -> Decimal:
-    """Adjust the smoothed daily rate for day-of-week spending patterns.
-
-    Instead of projecting a flat daily rate, scales each remaining day by
-    its historical day-of-week factor.
-
-    Parameters
-    ----------
-    smoothed_rate:
-        Base smoothed daily spend rate from ``exponential_smoothing``.
-    days_remaining_by_dow:
-        Count of remaining days in the month by day-of-week index (0=Mon).
-    dow_factors:
-        Historical spend factor per day-of-week (1.0 = average day).
-
-    Returns
-    -------
-    Decimal
-        Projected total spend for the remaining days.
-    """
-    # TODO: sum smoothed_rate * dow_factor for each remaining day
-    raise NotImplementedError
-
-
-# ---------------------------------------------------------------------------
-# Pacing calculation
-# ---------------------------------------------------------------------------
+    total = Decimal("0")
+    for dow, count in days_remaining_by_dow.items():
+        total += smoothed_rate * dow_factors.get(dow, Decimal("1")) * Decimal(str(count))
+    return total
 
 
 def compute_pacing(
@@ -122,34 +67,32 @@ def compute_pacing(
     alpha: float = DEFAULT_SMOOTHING_ALPHA,
     dow_factors: Optional[dict[int, Decimal]] = None,
 ) -> PacingResult:
-    """Compute budget pacing for a single campaign.
-
-    Parameters
-    ----------
-    daily_spend:
-        List of daily spend values from month start through current date.
-    budget_plan:
-        Monthly budget target (Decimal).
-    current_date:
-        The current reporting date.
-    month_start:
-        First day of the budget month.
-    month_end:
-        Last day of the budget month.
-    alpha:
-        Exponential smoothing factor.
-    dow_factors:
-        Optional day-of-week adjustment factors. If ``None``, a flat
-        projection is used.
-
-    Returns
-    -------
-    PacingResult
-        Pacing status including projected spend and alert level.
-    """
-    # TODO: sum spend_to_date, project remaining via exponential smoothing,
-    #       compute variance, determine alert level
-    raise NotImplementedError
+    spend_to_date = sum(daily_spend, Decimal("0"))
+    days_elapsed = max((current_date - month_start).days + 1, 1)
+    days_remaining = max((month_end - current_date).days, 0)
+    smoothed_rate = exponential_smoothing(daily_spend, alpha=alpha)
+    if dow_factors:
+        remaining_by_dow: dict[int, int] = {}
+        for offset in range(1, days_remaining + 1):
+            dow = (current_date + timedelta(days=offset)).weekday()
+            remaining_by_dow[dow] = remaining_by_dow.get(dow, 0) + 1
+        remaining_projection = apply_dow_seasonality(smoothed_rate, remaining_by_dow, dow_factors)
+    else:
+        remaining_projection = smoothed_rate * Decimal(str(days_remaining))
+    projected_spend = spend_to_date + remaining_projection
+    variance_pct = ((projected_spend - budget_plan) / budget_plan) if budget_plan else Decimal("0")
+    return PacingResult(
+        campaign_id="",
+        platform="",
+        budget_plan=budget_plan,
+        spend_to_date=spend_to_date,
+        days_elapsed=days_elapsed,
+        days_remaining=days_remaining,
+        projected_spend=projected_spend,
+        variance_pct=variance_pct,
+        alert_level=determine_alert_level(variance_pct),
+        daily_target_remaining=compute_daily_target_remaining(budget_plan, spend_to_date, days_remaining),
+    )
 
 
 def determine_alert_level(
@@ -157,25 +100,12 @@ def determine_alert_level(
     warning_threshold: float = DEFAULT_WARNING_THRESHOLD,
     critical_threshold: float = DEFAULT_CRITICAL_THRESHOLD,
 ) -> str:
-    """Map a variance percentage to an alert level.
-
-    Parameters
-    ----------
-    variance_pct:
-        (projected_spend - budget_plan) / budget_plan as a Decimal.
-        Can be positive (overspend) or negative (underspend).
-    warning_threshold:
-        Absolute variance percentage triggering a warning.
-    critical_threshold:
-        Absolute variance percentage triggering a critical alert.
-
-    Returns
-    -------
-    str
-        ``"critical"``, ``"warning"``, or ``"none"``.
-    """
-    # TODO: compare abs(variance_pct) against thresholds
-    raise NotImplementedError
+    absolute = abs(float(variance_pct))
+    if absolute >= critical_threshold:
+        return "critical"
+    if absolute >= warning_threshold:
+        return "warning"
+    return "none"
 
 
 def compute_daily_target_remaining(
@@ -183,80 +113,58 @@ def compute_daily_target_remaining(
     spend_to_date: Decimal,
     days_remaining: int,
 ) -> Optional[Decimal]:
-    """Calculate the required daily spend for remaining days to hit budget.
-
-    Parameters
-    ----------
-    budget_plan:
-        Monthly budget target.
-    spend_to_date:
-        Actual spend through the current date.
-    days_remaining:
-        Number of days left in the budget month.
-
-    Returns
-    -------
-    Optional[Decimal]
-        Required daily spend, or ``None`` if no days remain.
-    """
-    # TODO: (budget_plan - spend_to_date) / days_remaining using Decimal
-    raise NotImplementedError
-
-
-# ---------------------------------------------------------------------------
-# Batch pipeline
-# ---------------------------------------------------------------------------
+    if days_remaining <= 0:
+        return None
+    return (budget_plan - spend_to_date) / Decimal(str(days_remaining))
 
 
 def compute_dow_factors(
-    historical_spend: pd.DataFrame,
+    historical_spend: "pd.DataFrame",
 ) -> dict[int, Decimal]:
-    """Compute day-of-week spend factors from historical data.
-
-    The factor for each DOW is the ratio of that DOW's average daily spend
-    to the overall average daily spend.
-
-    Parameters
-    ----------
-    historical_spend:
-        DataFrame with ``date`` and ``spend`` columns covering at least
-        4 weeks of history.
-
-    Returns
-    -------
-    dict[int, Decimal]
-        Mapping of DOW index (0=Monday) to spend factor (Decimal).
-    """
-    # TODO: group by DOW, compute mean, divide by overall mean
-    raise NotImplementedError
+    if pd is None:
+        raise ImportError("pandas is required for DOW factor computation")
+    working = historical_spend.copy()
+    working["date"] = pd.to_datetime(working["date"])
+    working["spend"] = working["spend"].apply(lambda value: Decimal(str(value)))
+    overall_mean = sum(working["spend"], Decimal("0")) / Decimal(str(len(working) or 1))
+    grouped = working.groupby(working["date"].dt.dayofweek)["spend"].apply(lambda values: sum(values, Decimal("0")) / Decimal(str(len(values) or 1)))
+    return {int(dow): (value / overall_mean if overall_mean else Decimal("1")) for dow, value in grouped.items()}
 
 
 def run_pacing_report(
-    df: pd.DataFrame,
+    df: "pd.DataFrame",
     budget_plans: dict[str, Decimal],
     current_date: date,
     alpha: float = DEFAULT_SMOOTHING_ALPHA,
 ) -> list[PacingResult]:
-    """Run budget pacing analysis for all campaigns in a unified DataFrame.
-
-    Parameters
-    ----------
-    df:
-        Unified media performance DataFrame with ``campaign_id``, ``platform``,
-        ``date``, and ``spend`` columns.
-    budget_plans:
-        Mapping of campaign_id to monthly budget target (Decimal).
-    current_date:
-        Current reporting date for determining elapsed/remaining days.
-    alpha:
-        Exponential smoothing factor.
-
-    Returns
-    -------
-    list[PacingResult]
-        Pacing results for all campaigns, sorted by absolute variance
-        descending (most off-pace first).
-    """
-    # TODO: group by campaign, extract daily spend, compute DOW factors,
-    #       apply compute_pacing to each, sort by |variance|
-    raise NotImplementedError
+    if pd is None:
+        raise ImportError("pandas is required for pacing reports")
+    results: list[PacingResult] = []
+    working = df.copy()
+    working["date"] = pd.to_datetime(working["date"])
+    working["spend"] = working["spend"].apply(lambda value: Decimal(str(value)))
+    month_start = current_date.replace(day=1)
+    next_month = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1)
+    month_end = next_month - timedelta(days=1)
+    for (campaign_id, platform), group in working.groupby(["campaign_id", "platform"]):
+        if campaign_id not in budget_plans:
+            continue
+        month_data = group[(group["date"].dt.date >= month_start) & (group["date"].dt.date <= current_date)].sort_values("date")
+        daily_spend = month_data.groupby(month_data["date"].dt.date)["spend"].sum().tolist()
+        if not daily_spend:
+            continue
+        historical = group[group["date"].dt.date < month_start].sort_values("date")
+        dow_factors = compute_dow_factors(historical.tail(28)) if len(historical) >= 7 else None
+        pacing = compute_pacing(
+            daily_spend=daily_spend,
+            budget_plan=budget_plans[campaign_id],
+            current_date=current_date,
+            month_start=month_start,
+            month_end=month_end,
+            alpha=alpha,
+            dow_factors=dow_factors,
+        )
+        pacing.campaign_id = str(campaign_id)
+        pacing.platform = str(platform)
+        results.append(pacing)
+    return sorted(results, key=lambda item: abs(item.variance_pct), reverse=True)

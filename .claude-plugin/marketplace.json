@@ -16,6 +16,14 @@
       "version": "1.0.0",
       "keywords": ["ab-testing", "experimentation", "statistics", "analytics"],
       "license": "MIT"
+    },
+    {
+      "name": "marketing-analytics",
+      "source": "./plugins/marketing-analytics",
+      "description": "15 interconnected marketing analytics skills — attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review",
+      "version": "1.0.0",
+      "keywords": ["marketing", "analytics", "attribution", "experimentation", "paid-media", "reporting", "clv", "segmentation", "funnel", "email", "web-analytics", "seo", "crm", "social-media", "competitive-intelligence", "compliance", "financial-services"],
+      "license": "MIT"
     }
   ]
 }

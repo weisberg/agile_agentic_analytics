@@ -1,0 +1,29 @@
+{
+  "name": "marketing-analytics",
+  "description": "15 interconnected marketing analytics skills — attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review",
+  "version": "1.0.0",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "license": "MIT",
+  "keywords": [
+    "marketing",
+    "analytics",
+    "attribution",
+    "experimentation",
+    "paid-media",
+    "reporting",
+    "clv",
+    "segmentation",
+    "funnel",
+    "email",
+    "web-analytics",
+    "seo",
+    "crm",
+    "social-media",
+    "competitive-intelligence",
+    "voice-of-customer",
+    "compliance",
+    "financial-services"
+  ]
+}

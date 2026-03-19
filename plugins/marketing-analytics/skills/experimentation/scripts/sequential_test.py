@@ -1,45 +1,22 @@
-"""Sequential testing for continuous monitoring of A/B experiments.
-
-Implements mSPRT boundaries, always-valid confidence intervals, and
-alpha-spending functions (O'Brien-Fleming, Pocock) for valid early stopping.
-"""
+"""Sequential testing for continuous monitoring of A/B experiments."""
 
 from __future__ import annotations
 
+import math
+import statistics
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
-
-import numpy as np
-from scipy import stats
+from statistics import NormalDist
+from typing import Optional, Sequence, Tuple
 
 
 class SpendingFunction(Enum):
-    """Supported alpha-spending functions for group sequential designs."""
-
     OBRIEN_FLEMING = "obrien_fleming"
     POCOCK = "pocock"
 
 
 @dataclass
 class SequentialResult:
-    """Result of a sequential test at a single analysis point.
-
-    Attributes:
-        metric_name: Name of the metric being monitored.
-        current_n: Current sample size per group.
-        planned_n: Planned total sample size per group.
-        information_fraction: current_n / planned_n.
-        effect_estimate: Current estimate of the treatment effect.
-        always_valid_ci: Always-valid confidence interval at this point.
-        msprt_statistic: Mixture sequential probability ratio test statistic.
-        reject_null: Whether the null can be rejected at this look.
-        boundary_value: Critical boundary value at this information fraction.
-        alpha_spent: Cumulative alpha spent up to this look.
-        stop_for_futility: Whether the experiment should stop for futility.
-        conditional_power: Estimated power given current trend.
-    """
-
     metric_name: str
     current_n: int
     planned_n: int
@@ -54,30 +31,24 @@ class SequentialResult:
     conditional_power: float
 
 
+def _variance(values: Sequence[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean_value = statistics.fmean(values)
+    return sum((value - mean_value) ** 2 for value in values) / (len(values) - 1)
+
+
 def compute_msprt_statistic(
     running_mean_diff: float,
     sample_variance: float,
     current_n: int,
     tau_squared: float,
 ) -> float:
-    """Compute the mixture sequential probability ratio test statistic.
-
-    Uses a Gaussian mixing distribution over plausible effect sizes.
-
-    Args:
-        running_mean_diff: Current mean difference (treatment - control).
-        sample_variance: Estimated variance of individual observations.
-        current_n: Current sample size per group.
-        tau_squared: Mixing variance parameter controlling test sensitivity.
-
-    Returns:
-        The mSPRT likelihood ratio Lambda_n.
-    """
-    # TODO: Compute Lambda_n using the normal mixture formula:
-    #   Lambda = sqrt(sigma^2 / (sigma^2 + n*tau^2)) *
-    #            exp(n^2 * mean_diff^2 * tau^2 / (2 * sigma^2 * (sigma^2 + n*tau^2)))
-    # TODO: Return Lambda_n
-    raise NotImplementedError("mSPRT statistic computation not yet implemented")
+    sigma_sq = max(sample_variance, 1e-12)
+    numerator = math.sqrt(sigma_sq / (sigma_sq + current_n * tau_squared))
+    exponent = (current_n**2) * (running_mean_diff**2) * tau_squared
+    exponent /= max(2 * sigma_sq * (sigma_sq + current_n * tau_squared), 1e-12)
+    return numerator * math.exp(exponent)
 
 
 def compute_always_valid_ci(
@@ -87,67 +58,28 @@ def compute_always_valid_ci(
     tau_squared: float,
     alpha: float = 0.05,
 ) -> Tuple[float, float]:
-    """Compute always-valid confidence interval at the current sample size.
-
-    These intervals are valid at every point in time, not just at the
-    pre-planned stopping time.
-
-    Args:
-        running_mean_diff: Current mean difference (treatment - control).
-        sample_variance: Estimated variance of individual observations.
-        current_n: Current sample size per group.
-        tau_squared: Mixing variance parameter.
-        alpha: Significance level. Default 0.05.
-
-    Returns:
-        Tuple of (lower_bound, upper_bound) for the always-valid CI.
-    """
-    # TODO: Compute the always-valid CI half-width using:
-    #   half_width = sqrt((sigma^2 + n*tau^2) / (n^2*tau^2) *
-    #                     2 * log(1/alpha * sqrt((sigma^2 + n*tau^2) / sigma^2)))
-    # TODO: Return (mean_diff - half_width, mean_diff + half_width)
-    raise NotImplementedError("Always-valid CI computation not yet implemented")
+    sigma_sq = max(sample_variance, 1e-12)
+    scale_ratio = (sigma_sq + current_n * tau_squared) / max((current_n**2) * tau_squared, 1e-12)
+    multiplier = 2 * math.log((1 / alpha) * math.sqrt((sigma_sq + current_n * tau_squared) / sigma_sq))
+    half_width = math.sqrt(max(scale_ratio * multiplier, 0.0))
+    return running_mean_diff - half_width, running_mean_diff + half_width
 
 
 def obrien_fleming_spending(
     information_fraction: float,
     alpha: float = 0.05,
 ) -> float:
-    """Compute cumulative alpha spent using O'Brien-Fleming spending function.
-
-    Conservative early, spending most alpha near the planned end.
-
-    Args:
-        information_fraction: Current fraction of planned information (n/N).
-        alpha: Overall significance level. Default 0.05.
-
-    Returns:
-        Cumulative alpha spent at this information fraction.
-    """
-    # TODO: Compute alpha*(t) = 2 * (1 - Phi(Z_{alpha/2} / sqrt(t)))
-    # TODO: Handle edge case where information_fraction is near 0
-    # TODO: Return cumulative alpha spent
-    raise NotImplementedError("O'Brien-Fleming spending not yet implemented")
+    information_fraction = max(min(information_fraction, 1.0), 1e-9)
+    z_alpha = NormalDist().inv_cdf(1 - alpha / 2)
+    return 2 * (1 - NormalDist().cdf(z_alpha / math.sqrt(information_fraction)))
 
 
 def pocock_spending(
     information_fraction: float,
     alpha: float = 0.05,
 ) -> float:
-    """Compute cumulative alpha spent using Pocock spending function.
-
-    Spends alpha more evenly across looks compared to O'Brien-Fleming.
-
-    Args:
-        information_fraction: Current fraction of planned information (n/N).
-        alpha: Overall significance level. Default 0.05.
-
-    Returns:
-        Cumulative alpha spent at this information fraction.
-    """
-    # TODO: Compute alpha*(t) = alpha * ln(1 + (e - 1) * t)
-    # TODO: Return cumulative alpha spent
-    raise NotImplementedError("Pocock spending not yet implemented")
+    information_fraction = max(min(information_fraction, 1.0), 0.0)
+    return alpha * math.log(1 + (math.e - 1) * information_fraction)
 
 
 def compute_boundary(
@@ -156,22 +88,13 @@ def compute_boundary(
     alpha: float = 0.05,
     previous_alpha_spent: float = 0.0,
 ) -> float:
-    """Compute the rejection boundary at a given information fraction.
-
-    Args:
-        information_fraction: Current fraction of planned information.
-        spending_function: Which spending function to use. Default O'Brien-Fleming.
-        alpha: Overall significance level. Default 0.05.
-        previous_alpha_spent: Alpha already spent at previous looks. Default 0.0.
-
-    Returns:
-        The critical z-value boundary for this look.
-    """
-    # TODO: Compute alpha to spend at this look:
-    #   alpha_this_look = spending(t) - previous_alpha_spent
-    # TODO: Convert to z-boundary: Z = Phi^{-1}(1 - alpha_this_look / 2)
-    # TODO: Return z-boundary
-    raise NotImplementedError("Boundary computation not yet implemented")
+    cumulative = (
+        obrien_fleming_spending(information_fraction, alpha)
+        if spending_function == SpendingFunction.OBRIEN_FLEMING
+        else pocock_spending(information_fraction, alpha)
+    )
+    alpha_this_look = max(cumulative - previous_alpha_spent, 1e-12)
+    return NormalDist().inv_cdf(1 - alpha_this_look / 2)
 
 
 def compute_conditional_power(
@@ -181,30 +104,17 @@ def compute_conditional_power(
     sample_variance: float,
     alpha: float = 0.05,
 ) -> float:
-    """Estimate conditional power given the current observed trend.
-
-    Used for futility analysis: if conditional power is very low, the
-    experiment is unlikely to reach significance.
-
-    Args:
-        current_effect: Current estimated effect size.
-        current_n: Current sample size per group.
-        planned_n: Planned sample size per group.
-        sample_variance: Current estimated variance.
-        alpha: Significance level. Default 0.05.
-
-    Returns:
-        Estimated probability of reaching significance at the planned end.
-    """
-    # TODO: Project final test statistic assuming current trend continues
-    # TODO: Compute probability that projected statistic exceeds critical value
-    # TODO: Return conditional power estimate
-    raise NotImplementedError("Conditional power not yet implemented")
+    if planned_n <= current_n:
+        return 1.0
+    standard_error_final = math.sqrt(max(2 * sample_variance / planned_n, 1e-12))
+    z_critical = NormalDist().inv_cdf(1 - alpha / 2)
+    projected_z = current_effect / standard_error_final
+    return 1 - NormalDist().cdf(z_critical - projected_z)
 
 
 def run_sequential_analysis(
-    control_values: np.ndarray,
-    treatment_values: np.ndarray,
+    control_values: Sequence[float],
+    treatment_values: Sequence[float],
     planned_n_per_group: int,
     tau_squared: Optional[float] = None,
     spending_function: SpendingFunction = SpendingFunction.OBRIEN_FLEMING,
@@ -212,33 +122,36 @@ def run_sequential_analysis(
     futility_threshold: float = 0.10,
     metric_name: str = "metric",
 ) -> SequentialResult:
-    """Run sequential analysis at the current data snapshot.
-
-    Computes mSPRT statistic, always-valid CI, spending-function boundary,
-    and futility assessment.
-
-    Args:
-        control_values: Current array of control group metric values.
-        treatment_values: Current array of treatment group metric values.
-        planned_n_per_group: Planned total sample size per group.
-        tau_squared: Mixing variance for mSPRT. If None, auto-computed from
-            planned MDE. Default None.
-        spending_function: Alpha-spending function to use. Default O'Brien-Fleming.
-        alpha: Overall significance level. Default 0.05.
-        futility_threshold: Conditional power threshold below which to flag
-            futility. Default 0.10.
-        metric_name: Name of the metric. Default "metric".
-
-    Returns:
-        SequentialResult with all monitoring statistics.
-    """
-    # TODO: Compute current sample sizes and information fraction
-    # TODO: Compute running mean difference and pooled variance
-    # TODO: Auto-compute tau_squared if not provided
-    # TODO: Compute mSPRT statistic
-    # TODO: Compute always-valid CI
-    # TODO: Compute spending-function boundary
-    # TODO: Determine if null can be rejected (mSPRT >= 1/alpha or Z > boundary)
-    # TODO: Compute conditional power and futility flag
-    # TODO: Assemble and return SequentialResult
-    raise NotImplementedError("Sequential analysis not yet implemented")
+    if not control_values or not treatment_values:
+        raise ValueError("control and treatment values must be non-empty")
+    current_n = min(len(control_values), len(treatment_values))
+    information_fraction = min(current_n / planned_n_per_group, 1.0)
+    effect_estimate = statistics.fmean(treatment_values) - statistics.fmean(control_values)
+    pooled_values = [float(value) for value in control_values] + [float(value) for value in treatment_values]
+    sample_variance = _variance(pooled_values)
+    tau_squared = tau_squared if tau_squared is not None else max((abs(effect_estimate) or 1.0) ** 2, 1e-4)
+    msprt = compute_msprt_statistic(effect_estimate, sample_variance, current_n, tau_squared)
+    ci = compute_always_valid_ci(effect_estimate, sample_variance, current_n, tau_squared, alpha=alpha)
+    alpha_spent = (
+        obrien_fleming_spending(information_fraction, alpha)
+        if spending_function == SpendingFunction.OBRIEN_FLEMING
+        else pocock_spending(information_fraction, alpha)
+    )
+    boundary = compute_boundary(information_fraction, spending_function=spending_function, alpha=alpha)
+    z_current = effect_estimate / math.sqrt(max(2 * sample_variance / current_n, 1e-12))
+    conditional_power = compute_conditional_power(effect_estimate, current_n, planned_n_per_group, sample_variance, alpha=alpha)
+    reject = msprt >= (1 / alpha) or abs(z_current) >= boundary
+    return SequentialResult(
+        metric_name=metric_name,
+        current_n=current_n,
+        planned_n=planned_n_per_group,
+        information_fraction=information_fraction,
+        effect_estimate=effect_estimate,
+        always_valid_ci=ci,
+        msprt_statistic=msprt,
+        reject_null=reject,
+        boundary_value=boundary,
+        alpha_spent=alpha_spent,
+        stop_for_futility=conditional_power < futility_threshold,
+        conditional_power=conditional_power,
+    )

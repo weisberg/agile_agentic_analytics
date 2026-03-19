@@ -1,33 +1,17 @@
-"""CUPED (Controlled-experiment Using Pre-Experiment Data) implementation.
-
-Covariate regression, theta estimation, and adjusted metric computation
-for variance reduction in A/B experiments.
-"""
+"""CUPED (Controlled-experiment Using Pre-Experiment Data) implementation."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Dict, List, Optional, Sequence, Tuple
 
-import numpy as np
-from scipy import stats
+import math
+import statistics
 
 
 @dataclass
 class CUPEDResult:
-    """Result of CUPED variance adjustment for a single metric.
-
-    Attributes:
-        metric_name: Name of the post-experiment metric.
-        covariate_name: Name of the pre-experiment covariate used.
-        theta: Estimated regression coefficient (Cov(Y,X)/Var(X)).
-        correlation: Pearson correlation between metric and covariate.
-        variance_original: Variance of the unadjusted metric.
-        variance_adjusted: Variance of the CUPED-adjusted metric.
-        variance_reduction_pct: Percentage variance reduction achieved.
-        adjusted_values: Dict mapping variant name to adjusted metric arrays.
-    """
-
     metric_name: str
     covariate_name: str
     theta: float
@@ -35,142 +19,165 @@ class CUPEDResult:
     variance_original: float
     variance_adjusted: float
     variance_reduction_pct: float
-    adjusted_values: Dict[str, np.ndarray]
+    adjusted_values: Dict[str, list[float]]
+
+
+def _variance(values: Sequence[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean_value = statistics.fmean(values)
+    return sum((value - mean_value) ** 2 for value in values) / (len(values) - 1)
+
+
+def _quantile(values: Sequence[float], q: float) -> float:
+    ordered = sorted(values)
+    if not ordered:
+        return 0.0
+    position = (len(ordered) - 1) * q
+    low = int(position)
+    high = min(low + 1, len(ordered) - 1)
+    fraction = position - low
+    return ordered[low] + (ordered[high] - ordered[low]) * fraction
+
+
+def _winsorize(values: Sequence[float], percentile: Optional[float]) -> list[float]:
+    values = [float(value) for value in values]
+    if percentile is None:
+        return values
+    lower = _quantile(values, percentile)
+    upper = _quantile(values, 1 - percentile)
+    return [min(max(value, lower), upper) for value in values]
+
+
+def _solve_linear_system(matrix: list[list[float]], vector: list[float]) -> list[float]:
+    size = len(vector)
+    augmented = [row[:] + [vector[index]] for index, row in enumerate(matrix)]
+    for pivot in range(size):
+        best_row = max(range(pivot, size), key=lambda idx: abs(augmented[idx][pivot]))
+        augmented[pivot], augmented[best_row] = augmented[best_row], augmented[pivot]
+        pivot_value = augmented[pivot][pivot]
+        if abs(pivot_value) < 1e-12:
+            raise ValueError("Covariate matrix is rank-deficient")
+        for column in range(pivot, size + 1):
+            augmented[pivot][column] /= pivot_value
+        for row in range(size):
+            if row == pivot:
+                continue
+            factor = augmented[row][pivot]
+            for column in range(pivot, size + 1):
+                augmented[row][column] -= factor * augmented[pivot][column]
+    return [row[-1] for row in augmented]
 
 
 def validate_covariate_timing(
-    covariate_timestamps: np.ndarray,
-    experiment_start_date: np.datetime64,
+    covariate_timestamps: Sequence[object],
+    experiment_start_date: object,
 ) -> bool:
-    """Validate that all covariate measurements are strictly pre-treatment.
-
-    Args:
-        covariate_timestamps: Array of timestamps for covariate measurements.
-        experiment_start_date: Date when experiment treatment began.
-
-    Returns:
-        True if all covariate measurements precede experiment start.
-
-    Raises:
-        ValueError: If any covariate measurement is on or after experiment start,
-            indicating potential post-treatment bias.
-    """
-    # TODO: Compare all timestamps against experiment_start_date
-    # TODO: Raise ValueError with details if any violation found
-    # TODO: Return True if validation passes
-    raise NotImplementedError("Covariate timing validation not yet implemented")
+    start = datetime.fromisoformat(str(experiment_start_date).replace("Z", "+00:00"))
+    violations = [
+        str(timestamp)
+        for timestamp in covariate_timestamps
+        if datetime.fromisoformat(str(timestamp).replace("Z", "+00:00")) >= start
+    ]
+    if violations:
+        raise ValueError(f"Found post-treatment covariates: {violations[:5]}")
+    return True
 
 
 def estimate_theta(
-    metric_values: np.ndarray,
-    covariate_values: np.ndarray,
+    metric_values: Sequence[float],
+    covariate_values: Sequence[float],
     winsorize_percentile: Optional[float] = None,
 ) -> Tuple[float, float]:
-    """Estimate the CUPED theta coefficient from pooled data.
-
-    Computes theta = Cov(Y, X) / Var(X) using the pooled sample across
-    all experiment groups.
-
-    Args:
-        metric_values: Post-experiment metric values (pooled across groups).
-        covariate_values: Pre-experiment covariate values (pooled across groups).
-        winsorize_percentile: If set, winsorize both arrays at this percentile
-            (e.g., 0.01 for 1st/99th). Default None (no winsorization).
-
-    Returns:
-        Tuple of (theta, pearson_correlation).
-
-    Raises:
-        ValueError: If arrays have different lengths or covariate has zero variance.
-    """
-    # TODO: Validate input array lengths match
-    # TODO: Optionally winsorize at specified percentile
-    # TODO: Check that Var(X) > 0
-    # TODO: Compute theta = Cov(Y, X) / Var(X)
-    # TODO: Compute Pearson correlation
-    # TODO: Return (theta, correlation)
-    raise NotImplementedError("Theta estimation not yet implemented")
+    if len(metric_values) != len(covariate_values):
+        raise ValueError("metric_values and covariate_values must have the same length")
+    metric = _winsorize(metric_values, winsorize_percentile)
+    covariate = _winsorize(covariate_values, winsorize_percentile)
+    covariate_variance = _variance(covariate)
+    if covariate_variance <= 0:
+        raise ValueError("covariate must have non-zero variance")
+    metric_mean = statistics.fmean(metric)
+    covariate_mean = statistics.fmean(covariate)
+    covariance = sum((m - metric_mean) * (c - covariate_mean) for m, c in zip(metric, covariate)) / max(len(metric) - 1, 1)
+    theta = covariance / covariate_variance
+    correlation = covariance / math.sqrt(max(_variance(metric) * covariate_variance, 1e-12))
+    return theta, correlation
 
 
 def compute_adjusted_metric(
-    metric_values: np.ndarray,
-    covariate_values: np.ndarray,
+    metric_values: Sequence[float],
+    covariate_values: Sequence[float],
     theta: float,
     covariate_mean: float,
-) -> np.ndarray:
-    """Compute CUPED-adjusted metric values.
-
-    Applies the adjustment: Y_adj = Y - theta * (X - E[X])
-
-    Args:
-        metric_values: Post-experiment metric values for a single group.
-        covariate_values: Pre-experiment covariate values for the same group.
-        theta: CUPED theta coefficient (estimated from pooled data).
-        covariate_mean: Population mean of the covariate (from pooled data).
-
-    Returns:
-        Array of adjusted metric values.
-    """
-    # TODO: Compute Y_adj = Y - theta * (X - covariate_mean)
-    # TODO: Return adjusted array
-    raise NotImplementedError("Adjusted metric computation not yet implemented")
+) -> list[float]:
+    return [
+        float(metric) - theta * (float(covariate) - covariate_mean)
+        for metric, covariate in zip(metric_values, covariate_values)
+    ]
 
 
 def estimate_theta_multivariate(
-    metric_values: np.ndarray,
-    covariate_matrix: np.ndarray,
+    metric_values: Sequence[float],
+    covariate_matrix: Sequence[Sequence[float]],
     winsorize_percentile: Optional[float] = None,
-) -> np.ndarray:
-    """Estimate CUPED theta vector for multiple covariates.
-
-    Computes theta = (X'X)^{-1} X'Y using OLS on the pooled sample.
-
-    Args:
-        metric_values: Post-experiment metric values, shape (n,).
-        covariate_matrix: Pre-experiment covariate matrix, shape (n, k).
-        winsorize_percentile: If set, winsorize all columns at this percentile.
-
-    Returns:
-        Theta vector of shape (k,).
-
-    Raises:
-        ValueError: If matrix is rank-deficient or dimensions mismatch.
-    """
-    # TODO: Validate dimensions
-    # TODO: Optionally winsorize each column
-    # TODO: Compute theta = (X'X)^{-1} X'Y via np.linalg.lstsq
-    # TODO: Return theta vector
-    raise NotImplementedError("Multivariate theta estimation not yet implemented")
+) -> list[float]:
+    metric = _winsorize(metric_values, winsorize_percentile)
+    matrix = [[float(value) for value in row] for row in covariate_matrix]
+    if not matrix or len(matrix) != len(metric):
+        raise ValueError("covariate_matrix must align with metric_values")
+    for column_index in range(len(matrix[0])):
+        column = _winsorize([row[column_index] for row in matrix], winsorize_percentile)
+        for row_index, value in enumerate(column):
+            matrix[row_index][column_index] = value
+    xtx = [[0.0 for _ in range(len(matrix[0]))] for _ in range(len(matrix[0]))]
+    xty = [0.0 for _ in range(len(matrix[0]))]
+    for row, target in zip(matrix, metric):
+        for i in range(len(row)):
+            xty[i] += row[i] * target
+            for j in range(len(row)):
+                xtx[i][j] += row[i] * row[j]
+    return _solve_linear_system(xtx, xty)
 
 
 def run_cuped_adjustment(
-    experiment_data: Dict[str, Dict[str, np.ndarray]],
-    covariate_data: Dict[str, np.ndarray],
+    experiment_data: Dict[str, Dict[str, Sequence[float]]],
+    covariate_data: Dict[str, Sequence[float]],
     metric_covariate_mapping: Dict[str, str],
     winsorize_percentile: Optional[float] = 0.01,
 ) -> List[CUPEDResult]:
-    """Run the full CUPED adjustment pipeline for an experiment.
-
-    For each metric, identifies the corresponding covariate, estimates theta
-    from pooled data, and computes adjusted values per variant.
-
-    Args:
-        experiment_data: Nested dict mapping metric_name -> variant_name -> values.
-        covariate_data: Dict mapping user_id or index to covariate values,
-            keyed by variant_name -> covariate array.
-        metric_covariate_mapping: Dict mapping each metric name to its
-            pre-experiment covariate name.
-        winsorize_percentile: Percentile for winsorization. Default 0.01 (1%).
-            Set to None to disable.
-
-    Returns:
-        List of CUPEDResult objects, one per metric.
-    """
-    # TODO: Iterate over metrics and their mapped covariates
-    # TODO: Pool metric and covariate values across all variants
-    # TODO: Estimate theta from pooled data
-    # TODO: Compute covariate mean from pooled data
-    # TODO: Apply adjustment per variant using compute_adjusted_metric
-    # TODO: Compute variance reduction statistics
-    # TODO: Assemble and return CUPEDResult list
-    raise NotImplementedError("Full CUPED pipeline not yet implemented")
+    results: list[CUPEDResult] = []
+    for metric_name, variants in experiment_data.items():
+        covariate_name = metric_covariate_mapping[metric_name]
+        pooled_metric = []
+        pooled_covariate = []
+        adjusted_values: dict[str, list[float]] = {}
+        for variant_name, metric_values in variants.items():
+            covariates = covariate_data[variant_name]
+            pooled_metric.extend(float(value) for value in metric_values)
+            pooled_covariate.extend(float(value) for value in covariates)
+        theta, correlation = estimate_theta(pooled_metric, pooled_covariate, winsorize_percentile=winsorize_percentile)
+        covariate_mean = statistics.fmean(pooled_covariate)
+        for variant_name, metric_values in variants.items():
+            adjusted_values[variant_name] = compute_adjusted_metric(
+                metric_values,
+                covariate_data[variant_name],
+                theta,
+                covariate_mean,
+            )
+        variance_original = _variance(pooled_metric)
+        adjusted_pooled = [value for values in adjusted_values.values() for value in values]
+        variance_adjusted = _variance(adjusted_pooled)
+        reduction = ((variance_original - variance_adjusted) / variance_original * 100) if variance_original else 0.0
+        results.append(
+            CUPEDResult(
+                metric_name=metric_name,
+                covariate_name=covariate_name,
+                theta=theta,
+                correlation=correlation,
+                variance_original=variance_original,
+                variance_adjusted=variance_adjusted,
+                variance_reduction_pct=reduction,
+                adjusted_values=adjusted_values,
+            )
+        )
+    return results

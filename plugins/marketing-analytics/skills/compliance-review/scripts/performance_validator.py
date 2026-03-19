@@ -1,27 +1,16 @@
-"""
-Performance Validator for Compliance-Aware Content Review
-
-Validates performance presentation in marketing content for SEC and FINRA
-compliance. Checks gross/net balance, time period completeness, benchmark
-inclusion, and hypothetical performance disclosure requirements.
-
-ADVISORY NOTICE: This validator provides an automated first-pass review only.
-It does NOT constitute compliance certification. All findings require confirmation
-by a qualified human compliance officer.
-"""
+"""Performance Validator for Compliance-Aware Content Review."""
 
 from __future__ import annotations
 
 import re
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Optional
 
 
 class ValidationSeverity(Enum):
-    """Severity levels for performance validation findings."""
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
@@ -30,7 +19,6 @@ class ValidationSeverity(Enum):
 
 @dataclass
 class PerformanceClaim:
-    """A parsed performance claim extracted from content."""
     raw_text: str
     percentage: Optional[float]
     time_period: Optional[str]
@@ -43,7 +31,6 @@ class PerformanceClaim:
 
 @dataclass
 class ValidationFinding:
-    """A single finding from performance validation."""
     finding_id: str
     severity: ValidationSeverity
     rule_citation: str
@@ -55,7 +42,6 @@ class ValidationFinding:
 
 @dataclass
 class PerformanceValidationResult:
-    """Complete result of performance validation."""
     validation_id: str
     validation_timestamp: str
     content_source: str
@@ -64,162 +50,146 @@ class PerformanceValidationResult:
     gross_net_balanced: Optional[bool]
     time_periods_complete: Optional[bool]
     benchmarks_included: Optional[bool]
-    advisory_notice: str = (
-        "This is an advisory first-pass review, not compliance certification."
-    )
+    advisory_notice: str = "This is an advisory first-pass review, not compliance certification."
+
+
+def _claim_location(content: str, start: int, end: int) -> str:
+    line_number = content[:start].count("\n") + 1
+    return f"line {line_number}, chars {start}-{end}"
 
 
 def extract_performance_claims(content: str) -> list[PerformanceClaim]:
-    """Extract all performance claims from marketing content.
-
-    Parses the content to identify statements that present investment
-    performance data, including percentage returns, time periods, gross/net
-    designations, and benchmark references.
-
-    Args:
-        content: The full text content to parse for performance claims.
-
-    Returns:
-        list[PerformanceClaim]: All performance claims found in the content,
-            with parsed components (percentage, time period, gross/net status).
-    """
-    # TODO: Implement performance claim extraction.
-    # 1. Use regex to find percentage patterns (e.g., "+12.5%", "12.5 percent").
-    # 2. Parse surrounding context for time period (1-year, 5-year, etc.).
-    # 3. Detect gross/net designation.
-    # 4. Identify associated benchmark references.
-    return []
+    claims = []
+    pattern = re.compile(r"([+-]?\d+(?:\.\d+)?)%\s*(?:return|gain|performance|growth)?", re.IGNORECASE)
+    for match in pattern.finditer(content):
+        context = content[max(0, match.start() - 80): match.end() + 80]
+        time_match = re.search(r"\b(1[- ]year|5[- ]year|10[- ]year|since inception|ytd|quarter|month)\b", context, re.IGNORECASE)
+        benchmark_match = re.search(r"\b(S&P 500|benchmark|index|MSCI [A-Za-z ]+)\b", context, re.IGNORECASE)
+        lowered = context.lower()
+        claims.append(
+            PerformanceClaim(
+                raw_text=match.group(0),
+                percentage=float(match.group(1)),
+                time_period=time_match.group(0) if time_match else None,
+                is_gross="gross" in lowered,
+                is_net="net" in lowered,
+                is_annualized="annualized" in lowered,
+                benchmark_name=benchmark_match.group(0) if benchmark_match else None,
+                location=_claim_location(content, match.start(), match.end()),
+            )
+        )
+    return claims
 
 
 def validate_gross_net_balance(
     claims: list[PerformanceClaim],
 ) -> list[ValidationFinding]:
-    """Validate that gross and net performance receive equal prominence.
-
-    SEC Marketing Rule requires that if gross performance is shown, net
-    performance must also be shown with at least equal prominence. This
-    validator checks for the presence and balance of gross/net claims.
-
-    Args:
-        claims: List of PerformanceClaim objects extracted from content.
-
-    Returns:
-        list[ValidationFinding]: Findings for any gross/net imbalances.
-            HIGH severity if gross is shown without net. MEDIUM severity
-            if net appears less prominent than gross.
-    """
-    # TODO: Implement gross/net balance validation.
-    # 1. Identify claims marked as gross and claims marked as net.
-    # 2. If gross is present but net is absent, flag as HIGH.
-    # 3. If both present, check for equal prominence (position, formatting).
-    # 4. Verify net deductions are properly disclosed.
-    return []
+    findings = []
+    has_gross = any(claim.is_gross for claim in claims)
+    has_net = any(claim.is_net for claim in claims)
+    if has_gross and not has_net:
+        findings.append(
+            ValidationFinding(
+                finding_id=str(uuid.uuid4()),
+                severity=ValidationSeverity.HIGH,
+                rule_citation="SEC Marketing Rule 206(4)-1",
+                description="Gross performance appears without net performance of equal prominence.",
+                related_claim=next((claim for claim in claims if claim.is_gross), None),
+                remediation="Add net performance alongside each gross performance presentation.",
+            )
+        )
+    return findings
 
 
 def validate_time_period_completeness(
     claims: list[PerformanceClaim],
     inception_date: Optional[date] = None,
 ) -> list[ValidationFinding]:
-    """Validate that all required time periods are presented.
-
-    SEC Marketing Rule requires performance to include 1-year, 5-year, and
-    10-year (or since-inception) periods. Performance for periods less than
-    one year must not be annualized.
-
-    Args:
-        claims: List of PerformanceClaim objects extracted from content.
-        inception_date: Optional date of fund/strategy inception. Used to
-            determine whether since-inception should replace 10-year period.
-
-    Returns:
-        list[ValidationFinding]: Findings for missing time periods or
-            improperly annualized short-period returns.
-    """
-    # TODO: Implement time period completeness validation.
-    # 1. Collect all time periods mentioned in claims.
-    # 2. Check for presence of 1-year, 5-year, and 10-year (or since-inception).
-    # 3. Flag missing required periods as HIGH severity.
-    # 4. Check for annualized returns on sub-1-year periods (violation).
-    # 5. Verify all periods end on a consistent, recent date.
-    return []
+    findings = []
+    periods = {claim.time_period.lower() for claim in claims if claim.time_period}
+    required = {"1-year", "5-year"}
+    required.add("10-year" if inception_date is None or (date.today().year - inception_date.year) >= 10 else "since inception")
+    if not any(period in periods for period in required):
+        findings.append(
+            ValidationFinding(
+                finding_id=str(uuid.uuid4()),
+                severity=ValidationSeverity.HIGH,
+                rule_citation="SEC Marketing Rule 206(4)-1",
+                description="Performance claims do not include the expected standard trailing periods.",
+                related_claim=claims[0] if claims else None,
+                remediation="Add 1-year, 5-year, and 10-year or since-inception figures.",
+            )
+        )
+    for claim in claims:
+        if claim.time_period and claim.time_period.lower() in {"month", "quarter"} and claim.is_annualized:
+            findings.append(
+                ValidationFinding(
+                    finding_id=str(uuid.uuid4()),
+                    severity=ValidationSeverity.HIGH,
+                    rule_citation="SEC Marketing Rule 206(4)-1",
+                    description="Sub-one-year performance appears to be annualized.",
+                    related_claim=claim,
+                    remediation="Remove annualization for periods shorter than one year.",
+                )
+            )
+    return findings
 
 
 def validate_benchmark_inclusion(
     claims: list[PerformanceClaim],
 ) -> list[ValidationFinding]:
-    """Validate that performance comparisons include appropriate benchmarks.
-
-    When performance is compared to a benchmark, the benchmark must be clearly
-    identified and results shown for the same time periods. This validator
-    checks for benchmark presence and consistency.
-
-    Args:
-        claims: List of PerformanceClaim objects extracted from content.
-
-    Returns:
-        list[ValidationFinding]: Findings for missing or improperly
-            presented benchmarks. MEDIUM severity if performance is shown
-            without benchmark context. HIGH if benchmark comparison is
-            made but benchmark is not identified.
-    """
-    # TODO: Implement benchmark validation.
-    # 1. Check if any claims reference a benchmark.
-    # 2. If performance data exists without benchmark, flag as MEDIUM.
-    # 3. If benchmark is referenced but not clearly identified, flag as HIGH.
-    # 4. Verify benchmark periods match the adviser's performance periods.
-    return []
+    findings = []
+    if claims and not any(claim.benchmark_name for claim in claims):
+        findings.append(
+            ValidationFinding(
+                finding_id=str(uuid.uuid4()),
+                severity=ValidationSeverity.MEDIUM,
+                rule_citation="FINRA Rule 2210",
+                description="Performance is shown without benchmark context.",
+                related_claim=claims[0],
+                remediation="Consider adding an appropriate benchmark or explain why none is relevant.",
+            )
+        )
+    return findings
 
 
 def validate_hypothetical_performance(
     content: str,
     claims: list[PerformanceClaim],
 ) -> list[ValidationFinding]:
-    """Validate hypothetical performance presentation requirements.
-
-    Hypothetical performance (back-tested, model, projected) has additional
-    disclosure requirements under the SEC Marketing Rule. This validator
-    checks for required disclosures when hypothetical performance is detected.
-
-    Args:
-        content: The full text content (for disclosure checking).
-        claims: List of PerformanceClaim objects extracted from content.
-
-    Returns:
-        list[ValidationFinding]: Findings for hypothetical performance
-            missing required disclosures (criteria, assumptions, risks,
-            limitations). HIGH severity for missing disclosures.
-    """
-    # TODO: Implement hypothetical performance validation.
-    # 1. Detect hypothetical/back-tested/model performance indicators.
-    # 2. Check for required methodology description.
-    # 3. Check for required risk/limitation disclosures.
-    # 4. Verify audience-appropriateness policies are referenced.
-    return []
+    findings = []
+    if re.search(r"\b(hypothetical|back-tested|model performance|projected)\b", content, re.IGNORECASE):
+        if not re.search(r"\b(assumptions|limitations|not indicative|hindsight)\b", content, re.IGNORECASE):
+            findings.append(
+                ValidationFinding(
+                    finding_id=str(uuid.uuid4()),
+                    severity=ValidationSeverity.HIGH,
+                    rule_citation="SEC Marketing Rule 206(4)-1",
+                    description="Hypothetical performance appears without methodology and limitation disclosures.",
+                    related_claim=claims[0] if claims else None,
+                    remediation="Add assumptions, limitations, and risk language for hypothetical performance.",
+                )
+            )
+    return findings
 
 
 def validate_extracted_performance(
     content: str,
     claims: list[PerformanceClaim],
 ) -> list[ValidationFinding]:
-    """Validate extracted performance includes total portfolio results.
-
-    When showing performance of a subset of investments (extracted
-    performance), the SEC Marketing Rule requires that total portfolio
-    performance also be shown.
-
-    Args:
-        content: The full text content (for context analysis).
-        claims: List of PerformanceClaim objects extracted from content.
-
-    Returns:
-        list[ValidationFinding]: Findings if extracted performance is
-            detected without total portfolio performance. HIGH severity.
-    """
-    # TODO: Implement extracted performance detection and validation.
-    # 1. Detect indicators of extracted/partial portfolio performance.
-    # 2. Check if total portfolio performance is also presented.
-    # 3. Flag if extracted performance shown without total portfolio.
-    return []
+    findings = []
+    if re.search(r"\b(selected holdings|top positions|subset of portfolio)\b", content, re.IGNORECASE) and not re.search(r"\b(total portfolio|overall portfolio)\b", content, re.IGNORECASE):
+        findings.append(
+            ValidationFinding(
+                finding_id=str(uuid.uuid4()),
+                severity=ValidationSeverity.HIGH,
+                rule_citation="SEC Marketing Rule 206(4)-1",
+                description="Extracted performance may be shown without total portfolio context.",
+                related_claim=claims[0] if claims else None,
+                remediation="Add total portfolio performance alongside extracted results.",
+            )
+        )
+    return findings
 
 
 def run_full_validation(
@@ -227,34 +197,23 @@ def run_full_validation(
     content_source: str = "unknown",
     inception_date: Optional[date] = None,
 ) -> PerformanceValidationResult:
-    """Run all performance validations on the given content.
-
-    Extracts performance claims from the content and runs all validators:
-    gross/net balance, time period completeness, benchmark inclusion,
-    hypothetical performance, and extracted performance.
-
-    Args:
-        content: The full text content to validate.
-        content_source: Identifier for the source file or content piece.
-        inception_date: Optional inception date for the fund/strategy.
-
-    Returns:
-        PerformanceValidationResult: Aggregated results from all validators
-            including all claims found, all findings, and summary flags.
-    """
-    # TODO: Implement full validation pipeline.
-    # 1. Extract claims via extract_performance_claims().
-    # 2. Run each validator and collect findings.
-    # 3. Set summary flags (gross_net_balanced, time_periods_complete, etc.).
-    # 4. Always include advisory_notice in the result.
     claims = extract_performance_claims(content)
+    findings = []
+    findings.extend(validate_gross_net_balance(claims))
+    findings.extend(validate_time_period_completeness(claims, inception_date=inception_date))
+    findings.extend(validate_benchmark_inclusion(claims))
+    findings.extend(validate_hypothetical_performance(content, claims))
+    findings.extend(validate_extracted_performance(content, claims))
+    has_gross_issue = any("gross" in finding.description.lower() for finding in findings)
+    has_period_issue = any("period" in finding.description.lower() for finding in findings)
+    has_benchmark_issue = any("benchmark" in finding.description.lower() for finding in findings)
     return PerformanceValidationResult(
         validation_id=str(uuid.uuid4()),
         validation_timestamp=datetime.now(timezone.utc).isoformat(),
         content_source=content_source,
         claims_found=claims,
-        findings=[],
-        gross_net_balanced=None,
-        time_periods_complete=None,
-        benchmarks_included=None,
+        findings=findings,
+        gross_net_balanced=not has_gross_issue if claims else None,
+        time_periods_complete=not has_period_issue if claims else None,
+        benchmarks_included=not has_benchmark_issue if claims else None,
     )

@@ -1,34 +1,15 @@
-"""Power analysis: sample size and MDE calculation for A/B experiments.
-
-Supports both proportion metrics (conversion rates) and continuous metrics
-(revenue, session duration). Uses scipy.stats for all statistical computations.
-"""
+"""Power analysis: sample size and MDE calculation for A/B experiments."""
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from statistics import NormalDist
 from typing import Optional
-
-import numpy as np
-from scipy import stats
 
 
 @dataclass
 class PowerAnalysisResult:
-    """Result container for power analysis calculations.
-
-    Attributes:
-        sample_size_per_group: Required observations per experiment group.
-        total_sample_size: Total observations across all groups.
-        mde_absolute: Minimum detectable effect in absolute metric units.
-        mde_relative: Minimum detectable effect as fraction of baseline.
-        estimated_duration_days: Estimated experiment duration given traffic.
-        power: Statistical power (1 - Type II error rate).
-        alpha: Significance level (Type I error rate).
-        num_groups: Number of experiment groups (including control).
-    """
-
     sample_size_per_group: int
     total_sample_size: int
     mde_absolute: float
@@ -39,6 +20,14 @@ class PowerAnalysisResult:
     num_groups: int
 
 
+def _z_value(alpha: float, power: float, two_sided: bool) -> tuple[float, float]:
+    if not 0 < alpha < 1 or not 0 < power < 1:
+        raise ValueError("alpha and power must be between 0 and 1")
+    normal = NormalDist()
+    alpha_tail = alpha / 2 if two_sided else alpha
+    return normal.inv_cdf(1 - alpha_tail), normal.inv_cdf(power)
+
+
 def calculate_sample_size_proportion(
     baseline_rate: float,
     mde_relative: float,
@@ -47,34 +36,35 @@ def calculate_sample_size_proportion(
     num_groups: int = 2,
     two_sided: bool = True,
 ) -> PowerAnalysisResult:
-    """Calculate required sample size for a proportion (conversion rate) test.
+    if not 0 < baseline_rate < 1:
+        raise ValueError("baseline_rate must be in (0, 1)")
+    if mde_relative <= 0:
+        raise ValueError("mde_relative must be positive")
+    if num_groups < 2:
+        raise ValueError("num_groups must be at least 2")
 
-    Uses the normal approximation to the binomial for the two-sample
-    proportion z-test.
-
-    Args:
-        baseline_rate: Control group expected conversion rate (e.g., 0.05 for 5%).
-        mde_relative: Minimum detectable effect as a relative change
-            (e.g., 0.10 for a 10% relative lift).
-        alpha: Significance level. Default 0.05.
-        power: Statistical power (1 - beta). Default 0.80.
-        num_groups: Number of groups including control. Default 2.
-        two_sided: Whether to use a two-sided test. Default True.
-
-    Returns:
-        PowerAnalysisResult with computed sample sizes and parameters.
-
-    Raises:
-        ValueError: If baseline_rate is not in (0, 1) or mde_relative <= 0.
-    """
-    # TODO: Validate inputs (baseline_rate in (0,1), mde_relative > 0, etc.)
-    # TODO: Compute absolute MDE from baseline_rate and mde_relative
-    # TODO: Compute pooled proportion p_bar
-    # TODO: Look up Z critical values for alpha and power
-    # TODO: Apply the two-sample proportion sample size formula:
-    #   n = (Z_{a/2} * sqrt(2*p_bar*(1-p_bar)) + Z_b * sqrt(p_c*(1-p_c) + p_t*(1-p_t)))^2 / delta^2
-    # TODO: Return PowerAnalysisResult
-    raise NotImplementedError("Sample size calculation for proportions not yet implemented")
+    delta = baseline_rate * mde_relative
+    treatment_rate = min(max(baseline_rate + delta, 1e-9), 1 - 1e-9)
+    p_bar = (baseline_rate + treatment_rate) / 2
+    z_alpha, z_beta = _z_value(alpha, power, two_sided)
+    numerator = (
+        z_alpha * math.sqrt(2 * p_bar * (1 - p_bar))
+        + z_beta * math.sqrt(
+            baseline_rate * (1 - baseline_rate)
+            + treatment_rate * (1 - treatment_rate)
+        )
+    ) ** 2
+    sample_size = math.ceil(numerator / (delta**2))
+    return PowerAnalysisResult(
+        sample_size_per_group=sample_size,
+        total_sample_size=sample_size * num_groups,
+        mde_absolute=delta,
+        mde_relative=mde_relative,
+        estimated_duration_days=None,
+        power=power,
+        alpha=alpha,
+        num_groups=num_groups,
+    )
 
 
 def calculate_sample_size_continuous(
@@ -86,31 +76,26 @@ def calculate_sample_size_continuous(
     num_groups: int = 2,
     two_sided: bool = True,
 ) -> PowerAnalysisResult:
-    """Calculate required sample size for a continuous metric test.
+    if baseline_std <= 0:
+        raise ValueError("baseline_std must be positive")
+    if mde_relative <= 0:
+        raise ValueError("mde_relative must be positive")
+    if num_groups < 2:
+        raise ValueError("num_groups must be at least 2")
 
-    Uses the two-sample t-test formula assuming equal variances.
-
-    Args:
-        baseline_mean: Control group expected mean.
-        baseline_std: Control group expected standard deviation.
-        mde_relative: Minimum detectable effect as a relative change
-            (e.g., 0.05 for a 5% relative lift in the mean).
-        alpha: Significance level. Default 0.05.
-        power: Statistical power (1 - beta). Default 0.80.
-        num_groups: Number of groups including control. Default 2.
-        two_sided: Whether to use a two-sided test. Default True.
-
-    Returns:
-        PowerAnalysisResult with computed sample sizes and parameters.
-
-    Raises:
-        ValueError: If baseline_std <= 0 or mde_relative <= 0.
-    """
-    # TODO: Validate inputs
-    # TODO: Compute absolute MDE: delta = baseline_mean * mde_relative
-    # TODO: Apply formula: n = (Z_{a/2} + Z_b)^2 * 2 * sigma^2 / delta^2
-    # TODO: Return PowerAnalysisResult
-    raise NotImplementedError("Sample size calculation for continuous metrics not yet implemented")
+    delta = abs(baseline_mean) * mde_relative if baseline_mean else mde_relative
+    z_alpha, z_beta = _z_value(alpha, power, two_sided)
+    sample_size = math.ceil(((z_alpha + z_beta) ** 2) * 2 * (baseline_std**2) / (delta**2))
+    return PowerAnalysisResult(
+        sample_size_per_group=sample_size,
+        total_sample_size=sample_size * num_groups,
+        mde_absolute=delta,
+        mde_relative=mde_relative,
+        estimated_duration_days=None,
+        power=power,
+        alpha=alpha,
+        num_groups=num_groups,
+    )
 
 
 def calculate_mde(
@@ -122,31 +107,20 @@ def calculate_mde(
     power: float = 0.80,
     two_sided: bool = True,
 ) -> float:
-    """Calculate the minimum detectable effect for a given sample size.
-
-    Inverts the sample size formula to find the MDE achievable with the
-    available sample. Exactly one of (baseline_rate) or (baseline_mean,
-    baseline_std) must be provided.
-
-    Args:
-        sample_size_per_group: Available observations per group.
-        baseline_rate: Baseline conversion rate (for proportion tests).
-        baseline_mean: Baseline mean (for continuous metric tests).
-        baseline_std: Baseline standard deviation (for continuous metric tests).
-        alpha: Significance level. Default 0.05.
-        power: Statistical power. Default 0.80.
-        two_sided: Whether to use a two-sided test. Default True.
-
-    Returns:
-        The minimum detectable effect as a relative change.
-
-    Raises:
-        ValueError: If inputs are inconsistent or insufficient.
-    """
-    # TODO: Determine metric type from provided parameters
-    # TODO: Invert the appropriate sample size formula to solve for delta
-    # TODO: Convert absolute delta to relative MDE
-    raise NotImplementedError("MDE calculation not yet implemented")
+    if sample_size_per_group <= 0:
+        raise ValueError("sample_size_per_group must be positive")
+    z_alpha, z_beta = _z_value(alpha, power, two_sided)
+    if baseline_rate is not None:
+        if not 0 < baseline_rate < 1:
+            raise ValueError("baseline_rate must be in (0,1)")
+        variance_term = 2 * baseline_rate * (1 - baseline_rate)
+        delta = math.sqrt(((z_alpha + z_beta) ** 2) * variance_term / sample_size_per_group)
+        return delta / baseline_rate
+    if baseline_mean is None or baseline_std is None or baseline_std <= 0:
+        raise ValueError("continuous metrics require baseline_mean and positive baseline_std")
+    delta = math.sqrt(((z_alpha + z_beta) ** 2) * 2 * (baseline_std**2) / sample_size_per_group)
+    denominator = abs(baseline_mean) if baseline_mean else 1.0
+    return delta / denominator
 
 
 def estimate_duration(
@@ -156,24 +130,12 @@ def estimate_duration(
     min_days: int = 7,
     round_to_weeks: bool = True,
 ) -> int:
-    """Estimate experiment duration in days.
-
-    Args:
-        required_sample_size_total: Total sample needed across all groups.
-        daily_traffic: Average daily eligible users.
-        traffic_allocation: Fraction of traffic allocated to experiment
-            (e.g., 0.5 for 50%). Default 1.0.
-        min_days: Minimum experiment duration in days. Default 7.
-        round_to_weeks: If True, round up to the nearest full week. Default True.
-
-    Returns:
-        Estimated duration in days.
-
-    Raises:
-        ValueError: If daily_traffic <= 0 or traffic_allocation not in (0, 1].
-    """
-    # TODO: Validate inputs
-    # TODO: Compute raw duration: ceil(required_sample / (daily_traffic * allocation))
-    # TODO: Apply minimum duration constraint
-    # TODO: Round to full weeks if requested
-    raise NotImplementedError("Duration estimation not yet implemented")
+    if daily_traffic <= 0:
+        raise ValueError("daily_traffic must be positive")
+    if not 0 < traffic_allocation <= 1:
+        raise ValueError("traffic_allocation must be in (0,1]")
+    raw_days = math.ceil(required_sample_size_total / (daily_traffic * traffic_allocation))
+    duration = max(raw_days, min_days)
+    if round_to_weeks:
+        duration = math.ceil(duration / 7) * 7
+    return duration

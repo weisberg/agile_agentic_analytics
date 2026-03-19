@@ -1,33 +1,17 @@
-"""Sample Ratio Mismatch (SRM) detection for A/B experiments.
-
-Detects imbalances in variant assignment that indicate data quality issues
-such as bot contamination, lossy logging, or flawed randomization.
-"""
+"""Sample Ratio Mismatch (SRM) detection for A/B experiments."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime
+from statistics import NormalDist
+from typing import Dict, List, Optional, Sequence, Tuple
 
-import numpy as np
-from scipy import stats
+import math
 
 
 @dataclass
 class SRMResult:
-    """Result of a Sample Ratio Mismatch check.
-
-    Attributes:
-        observed_counts: Dict mapping variant name to observed user count.
-        expected_ratios: Dict mapping variant name to expected traffic fraction.
-        expected_counts: Dict mapping variant name to expected user count.
-        chi_squared_statistic: Chi-squared goodness-of-fit test statistic.
-        p_value: P-value from the chi-squared test.
-        has_mismatch: True if p_value < threshold (indicates SRM).
-        threshold: P-value threshold used for detection (default 0.001).
-        diagnostic_breakdowns: Optional per-dimension breakdowns.
-    """
-
     observed_counts: Dict[str, int]
     expected_ratios: Dict[str, float]
     expected_counts: Dict[str, float]
@@ -38,104 +22,91 @@ class SRMResult:
     diagnostic_breakdowns: Optional[Dict[str, "SRMResult"]]
 
 
+def _chi_square_p_value(statistic: float, degrees_of_freedom: int) -> float:
+    if degrees_of_freedom <= 0:
+        return 1.0
+    z_score = (
+        ((statistic / degrees_of_freedom) ** (1 / 3))
+        - (1 - 2 / (9 * degrees_of_freedom))
+    ) / math.sqrt(2 / (9 * degrees_of_freedom))
+    return 1 - NormalDist().cdf(z_score)
+
+
 def run_srm_check(
     observed_counts: Dict[str, int],
     expected_ratios: Optional[Dict[str, float]] = None,
     threshold: float = 0.001,
 ) -> SRMResult:
-    """Run a chi-squared goodness-of-fit test for Sample Ratio Mismatch.
-
-    Tests whether the observed variant assignment counts match the expected
-    traffic allocation ratios.
-
-    Args:
-        observed_counts: Dict mapping variant name to observed count.
-            Example: {"control": 10050, "treatment": 9800}.
-        expected_ratios: Dict mapping variant name to expected fraction.
-            Example: {"control": 0.5, "treatment": 0.5}.
-            If None, assumes equal allocation across all variants.
-        threshold: P-value threshold below which to flag SRM. Default 0.001.
-
-    Returns:
-        SRMResult with test statistics and mismatch determination.
-
-    Raises:
-        ValueError: If observed_counts is empty or ratios don't sum to ~1.0.
-    """
-    # TODO: Validate inputs
-    # TODO: Default to equal ratios if not provided
-    # TODO: Compute total N and expected counts per variant
-    # TODO: Run chi-squared goodness-of-fit: scipy.stats.chisquare(observed, expected)
-    # TODO: Determine has_mismatch = (p_value < threshold)
-    # TODO: Return SRMResult
-    raise NotImplementedError("SRM check not yet implemented")
+    if not observed_counts:
+        raise ValueError("observed_counts cannot be empty")
+    if any(count < 0 for count in observed_counts.values()):
+        raise ValueError("observed counts must be non-negative")
+    variants = list(observed_counts.keys())
+    if expected_ratios is None:
+        expected_ratios = {variant: 1 / len(variants) for variant in variants}
+    total_ratio = sum(expected_ratios.values())
+    if abs(total_ratio - 1.0) > 1e-6:
+        raise ValueError("expected_ratios must sum to 1.0")
+    total_observed = sum(observed_counts.values())
+    expected_counts = {variant: total_observed * expected_ratios[variant] for variant in variants}
+    chi_sq = 0.0
+    for variant in variants:
+        expected = expected_counts[variant]
+        if expected > 0:
+            chi_sq += ((observed_counts[variant] - expected) ** 2) / expected
+    p_value = _chi_square_p_value(chi_sq, len(variants) - 1)
+    return SRMResult(
+        observed_counts=observed_counts,
+        expected_ratios=expected_ratios,
+        expected_counts=expected_counts,
+        chi_squared_statistic=chi_sq,
+        p_value=p_value,
+        has_mismatch=p_value < threshold,
+        threshold=threshold,
+        diagnostic_breakdowns=None,
+    )
 
 
 def run_srm_diagnostic_breakdown(
-    user_data: Dict[str, np.ndarray],
-    variant_assignments: np.ndarray,
+    user_data: Dict[str, Sequence[object]],
+    variant_assignments: Sequence[str],
     variant_names: List[str],
     breakdown_dimensions: List[str],
     expected_ratios: Optional[Dict[str, float]] = None,
     threshold: float = 0.001,
 ) -> Dict[str, Dict[str, SRMResult]]:
-    """Run SRM checks broken down by diagnostic dimensions.
-
-    When SRM is detected, this function identifies which sub-populations
-    are responsible by running per-segment SRM checks.
-
-    Args:
-        user_data: Dict mapping dimension name to array of dimension values
-            (e.g., {"platform": ["ios", "android", ...], "date": [...]}).
-        variant_assignments: Array of variant assignment labels per user.
-        variant_names: List of variant names in the experiment.
-        breakdown_dimensions: Dimensions to slice by (e.g., ["platform", "date"]).
-        expected_ratios: Expected traffic allocation. Default equal split.
-        threshold: SRM detection threshold. Default 0.001.
-
-    Returns:
-        Nested dict mapping dimension_name -> dimension_value -> SRMResult.
-        For example: {"platform": {"ios": SRMResult(...), "android": SRMResult(...)}}
-    """
-    # TODO: Iterate over each breakdown dimension
-    # TODO: For each unique value in the dimension, filter users
-    # TODO: Count variants in the filtered subset
-    # TODO: Run run_srm_check on the subset counts
-    # TODO: Collect results keyed by dimension and value
-    # TODO: Return nested dict of SRMResult
-    raise NotImplementedError("SRM diagnostic breakdown not yet implemented")
+    results: dict[str, dict[str, SRMResult]] = {}
+    for dimension in breakdown_dimensions:
+        values = user_data[dimension]
+        dimension_results: dict[str, SRMResult] = {}
+        for unique_value in sorted({str(value) for value in values}):
+            counts = {variant: 0 for variant in variant_names}
+            for value, variant in zip(values, variant_assignments):
+                if str(value) == unique_value:
+                    counts[variant] += 1
+            dimension_results[unique_value] = run_srm_check(counts, expected_ratios=expected_ratios, threshold=threshold)
+        results[dimension] = dimension_results
+    return results
 
 
 def detect_temporal_srm(
-    timestamps: np.ndarray,
-    variant_assignments: np.ndarray,
+    timestamps: Sequence[object],
+    variant_assignments: Sequence[str],
     variant_names: List[str],
     expected_ratios: Optional[Dict[str, float]] = None,
     time_granularity: str = "day",
     threshold: float = 0.001,
 ) -> List[Tuple[str, SRMResult]]:
-    """Detect SRM patterns over time to identify when imbalance began.
-
-    Useful for diagnosing whether SRM was present from the start (suggesting
-    a randomization bug) or appeared mid-experiment (suggesting a logging
-    or filtering issue).
-
-    Args:
-        timestamps: Array of timestamps (one per user).
-        variant_assignments: Array of variant labels (one per user).
-        variant_names: List of variant names.
-        expected_ratios: Expected traffic allocation. Default equal split.
-        time_granularity: Time bucket granularity ("day" or "hour"). Default "day".
-        threshold: SRM detection threshold. Default 0.001.
-
-    Returns:
-        List of (time_bucket_label, SRMResult) tuples in chronological order.
-    """
-    # TODO: Bucket timestamps by granularity (day or hour)
-    # TODO: For each time bucket, count variant assignments
-    # TODO: Run run_srm_check for each bucket
-    # TODO: Return list of (label, SRMResult) tuples
-    raise NotImplementedError("Temporal SRM detection not yet implemented")
+    buckets: dict[str, dict[str, int]] = {}
+    for timestamp, variant in zip(timestamps, variant_assignments):
+        moment = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+        label = moment.strftime("%Y-%m-%d %H:00") if time_granularity == "hour" else moment.strftime("%Y-%m-%d")
+        buckets.setdefault(label, {variant_name: 0 for variant_name in variant_names})
+        buckets[label][variant] += 1
+    return [
+        (bucket, run_srm_check(counts, expected_ratios=expected_ratios, threshold=threshold))
+        for bucket, counts in sorted(buckets.items())
+    ]
 
 
 def generate_srm_report(
@@ -143,21 +114,31 @@ def generate_srm_report(
     diagnostic_breakdowns: Optional[Dict[str, Dict[str, SRMResult]]] = None,
     temporal_results: Optional[List[Tuple[str, SRMResult]]] = None,
 ) -> Dict[str, object]:
-    """Generate a structured SRM diagnostic report.
-
-    Args:
-        srm_result: Overall SRM check result.
-        diagnostic_breakdowns: Per-dimension breakdown results. Default None.
-        temporal_results: Per-time-bucket results. Default None.
-
-    Returns:
-        Dict with keys: summary, overall_result, breakdowns, temporal_pattern,
-        recommendations. Suitable for serialization to JSON.
-    """
-    # TODO: Build summary string with observed vs expected counts
-    # TODO: If SRM detected, include severity assessment
-    # TODO: Include per-dimension breakdowns highlighting mismatched segments
-    # TODO: Include temporal pattern showing when mismatch started
-    # TODO: Generate recommendations (e.g., "investigate iOS logging pipeline")
-    # TODO: Return structured report dict
-    raise NotImplementedError("SRM report generation not yet implemented")
+    summary = (
+        f"SRM detected (chi-square={srm_result.chi_squared_statistic:.2f}, p={srm_result.p_value:.4g})."
+        if srm_result.has_mismatch
+        else f"No SRM detected (chi-square={srm_result.chi_squared_statistic:.2f}, p={srm_result.p_value:.4g})."
+    )
+    recommendations = []
+    if srm_result.has_mismatch:
+        recommendations.append("Audit assignment logic and event logging for affected variants.")
+    if diagnostic_breakdowns:
+        flagged_segments = [
+            f"{dimension}:{segment}"
+            for dimension, segments in diagnostic_breakdowns.items()
+            for segment, result in segments.items()
+            if result.has_mismatch
+        ]
+        if flagged_segments:
+            recommendations.append(f"Investigate these mismatched segments first: {', '.join(flagged_segments[:5])}.")
+    if temporal_results:
+        mismatched_buckets = [label for label, result in temporal_results if result.has_mismatch]
+        if mismatched_buckets:
+            recommendations.append(f"Mismatch appears in these time buckets: {', '.join(mismatched_buckets[:5])}.")
+    return {
+        "summary": summary,
+        "overall_result": srm_result,
+        "breakdowns": diagnostic_breakdowns or {},
+        "temporal_pattern": temporal_results or [],
+        "recommendations": recommendations or ["No action needed beyond routine monitoring."],
+    }

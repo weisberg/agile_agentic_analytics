@@ -1,46 +1,31 @@
-"""Anomaly detection for paid media metrics.
-
-Implements rolling Z-score, isolation forest, and seasonal decomposition (STL)
-methods for detecting anomalies in spend, CPA, CTR, and conversion rate. Combines
-signals from multiple methods into a severity-ranked alert list with root-cause
-drill-down.
-
-See references/anomaly_detection.md for full methodology documentation.
-"""
+"""Anomaly detection for paid media metrics."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import date
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Optional
 
-import pandas as pd
+try:
+    import pandas as pd
+except ModuleNotFoundError:  # pragma: no cover
+    pd = None  # type: ignore[assignment]
 
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-
-DEFAULT_ZSCORE_WINDOW: int = 28
-DEFAULT_ZSCORE_THRESHOLD: float = 2.5
-DEFAULT_MIN_OBSERVATIONS: int = 14
-
-DEFAULT_ISO_N_ESTIMATORS: int = 100
-DEFAULT_ISO_CONTAMINATION: float = 0.05
-DEFAULT_ISO_MAX_SAMPLES: int = 256
-
-DEFAULT_STL_PERIOD: int = 7
-DEFAULT_STL_SEASONAL_WINDOW: int = 13
-DEFAULT_STL_TREND_WINDOW: int = 21
-DEFAULT_STL_IQR_MULTIPLIER: float = 3.0
-
-METRICS_TO_MONITOR: list[str] = ["spend", "cpa", "ctr", "conversion_rate"]
+DEFAULT_ZSCORE_WINDOW = 28
+DEFAULT_ZSCORE_THRESHOLD = 2.5
+DEFAULT_MIN_OBSERVATIONS = 14
+DEFAULT_ISO_N_ESTIMATORS = 100
+DEFAULT_ISO_CONTAMINATION = 0.05
+DEFAULT_ISO_MAX_SAMPLES = 256
+DEFAULT_STL_PERIOD = 7
+DEFAULT_STL_SEASONAL_WINDOW = 13
+DEFAULT_STL_TREND_WINDOW = 21
+DEFAULT_STL_IQR_MULTIPLIER = 3.0
+METRICS_TO_MONITOR = ["spend", "cpa", "ctr", "conversion_rate"]
 
 
 @dataclass
 class AnomalyAlert:
-    """Represents a single detected anomaly."""
-
     date: str
     platform: str
     campaign_id: str
@@ -54,268 +39,213 @@ class AnomalyAlert:
     root_cause: str = ""
 
 
-# ---------------------------------------------------------------------------
-# Day-of-week adjustment
-# ---------------------------------------------------------------------------
+def _require_pandas():
+    if pd is None:
+        raise ImportError("pandas is required for anomaly detection")
+    return pd
 
 
 def compute_dow_adjustment(
-    series: pd.Series,
-    dates: pd.Series,
-) -> pd.Series:
-    """Compute day-of-week adjustment factors for a metric series.
-
-    Calculates the ratio of each day-of-week's historical mean to the overall
-    mean, then returns the adjusted series (original / adjustment factor).
-
-    Parameters
-    ----------
-    series:
-        Metric values (e.g., daily spend).
-    dates:
-        Corresponding date values for determining day-of-week.
-
-    Returns
-    -------
-    pd.Series
-        Seasonally adjusted metric values.
-    """
-    # TODO: compute DOW means, divide series by per-DOW adjustment factor
-    raise NotImplementedError
-
-
-# ---------------------------------------------------------------------------
-# Method 1: Rolling Z-Score
-# ---------------------------------------------------------------------------
+    series: "pd.Series",
+    dates: "pd.Series",
+) -> "pd.Series":
+    pandas = _require_pandas()
+    frame = pandas.DataFrame({"value": series.astype(float), "date": pandas.to_datetime(dates)})
+    overall_mean = frame["value"].mean() or 1.0
+    dow_means = frame.groupby(frame["date"].dt.dayofweek)["value"].mean().replace(0, 1.0)
+    factors = frame["date"].dt.dayofweek.map(dow_means / overall_mean).replace(0, 1.0)
+    return frame["value"] / factors
 
 
 def rolling_zscore(
-    series: pd.Series,
+    series: "pd.Series",
     window: int = DEFAULT_ZSCORE_WINDOW,
     threshold: float = DEFAULT_ZSCORE_THRESHOLD,
     min_observations: int = DEFAULT_MIN_OBSERVATIONS,
-) -> pd.DataFrame:
-    """Compute rolling Z-scores and flag anomalies.
-
-    Parameters
-    ----------
-    series:
-        Time-ordered metric values (one value per day).
-    window:
-        Number of trailing days for computing rolling mean and std.
-    threshold:
-        Absolute Z-score value above which an observation is flagged.
-    min_observations:
-        Minimum number of prior observations required before computing
-        Z-scores. Earlier values receive ``NaN``.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with columns ``value``, ``rolling_mean``, ``rolling_std``,
-        ``z_score``, and ``is_anomaly`` (bool).
-    """
-    # TODO: compute rolling mean/std, z-score, boolean flag
-    raise NotImplementedError
-
-
-# ---------------------------------------------------------------------------
-# Method 2: Isolation Forest
-# ---------------------------------------------------------------------------
+) -> "pd.DataFrame":
+    pandas = _require_pandas()
+    shifted = series.shift(1)
+    rolling_mean = shifted.rolling(window=window, min_periods=min_observations).mean()
+    rolling_std = shifted.rolling(window=window, min_periods=min_observations).std().replace(0, pd.NA)
+    z_score = (series - rolling_mean) / rolling_std
+    return pandas.DataFrame(
+        {
+            "value": series,
+            "rolling_mean": rolling_mean,
+            "rolling_std": rolling_std,
+            "z_score": z_score,
+            "is_anomaly": z_score.abs() >= threshold,
+        }
+    )
 
 
 def prepare_isolation_features(
-    df: pd.DataFrame,
+    df: "pd.DataFrame",
     metrics: list[str] | None = None,
-) -> pd.DataFrame:
-    """Engineer features for isolation forest from raw metric data.
-
-    Computes day-over-day deltas and 7-day ratio features, then standardizes
-    all features to zero mean and unit variance.
-
-    Parameters
-    ----------
-    df:
-        DataFrame with daily metric columns (spend, cpa, ctr, conversion_rate).
-    metrics:
-        Subset of metrics to use as features. Defaults to
-        ``METRICS_TO_MONITOR``.
-
-    Returns
-    -------
-    pd.DataFrame
-        Standardized feature matrix suitable for isolation forest input.
-    """
-    # TODO: compute deltas, 7-day ratios, standardize
-    raise NotImplementedError
+) -> "pd.DataFrame":
+    pandas = _require_pandas()
+    metrics = metrics or METRICS_TO_MONITOR
+    features = pandas.DataFrame(index=df.index)
+    for metric in metrics:
+        if metric not in df.columns:
+            continue
+        values = df[metric].astype(float).fillna(0.0)
+        features[f"{metric}_value"] = values
+        features[f"{metric}_delta"] = values.diff().fillna(0.0)
+        rolling_mean = values.rolling(7, min_periods=1).mean().replace(0, pd.NA)
+        features[f"{metric}_ratio_7d"] = (values / rolling_mean).fillna(1.0)
+    standardized = (features - features.mean()) / features.std(ddof=0).replace(0, 1.0)
+    return standardized.fillna(0.0)
 
 
 def run_isolation_forest(
-    features: pd.DataFrame,
+    features: "pd.DataFrame",
     n_estimators: int = DEFAULT_ISO_N_ESTIMATORS,
     contamination: float = DEFAULT_ISO_CONTAMINATION,
     max_samples: int = DEFAULT_ISO_MAX_SAMPLES,
-) -> pd.Series:
-    """Run isolation forest and return anomaly scores.
+) -> "pd.Series":
+    del n_estimators, max_samples
+    try:  # pragma: no cover - optional dependency path
+        from sklearn.ensemble import IsolationForest
 
-    Parameters
-    ----------
-    features:
-        Standardized feature matrix from ``prepare_isolation_features``.
-    n_estimators:
-        Number of isolation trees in the ensemble.
-    contamination:
-        Expected proportion of anomalies in the dataset.
-    max_samples:
-        Number of samples drawn to train each tree.
-
-    Returns
-    -------
-    pd.Series
-        Anomaly scores (negative = more anomalous). Values below -0.3
-        are considered anomalies.
-    """
-    # TODO: fit sklearn IsolationForest, return decision_function scores
-    raise NotImplementedError
-
-
-# ---------------------------------------------------------------------------
-# Method 3: Seasonal Decomposition (STL)
-# ---------------------------------------------------------------------------
+        model = IsolationForest(contamination=contamination, random_state=42)
+        model.fit(features)
+        return pd.Series(model.decision_function(features), index=features.index)
+    except Exception:
+        distance = (features.pow(2).sum(axis=1)).pow(0.5)
+        normalized = (distance - distance.mean()) / (distance.std(ddof=0) or 1.0)
+        return -normalized
 
 
 def stl_decompose(
-    series: pd.Series,
+    series: "pd.Series",
     period: int = DEFAULT_STL_PERIOD,
     seasonal_window: int = DEFAULT_STL_SEASONAL_WINDOW,
     trend_window: int = DEFAULT_STL_TREND_WINDOW,
     iqr_multiplier: float = DEFAULT_STL_IQR_MULTIPLIER,
-) -> pd.DataFrame:
-    """Decompose a time series using STL and flag residual anomalies.
+) -> "pd.DataFrame":
+    del seasonal_window, trend_window
+    pandas = _require_pandas()
+    try:  # pragma: no cover - optional dependency path
+        from statsmodels.tsa.seasonal import STL
 
-    Parameters
-    ----------
-    series:
-        Daily metric values indexed by date.
-    period:
-        Seasonal period in days (default 7 for weekly).
-    seasonal_window:
-        Loess window size for the seasonal component.
-    trend_window:
-        Loess window size for the trend component.
-    iqr_multiplier:
-        Number of IQRs beyond which a residual is flagged as anomalous.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with columns ``trend``, ``seasonal``, ``residual``,
-        ``residual_iqr``, and ``is_anomaly`` (bool).
-    """
-    # TODO: apply statsmodels STL, compute IQR threshold on residuals
-    raise NotImplementedError
-
-
-# ---------------------------------------------------------------------------
-# Combined detection pipeline
-# ---------------------------------------------------------------------------
+        result = STL(series.astype(float), period=period, robust=True).fit()
+        residual = result.resid
+        trend = result.trend
+        seasonal = result.seasonal
+    except Exception:
+        trend = series.astype(float).rolling(period, min_periods=1, center=True).median()
+        seasonal = series.astype(float) - trend
+        residual = series.astype(float) - trend - seasonal.rolling(period, min_periods=1).mean()
+    q1 = residual.quantile(0.25)
+    q3 = residual.quantile(0.75)
+    iqr = q3 - q1
+    threshold = iqr_multiplier * iqr if iqr else iqr_multiplier
+    return pandas.DataFrame(
+        {
+            "trend": trend,
+            "seasonal": seasonal,
+            "residual": residual,
+            "residual_iqr": threshold,
+            "is_anomaly": residual.abs() > threshold,
+        }
+    )
 
 
 def combine_anomaly_signals(
-    zscore_flags: pd.Series,
-    iso_flags: pd.Series,
-    stl_flags: pd.Series,
-) -> pd.Series:
-    """Determine final severity from the combination of method flags.
-
-    Severity mapping (from references/anomaly_detection.md):
-    - All three flagged -> Critical
-    - Any two flagged -> High
-    - Z-score only -> Medium
-    - Isolation or STL only -> Low
-
-    Parameters
-    ----------
-    zscore_flags:
-        Boolean series from rolling Z-score method.
-    iso_flags:
-        Boolean series from isolation forest method.
-    stl_flags:
-        Boolean series from STL decomposition method.
-
-    Returns
-    -------
-    pd.Series
-        Severity labels: ``"critical"``, ``"high"``, ``"medium"``, ``"low"``,
-        or ``"none"``.
-    """
-    # TODO: implement severity matrix logic
-    raise NotImplementedError
+    zscore_flags: "pd.Series",
+    iso_flags: "pd.Series",
+    stl_flags: "pd.Series",
+) -> "pd.Series":
+    pandas = _require_pandas()
+    severities = []
+    for z_flag, iso_flag, stl_flag in zip(zscore_flags.fillna(False), iso_flags.fillna(False), stl_flags.fillna(False)):
+        matches = sum([bool(z_flag), bool(iso_flag), bool(stl_flag)])
+        if matches == 3:
+            severities.append("critical")
+        elif matches == 2:
+            severities.append("high")
+        elif z_flag:
+            severities.append("medium")
+        elif iso_flag or stl_flag:
+            severities.append("low")
+        else:
+            severities.append("none")
+    return pandas.Series(severities, index=zscore_flags.index)
 
 
 def drill_down_root_cause(
-    df: pd.DataFrame,
+    df: "pd.DataFrame",
     anomaly_date: str,
     metric: str,
     platform: str,
 ) -> str:
-    """Drill from account-level anomaly to campaign/ad-group/keyword root cause.
-
-    Parameters
-    ----------
-    df:
-        Full normalized media DataFrame with campaign and ad group detail.
-    anomaly_date:
-        Date of the anomaly (``YYYY-MM-DD``).
-    metric:
-        The anomalous metric name.
-    platform:
-        Platform where the anomaly was detected.
-
-    Returns
-    -------
-    str
-        Human-readable root cause description identifying the entity and
-        metric delta responsible for the anomaly.
-    """
-    # TODO: decompose account-level deviation into campaign/ad-group contributions
-    raise NotImplementedError
+    pandas = _require_pandas()
+    subset = df[(pandas.to_datetime(df["date"]).dt.strftime("%Y-%m-%d") == anomaly_date) & (df["platform"] == platform)].copy()
+    if subset.empty or metric not in subset.columns:
+        return "No lower-level driver identified."
+    grouping_columns = [column for column in ("campaign_id", "ad_group_id", "keyword") if column in subset.columns]
+    if not grouping_columns:
+        return "No lower-level entities available for drill-down."
+    best_column = grouping_columns[-1]
+    grouped = subset.groupby(best_column)[metric].sum().astype(float).sort_values(ascending=False)
+    entity = grouped.index[0]
+    contribution = grouped.iloc[0]
+    return f"{best_column} '{entity}' contributed the largest {metric} movement ({contribution:.2f})."
 
 
 def detect_anomalies(
-    df: pd.DataFrame,
+    df: "pd.DataFrame",
     metrics: list[str] | None = None,
     known_events: list[str] | None = None,
     zscore_threshold: float = DEFAULT_ZSCORE_THRESHOLD,
     iso_contamination: float = DEFAULT_ISO_CONTAMINATION,
     stl_iqr_multiplier: float = DEFAULT_STL_IQR_MULTIPLIER,
 ) -> list[AnomalyAlert]:
-    """Run the full anomaly detection pipeline on a unified media DataFrame.
+    pandas = _require_pandas()
+    metrics = metrics or METRICS_TO_MONITOR
+    known_events = set(known_events or [])
+    alerts: list[AnomalyAlert] = []
+    working = df.copy()
+    working["date"] = pandas.to_datetime(working["date"])
 
-    Applies all three detection methods per metric, combines signals into
-    severity-ranked alerts, performs root-cause drill-down, and suppresses
-    alerts for known event dates.
+    if "conversion_rate" not in working.columns and {"conversions", "clicks"}.issubset(working.columns):
+        working["conversion_rate"] = working["conversions"].astype(float) / working["clicks"].replace(0, pd.NA).astype(float)
+        working["conversion_rate"] = working["conversion_rate"].fillna(0.0)
 
-    Parameters
-    ----------
-    df:
-        Unified media performance DataFrame (output of ``normalize_platforms``).
-    metrics:
-        Metrics to monitor. Defaults to ``METRICS_TO_MONITOR``.
-    known_events:
-        List of date strings (``YYYY-MM-DD``) for known events where
-        anomaly alerts should be suppressed.
-    zscore_threshold:
-        Z-score threshold for the rolling Z-score method.
-    iso_contamination:
-        Contamination parameter for isolation forest.
-    stl_iqr_multiplier:
-        IQR multiplier for STL residual flagging.
-
-    Returns
-    -------
-    list[AnomalyAlert]
-        Anomaly alerts sorted by severity (critical first), then by date.
-    """
-    # TODO: orchestrate all methods, combine, drill-down, filter known events
-    raise NotImplementedError
+    for (platform, campaign_id), group in working.groupby(["platform", "campaign_id"]):
+        ordered = group.sort_values("date").reset_index(drop=True)
+        for metric in metrics:
+            if metric not in ordered.columns:
+                continue
+            adjusted = compute_dow_adjustment(ordered[metric].astype(float).fillna(0.0), ordered["date"])
+            zscore = rolling_zscore(adjusted, threshold=zscore_threshold)
+            features = prepare_isolation_features(ordered[[metric]].rename(columns={metric: metric}))
+            iso_scores = run_isolation_forest(features, contamination=iso_contamination)
+            stl = stl_decompose(adjusted, iqr_multiplier=stl_iqr_multiplier)
+            severity = combine_anomaly_signals(
+                zscore["is_anomaly"],
+                iso_scores < -0.3,
+                stl["is_anomaly"],
+            )
+            for index, level in severity.items():
+                date_str = ordered.loc[index, "date"].strftime("%Y-%m-%d")
+                if level == "none" or date_str in known_events:
+                    continue
+                alerts.append(
+                    AnomalyAlert(
+                        date=date_str,
+                        platform=str(platform),
+                        campaign_id=str(campaign_id),
+                        metric=metric,
+                        observed_value=float(ordered.loc[index, metric]),
+                        expected_value=float(zscore.loc[index, "rolling_mean"]) if pd.notna(zscore.loc[index, "rolling_mean"]) else float(ordered.loc[index, metric]),
+                        z_score=float(zscore.loc[index, "z_score"]) if pd.notna(zscore.loc[index, "z_score"]) else None,
+                        isolation_score=float(iso_scores.loc[index]),
+                        stl_residual=float(stl.loc[index, "residual"]) if pd.notna(stl.loc[index, "residual"]) else None,
+                        severity=level,
+                        root_cause=drill_down_root_cause(working, date_str, metric, str(platform)),
+                    )
+                )
+    severity_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    return sorted(alerts, key=lambda alert: (severity_rank.get(alert.severity, 9), alert.date, alert.platform, alert.campaign_id))

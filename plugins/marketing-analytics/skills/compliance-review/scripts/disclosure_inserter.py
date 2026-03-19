@@ -1,19 +1,11 @@
-"""
-Disclosure Inserter for Compliance-Aware Content Review
-
-Inserts required disclosures into marketing content based on content type
-classification. Supports performance disclaimers, testimonial disclosures,
-risk warnings, fee disclosures, and regulatory status statements.
-
-ADVISORY NOTICE: This inserter provides an automated first-pass review only.
-It does NOT constitute compliance certification. All inserted disclosures
-require review and approval by a qualified human compliance officer.
-"""
+"""Disclosure Inserter for Compliance-Aware Content Review."""
 
 from __future__ import annotations
 
+import hashlib
+import re
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -21,7 +13,6 @@ from typing import Optional
 
 
 class ContentType(Enum):
-    """Content type classification for disclosure requirements."""
     PERFORMANCE = "PERFORMANCE"
     TESTIMONIAL = "TESTIMONIAL"
     ENDORSEMENT = "ENDORSEMENT"
@@ -33,7 +24,6 @@ class ContentType(Enum):
 
 
 class DisclosureType(Enum):
-    """Types of disclosures that can be inserted."""
     PAST_PERFORMANCE_US = "PAST_PERFORMANCE_US"
     PAST_PERFORMANCE_UK = "PAST_PERFORMANCE_UK"
     GROSS_NET = "GROSS_NET"
@@ -57,36 +47,32 @@ class DisclosureType(Enum):
 
 @dataclass
 class DisclosureTemplate:
-    """A disclosure template with placeholder support."""
     disclosure_type: DisclosureType
     template_text: str
     placeholders: list[str]
-    jurisdiction: str  # "US", "UK", or "BOTH"
+    jurisdiction: str
     is_firm_customized: bool = False
 
 
 @dataclass
 class InsertionPoint:
-    """A location in the content where a disclosure should be inserted."""
-    position: int  # Character offset in the content
-    anchor_text: str  # Nearby text for human reference
-    placement: str  # "AFTER", "BEFORE", "FOOTER", "INLINE"
+    position: int
+    anchor_text: str
+    placement: str
 
 
 @dataclass
 class DisclosureInsertion:
-    """A disclosure to be inserted at a specific location."""
     disclosure_type: DisclosureType
     disclosure_text: str
     insertion_point: InsertionPoint
     is_required: bool
     rule_citation: str
-    status: str = "PENDING"  # "PENDING", "INSERTED", "SKIPPED"
+    status: str = "PENDING"
 
 
 @dataclass
 class InsertionResult:
-    """Result of a disclosure insertion operation."""
     result_id: str
     timestamp: str
     content_source: str
@@ -96,48 +82,63 @@ class InsertionResult:
     disclosures_required: list[DisclosureType]
     disclosures_present: list[DisclosureType]
     disclosures_missing: list[DisclosureType]
-    advisory_notice: str = (
-        "This is an advisory first-pass review, not compliance certification. "
-        "All inserted disclosures require human compliance officer approval."
-    )
+    advisory_notice: str = "This is an advisory first-pass review, not compliance certification. All inserted disclosures require human compliance officer approval."
+
+
+_HEADING_MAP = {
+    "Past Performance Disclaimer (US -- SEC/FINRA)": DisclosureType.PAST_PERFORMANCE_US,
+    "Past Performance Disclaimer (UK -- FCA)": DisclosureType.PAST_PERFORMANCE_UK,
+    "Gross/Net Performance Disclosure": DisclosureType.GROSS_NET,
+    "Hypothetical Performance Disclaimer": DisclosureType.HYPOTHETICAL,
+    "Back-Tested Performance Disclaimer": DisclosureType.BACK_TESTED,
+    "Benchmark Disclosure": DisclosureType.BENCHMARK,
+    "General Investment Risk (US)": DisclosureType.GENERAL_RISK_US,
+    "General Investment Risk (UK)": DisclosureType.GENERAL_RISK_UK,
+    "Advisory Fee Disclosure": DisclosureType.ADVISORY_FEE,
+    "Total Cost Disclosure": DisclosureType.TOTAL_COST,
+    "Compensated Testimonial Disclosure": DisclosureType.TESTIMONIAL_COMPENSATED,
+    "Uncompensated Testimonial Disclosure": DisclosureType.TESTIMONIAL_UNCOMPENSATED,
+    "Endorsement Disclosure": DisclosureType.ENDORSEMENT,
+    "Rating Disclosure": DisclosureType.THIRD_PARTY_RATING,
+    "SEC-Registered Adviser": DisclosureType.SEC_REGISTRATION,
+    "FINRA Broker-Dealer": DisclosureType.FINRA_MEMBERSHIP,
+    "FCA-Authorized Firm": DisclosureType.FCA_AUTHORIZATION,
+}
+
+
+def _parse_templates(file_path: Path, customized: bool) -> dict[DisclosureType, DisclosureTemplate]:
+    text = file_path.read_text(encoding="utf-8")
+    templates: dict[DisclosureType, DisclosureTemplate] = {}
+    matches = re.finditer(r"### (.+?)\n\n```(?:\w+)?\n(.*?)```", text, re.DOTALL)
+    for match in matches:
+        heading = match.group(1).strip()
+        disclosure_type = _HEADING_MAP.get(heading)
+        if disclosure_type is None:
+            continue
+        template_text = match.group(2).strip()
+        jurisdiction = "UK" if "UK" in heading or "FCA" in heading else "US" if "US" in heading or "SEC" in heading or "FINRA" in heading else "BOTH"
+        placeholders = re.findall(r"\[[^\]]+\]", template_text)
+        templates[disclosure_type] = DisclosureTemplate(
+            disclosure_type=disclosure_type,
+            template_text=template_text,
+            placeholders=placeholders,
+            jurisdiction=jurisdiction,
+            is_firm_customized=customized,
+        )
+    return templates
 
 
 def load_default_templates() -> dict[DisclosureType, DisclosureTemplate]:
-    """Load default disclosure templates from the references directory.
-
-    Reads standard regulatory disclosure language from
-    references/disclosure_templates.md and parses each template into
-    a DisclosureTemplate object.
-
-    Returns:
-        dict[DisclosureType, DisclosureTemplate]: Mapping of disclosure
-            type to its template. Templates contain placeholder markers
-            (e.g., [Firm Name], [X]%) for firm-specific customization.
-    """
-    # TODO: Implement template loading from references/disclosure_templates.md.
-    # Parse the markdown file to extract each template section.
-    return {}
+    references_path = Path(__file__).resolve().parent.parent / "references" / "disclosure_templates.md"
+    return _parse_templates(references_path, customized=False)
 
 
 def load_firm_templates(
     firm_templates_path: Path,
 ) -> dict[DisclosureType, DisclosureTemplate]:
-    """Load firm-specific disclosure templates that override defaults.
-
-    Args:
-        firm_templates_path: Path to the firm's custom disclosure templates
-            file (typically workspace/config/firm_disclosures.md).
-
-    Returns:
-        dict[DisclosureType, DisclosureTemplate]: Firm-customized templates.
-            These take priority over default templates.
-
-    Raises:
-        FileNotFoundError: If the firm templates file does not exist.
-        ValueError: If templates contain unresolved required placeholders.
-    """
-    # TODO: Implement firm-specific template loading.
-    return {}
+    if not firm_templates_path.exists():
+        raise FileNotFoundError(firm_templates_path)
+    return _parse_templates(firm_templates_path, customized=True)
 
 
 def determine_required_disclosures(
@@ -145,125 +146,80 @@ def determine_required_disclosures(
     content_types: list[ContentType],
     jurisdictions: list[str],
 ) -> list[DisclosureType]:
-    """Determine which disclosures are required based on content classification.
-
-    Maps content types and jurisdictions to the set of required disclosures.
-    For example, PERFORMANCE content in a US jurisdiction requires
-    PAST_PERFORMANCE_US and potentially GROSS_NET and BENCHMARK disclosures.
-
-    Args:
-        content: The text content (used for additional context analysis).
-        content_types: List of ContentType classifications for the content.
-        jurisdictions: List of applicable jurisdictions ("US", "UK").
-
-    Returns:
-        list[DisclosureType]: All disclosure types required for this content.
-    """
-    # TODO: Implement disclosure requirement mapping.
-    # Use the mapping table from SKILL.md to determine requirements.
-    return []
+    required = set()
+    if ContentType.PERFORMANCE in content_types:
+        required.add(DisclosureType.PAST_PERFORMANCE_US if "US" in jurisdictions else DisclosureType.PAST_PERFORMANCE_UK)
+        required.add(DisclosureType.GENERAL_RISK_US if "US" in jurisdictions else DisclosureType.GENERAL_RISK_UK)
+        if re.search(r"\bgross\b", content, re.IGNORECASE):
+            required.add(DisclosureType.GROSS_NET)
+        if re.search(r"\bbenchmark|index\b", content, re.IGNORECASE):
+            required.add(DisclosureType.BENCHMARK)
+    if ContentType.HYPOTHETICAL in content_types:
+        required.add(DisclosureType.HYPOTHETICAL)
+    if ContentType.TESTIMONIAL in content_types:
+        required.add(DisclosureType.TESTIMONIAL_UNCOMPENSATED)
+    if ContentType.ENDORSEMENT in content_types:
+        required.add(DisclosureType.ENDORSEMENT)
+    if "UK" in jurisdictions:
+        required.add(DisclosureType.CAPITAL_AT_RISK)
+    required.add(DisclosureType.SEC_REGISTRATION)
+    return sorted(required, key=lambda item: item.value)
 
 
 def detect_existing_disclosures(
     content: str,
     templates: dict[DisclosureType, DisclosureTemplate],
 ) -> list[DisclosureType]:
-    """Detect which required disclosures are already present in the content.
-
-    Scans the content for text matching known disclosure templates (both
-    default and firm-specific). Uses fuzzy matching to account for minor
-    variations in wording.
-
-    Args:
-        content: The text content to scan for existing disclosures.
-        templates: Available disclosure templates to match against.
-
-    Returns:
-        list[DisclosureType]: Disclosure types already present in the content.
-    """
-    # TODO: Implement existing disclosure detection.
-    # 1. For each template, check if key phrases appear in the content.
-    # 2. Use fuzzy matching to catch paraphrased versions.
-    # 3. Return the list of disclosure types found.
-    return []
+    present = []
+    lowered = content.lower()
+    for disclosure_type, template in templates.items():
+        key_phrase = " ".join(template.template_text.split()[:6]).lower()
+        if key_phrase and key_phrase in lowered:
+            present.append(disclosure_type)
+    return present
 
 
 def find_insertion_points(
     content: str,
     disclosures_to_insert: list[DisclosureType],
 ) -> dict[DisclosureType, InsertionPoint]:
-    """Determine optimal insertion points for each missing disclosure.
-
-    Analyzes the content structure to find appropriate locations for each
-    disclosure. Follows placement rules: performance disclosures near
-    performance data, risk warnings prominent and not buried, regulatory
-    status at document footer.
-
-    Args:
-        content: The text content to analyze for insertion points.
-        disclosures_to_insert: List of disclosure types that need insertion.
-
-    Returns:
-        dict[DisclosureType, InsertionPoint]: Mapping of each disclosure
-            type to its recommended insertion point in the content.
-    """
-    # TODO: Implement insertion point analysis.
-    # 1. Parse content structure (sections, paragraphs, footers).
-    # 2. For each disclosure type, apply placement rules.
-    # 3. Performance disclosures: immediately after performance data.
-    # 4. Risk warnings: prominent position, not footnotes.
-    # 5. Regulatory status: document footer.
-    return {}
+    points = {}
+    performance_match = re.search(r"%|\bperformance\b|\breturn\b", content, re.IGNORECASE)
+    footer_position = len(content)
+    for disclosure in disclosures_to_insert:
+        if disclosure in {DisclosureType.PAST_PERFORMANCE_US, DisclosureType.PAST_PERFORMANCE_UK, DisclosureType.GROSS_NET, DisclosureType.HYPOTHETICAL, DisclosureType.BENCHMARK} and performance_match:
+            points[disclosure] = InsertionPoint(position=performance_match.end(), anchor_text=performance_match.group(0), placement="AFTER")
+        elif disclosure in {DisclosureType.GENERAL_RISK_US, DisclosureType.GENERAL_RISK_UK, DisclosureType.CAPITAL_AT_RISK}:
+            points[disclosure] = InsertionPoint(position=0, anchor_text="document start", placement="BEFORE")
+        else:
+            points[disclosure] = InsertionPoint(position=footer_position, anchor_text="document end", placement="FOOTER")
+    return points
 
 
 def insert_disclosures(
     content: str,
     disclosures: list[DisclosureInsertion],
 ) -> str:
-    """Insert disclosure text into content at the specified positions.
-
-    Modifies the content by inserting disclosure text at each specified
-    insertion point. Handles formatting to ensure disclosures are visually
-    distinct (e.g., wrapped in appropriate HTML tags for HTML content).
-
-    Args:
-        content: The original text content.
-        disclosures: List of DisclosureInsertion objects specifying what
-            to insert and where.
-
-    Returns:
-        str: The modified content with disclosures inserted.
-    """
-    # TODO: Implement disclosure insertion.
-    # 1. Sort insertions by position (reverse order to preserve offsets).
-    # 2. Insert each disclosure at its specified position.
-    # 3. Wrap in appropriate formatting tags.
-    # 4. Update insertion status to "INSERTED".
-    return content
+    modified = content
+    for disclosure in sorted(disclosures, key=lambda item: item.insertion_point.position, reverse=True):
+        block = f"\n\n[DISCLOSURE: {disclosure.disclosure_type.value}]\n{disclosure.disclosure_text}\n"
+        position = disclosure.insertion_point.position
+        modified = modified[:position] + block + modified[position:]
+        disclosure.status = "INSERTED"
+    return modified
 
 
 def validate_disclosure_placement(
     content: str,
     disclosures: list[DisclosureInsertion],
 ) -> list[dict[str, str]]:
-    """Validate that inserted disclosures meet prominence requirements.
-
-    Checks that disclosures are not buried in footnotes, small print, or
-    otherwise obscured. Verifies that key disclosures (risk warnings,
-    past performance) are in prominent positions.
-
-    Args:
-        content: The content with disclosures inserted.
-        disclosures: The list of insertions that were made.
-
-    Returns:
-        list[dict[str, str]]: Validation issues, each with 'disclosure_type',
-            'issue', and 'remediation' keys. Empty list if all placements
-            are satisfactory.
-    """
-    # TODO: Implement placement validation.
-    # Check for footnote-only placement of required prominent disclosures.
-    return []
+    issues = []
+    for disclosure in disclosures:
+        if disclosure.disclosure_type in {DisclosureType.PAST_PERFORMANCE_US, DisclosureType.PAST_PERFORMANCE_UK, DisclosureType.GENERAL_RISK_US, DisclosureType.GENERAL_RISK_UK} and disclosure.insertion_point.placement == "FOOTER":
+            issues.append({"disclosure_type": disclosure.disclosure_type.value, "issue": "Important disclosure placed only in footer.", "remediation": "Move disclosure closer to the related claim or top of document."})
+    if "CAPITAL AT RISK" not in content.upper() and any(disclosure.disclosure_type == DisclosureType.CAPITAL_AT_RISK for disclosure in disclosures):
+        issues.append({"disclosure_type": DisclosureType.CAPITAL_AT_RISK.value, "issue": "Capital-at-risk disclosure text not prominent after insertion.", "remediation": "Use explicit 'Capital at risk' wording near the headline or first investment claim."})
+    return issues
 
 
 def run_disclosure_pipeline(
@@ -273,42 +229,37 @@ def run_disclosure_pipeline(
     jurisdictions: list[str],
     firm_templates_path: Optional[Path] = None,
 ) -> InsertionResult:
-    """Run the full disclosure insertion pipeline.
-
-    Determines required disclosures, detects existing ones, finds insertion
-    points for missing disclosures, inserts them, and validates placement.
-
-    Args:
-        content: The text content to process.
-        content_source: Identifier for the source file.
-        content_types: Content type classifications.
-        jurisdictions: Applicable jurisdictions.
-        firm_templates_path: Optional path to firm-specific templates.
-            If not provided, default templates are used.
-
-    Returns:
-        InsertionResult: Complete result including modified content,
-            insertion details, and disclosure gap analysis.
-    """
-    # TODO: Implement full pipeline.
-    # 1. Load templates (firm-specific overriding defaults).
-    # 2. Determine required disclosures.
-    # 3. Detect existing disclosures.
-    # 4. Compute missing disclosures.
-    # 5. Find insertion points.
-    # 6. Create DisclosureInsertion objects.
-    # 7. Insert disclosures.
-    # 8. Validate placement.
-    # 9. Always include advisory_notice.
-    import hashlib
+    templates = load_default_templates()
+    if firm_templates_path and firm_templates_path.exists():
+        templates.update(load_firm_templates(firm_templates_path))
+    required = determine_required_disclosures(content, content_types, jurisdictions)
+    present = detect_existing_disclosures(content, templates)
+    missing = [disclosure for disclosure in required if disclosure not in present]
+    insertion_points = find_insertion_points(content, missing)
+    insertions = []
+    for disclosure in missing:
+        template = templates.get(disclosure)
+        if not template:
+            continue
+        insertions.append(
+            DisclosureInsertion(
+                disclosure_type=disclosure,
+                disclosure_text=template.template_text,
+                insertion_point=insertion_points[disclosure],
+                is_required=True,
+                rule_citation="Auto-mapped disclosure requirement",
+            )
+        )
+    modified_content = insert_disclosures(content, insertions) if insertions else content
+    _ = validate_disclosure_placement(modified_content, insertions)
     return InsertionResult(
         result_id=str(uuid.uuid4()),
         timestamp=datetime.now(timezone.utc).isoformat(),
         content_source=content_source,
         original_content_hash=hashlib.sha256(content.encode()).hexdigest(),
-        modified_content=content,
-        insertions=[],
-        disclosures_required=[],
-        disclosures_present=[],
-        disclosures_missing=[],
+        modified_content=modified_content,
+        insertions=insertions,
+        disclosures_required=required,
+        disclosures_present=present,
+        disclosures_missing=missing,
     )

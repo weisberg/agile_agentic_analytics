@@ -15,11 +15,14 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+import re
+from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +86,42 @@ def load_your_keywords(filepath: Path) -> list[KeywordRecord]:
     Returns:
         List of KeywordRecord instances for your domain.
     """
-    # TODO: Implement JSON parsing and KeywordRecord construction
-    raise NotImplementedError("Implement keyword_performance.json parsing")
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Support both a top-level list and a dict with a "keywords" key
+    records_raw: list[dict[str, Any]]
+    if isinstance(data, list):
+        records_raw = data
+    elif isinstance(data, dict):
+        records_raw = data.get("keywords", data.get("data", []))
+    else:
+        records_raw = []
+
+    records: list[KeywordRecord] = []
+    for item in records_raw:
+        kw = item.get("keyword", item.get("term", ""))
+        pos = item.get("position", item.get("rank"))
+        vol = int(item.get("search_volume", item.get("volume", 0)))
+        diff = float(item.get("keyword_difficulty", item.get("difficulty", 0.5)))
+        url = item.get("url", item.get("landing_page"))
+
+        # Normalize difficulty to 0-1 if provided on a 0-100 scale
+        if diff > 1.0:
+            diff = diff / 100.0
+
+        records.append(
+            KeywordRecord(
+                keyword=kw.lower().strip(),
+                position=int(pos) if pos is not None else None,
+                search_volume=vol,
+                keyword_difficulty=diff,
+                url=url,
+            )
+        )
+
+    logger.info("Loaded %d keyword records from %s", len(records), filepath)
+    return records
 
 
 def load_competitor_keywords(
@@ -103,8 +140,94 @@ def load_competitor_keywords(
     Returns:
         List of KeywordRecord instances for the specified competitor.
     """
-    # TODO: Implement CSV parsing with format auto-detection
-    raise NotImplementedError("Implement competitor CSV parsing")
+    try:
+        df = pd.read_csv(filepath, encoding="utf-8")
+    except UnicodeDecodeError:
+        df = pd.read_csv(filepath, encoding="latin-1")
+
+    cols_lower = {c.lower().strip(): c for c in df.columns}
+
+    # Auto-detect format based on column names
+    # Determine competitor column
+    competitor_col = None
+    for candidate in ["competitor", "domain", "competitor_name", "brand"]:
+        if candidate in cols_lower:
+            competitor_col = cols_lower[candidate]
+            break
+
+    if competitor_col is not None:
+        mask = df[competitor_col].astype(str).str.lower().str.strip() == competitor_name.lower().strip()
+        df = df[mask]
+
+    # Map keyword column
+    kw_col = None
+    for candidate in ["keyword", "term", "search term", "query"]:
+        if candidate in cols_lower:
+            kw_col = cols_lower[candidate]
+            break
+    if kw_col is None:
+        raise ValueError(f"Cannot detect keyword column in {filepath}. Columns: {list(df.columns)}")
+
+    # Map position column
+    pos_col = None
+    for candidate in ["position", "rank", "ranking", "pos"]:
+        if candidate in cols_lower:
+            pos_col = cols_lower[candidate]
+            break
+
+    # Map volume column
+    vol_col = None
+    for candidate in ["search_volume", "volume", "search volume", "avg. monthly searches"]:
+        if candidate in cols_lower:
+            vol_col = cols_lower[candidate]
+            break
+
+    # Map difficulty column
+    diff_col = None
+    for candidate in ["keyword_difficulty", "difficulty", "kd", "kd %", "keyword difficulty"]:
+        if candidate in cols_lower:
+            diff_col = cols_lower[candidate]
+            break
+
+    # Map URL column
+    url_col = None
+    for candidate in ["url", "landing_page", "landing page", "target url"]:
+        if candidate in cols_lower:
+            url_col = cols_lower[candidate]
+            break
+
+    records: list[KeywordRecord] = []
+    for _, row in df.iterrows():
+        kw = str(row[kw_col]).lower().strip()
+        pos = row.get(pos_col) if pos_col else None
+        if pd.notna(pos):
+            pos = int(float(pos))
+        else:
+            pos = None
+
+        vol = int(float(row[vol_col])) if vol_col and pd.notna(row.get(vol_col)) else 0
+        diff = float(row[diff_col]) if diff_col and pd.notna(row.get(diff_col)) else 0.5
+        url = str(row[url_col]) if url_col and pd.notna(row.get(url_col)) else None
+
+        # Normalize difficulty to 0-1 if provided on a 0-100 scale
+        if diff > 1.0:
+            diff = diff / 100.0
+
+        records.append(
+            KeywordRecord(
+                keyword=kw,
+                position=pos,
+                search_volume=vol,
+                keyword_difficulty=diff,
+                url=url,
+            )
+        )
+
+    logger.info(
+        "Loaded %d keyword records for competitor '%s' from %s",
+        len(records), competitor_name, filepath,
+    )
+    return records
 
 
 def classify_gap(
@@ -123,8 +246,30 @@ def classify_gap(
     Returns:
         The GapType classification.
     """
-    # TODO: Implement classification logic
-    raise NotImplementedError("Implement gap classification")
+    if your_position is None and competitor_position is None:
+        # Neither ranks -- treat as shared (no actionable gap)
+        return GapType.SHARED
+
+    if your_position is None and competitor_position is not None:
+        # Competitor ranks, you do not
+        return GapType.MISSING
+
+    if your_position is not None and competitor_position is None:
+        # You rank, competitor does not
+        return GapType.UNIQUE
+
+    # Both rank -- lower position number is better
+    assert your_position is not None and competitor_position is not None
+    delta = your_position - competitor_position  # positive = you're worse
+
+    if delta > position_threshold:
+        # You are significantly worse
+        return GapType.WEAK
+    elif delta < -position_threshold:
+        # You are significantly better
+        return GapType.STRONG
+    else:
+        return GapType.SHARED
 
 
 def calculate_opportunity_score(
@@ -144,8 +289,11 @@ def calculate_opportunity_score(
     Returns:
         The opportunity score as a float.
     """
-    # TODO: Implement scoring formula
-    raise NotImplementedError("Implement opportunity scoring")
+    # Clamp inputs to valid ranges
+    kd = max(0.0, min(1.0, keyword_difficulty))
+    br = max(0.0, min(1.0, business_relevance))
+    vol = max(0, search_volume)
+    return float(vol) * (1.0 - kd) * br
 
 
 def assign_business_relevance(
@@ -170,8 +318,37 @@ def assign_business_relevance(
     Returns:
         Business relevance score between 0 and 1.
     """
-    # TODO: Implement relevance assignment with pattern matching
-    raise NotImplementedError("Implement business relevance assignment")
+    if relevance_map is None:
+        return default_relevance
+
+    kw_lower = keyword.lower().strip()
+
+    # First try exact match
+    if kw_lower in relevance_map:
+        return max(0.0, min(1.0, relevance_map[kw_lower]))
+
+    # Then try pattern (substring / regex) matching -- longest pattern first
+    # to prefer more specific matches
+    best_score: float | None = None
+    best_len = 0
+    for pattern, score in relevance_map.items():
+        pattern_lower = pattern.lower().strip()
+        try:
+            if re.search(pattern_lower, kw_lower):
+                if len(pattern_lower) > best_len:
+                    best_len = len(pattern_lower)
+                    best_score = score
+        except re.error:
+            # Fall back to simple substring match if pattern is not valid regex
+            if pattern_lower in kw_lower:
+                if len(pattern_lower) > best_len:
+                    best_len = len(pattern_lower)
+                    best_score = score
+
+    if best_score is not None:
+        return max(0.0, min(1.0, best_score))
+
+    return default_relevance
 
 
 def analyze_keyword_gaps(
@@ -198,8 +375,97 @@ def analyze_keyword_gaps(
     Returns:
         GapAnalysisSummary with classified gaps and scored opportunities.
     """
-    # TODO: Implement merge, classify, score, and summarize pipeline
-    raise NotImplementedError("Implement keyword gap analysis pipeline")
+    # Build lookup dicts keyed by keyword string
+    your_map: dict[str, KeywordRecord] = {r.keyword: r for r in your_keywords}
+    comp_map: dict[str, KeywordRecord] = {r.keyword: r for r in competitor_keywords}
+
+    all_keywords = set(your_map.keys()) | set(comp_map.keys())
+
+    gap_results: list[KeywordGapResult] = []
+    counts = {gt: 0 for gt in GapType}
+
+    for kw in all_keywords:
+        your_rec = your_map.get(kw)
+        comp_rec = comp_map.get(kw)
+
+        your_pos = your_rec.position if your_rec else None
+        comp_pos = comp_rec.position if comp_rec else None
+
+        # Use the best available volume and difficulty data
+        if your_rec and comp_rec:
+            vol = max(your_rec.search_volume, comp_rec.search_volume)
+            diff = your_rec.keyword_difficulty  # prefer your data
+        elif your_rec:
+            vol = your_rec.search_volume
+            diff = your_rec.keyword_difficulty
+        elif comp_rec:
+            vol = comp_rec.search_volume
+            diff = comp_rec.keyword_difficulty
+        else:
+            vol = 0
+            diff = 0.5
+
+        gap_type = classify_gap(your_pos, comp_pos, position_threshold)
+        counts[gap_type] += 1
+
+        business_rel = assign_business_relevance(kw, relevance_map)
+        opp_score = calculate_opportunity_score(vol, diff, business_rel)
+
+        gap_results.append(
+            KeywordGapResult(
+                keyword=kw,
+                search_volume=vol,
+                keyword_difficulty=diff,
+                your_position=your_pos,
+                competitor=competitor_name,
+                competitor_position=comp_pos,
+                gap_type=gap_type,
+                opportunity_score=opp_score,
+                business_relevance=business_rel,
+            )
+        )
+
+    # Sort by opportunity score descending, prioritizing MISSING and WEAK gaps
+    gap_priority = {
+        GapType.MISSING: 0,
+        GapType.WEAK: 1,
+        GapType.SHARED: 2,
+        GapType.UNIQUE: 3,
+        GapType.STRONG: 4,
+    }
+    gap_results.sort(
+        key=lambda r: (-gap_priority.get(r.gap_type, 99), -r.opportunity_score),
+        reverse=True,
+    )
+    # Actually sort purely by opportunity score descending since that's the
+    # primary ranking; gap_type is informational
+    gap_results.sort(key=lambda r: r.opportunity_score, reverse=True)
+
+    top_opportunities = gap_results[:top_n]
+
+    summary = GapAnalysisSummary(
+        competitor=competitor_name,
+        total_keywords_analyzed=len(all_keywords),
+        missing_count=counts[GapType.MISSING],
+        weak_count=counts[GapType.WEAK],
+        strong_count=counts[GapType.STRONG],
+        shared_count=counts[GapType.SHARED],
+        unique_count=counts[GapType.UNIQUE],
+        top_opportunities=top_opportunities,
+    )
+
+    logger.info(
+        "Gap analysis for '%s': %d total, %d missing, %d weak, %d strong, "
+        "%d shared, %d unique",
+        competitor_name,
+        summary.total_keywords_analyzed,
+        summary.missing_count,
+        summary.weak_count,
+        summary.strong_count,
+        summary.shared_count,
+        summary.unique_count,
+    )
+    return summary
 
 
 def detect_new_competitor_keywords(
@@ -217,8 +483,17 @@ def detect_new_competitor_keywords(
     Returns:
         List of newly acquired keyword records.
     """
-    # TODO: Implement set difference and filtering
-    raise NotImplementedError("Implement new keyword detection")
+    previous_set = {r.keyword for r in previous_keywords}
+    new_keywords = [r for r in current_keywords if r.keyword not in previous_set]
+
+    # Sort by search volume descending to surface the most impactful new entries
+    new_keywords.sort(key=lambda r: r.search_volume, reverse=True)
+
+    logger.info(
+        "Detected %d new keywords for competitor '%s'",
+        len(new_keywords), competitor_name,
+    )
+    return new_keywords
 
 
 def run_gap_analysis(
@@ -242,8 +517,33 @@ def run_gap_analysis(
     Returns:
         List of GapAnalysisSummary, one per competitor.
     """
-    # TODO: Implement orchestration: load, analyze each competitor, write output
-    raise NotImplementedError("Implement gap analysis orchestration")
+    your_keywords = load_your_keywords(your_keywords_path)
+
+    summaries: list[GapAnalysisSummary] = []
+    for competitor_name in competitors:
+        try:
+            comp_keywords = load_competitor_keywords(
+                competitor_data_path, competitor_name
+            )
+        except Exception as exc:
+            logger.warning(
+                "Failed to load keywords for competitor '%s': %s. "
+                "Skipping (graceful degradation).",
+                competitor_name, exc,
+            )
+            continue
+
+        summary = analyze_keyword_gaps(
+            your_keywords=your_keywords,
+            competitor_keywords=comp_keywords,
+            competitor_name=competitor_name,
+            relevance_map=relevance_map,
+            top_n=top_n,
+        )
+        summaries.append(summary)
+
+    export_results(summaries, output_path)
+    return summaries
 
 
 def export_results(
@@ -256,8 +556,38 @@ def export_results(
         summaries: List of GapAnalysisSummary results.
         output_path: Destination file path.
     """
-    # TODO: Implement JSON serialization
-    raise NotImplementedError("Implement results export")
+    output_data: list[dict[str, Any]] = []
+    for summary in summaries:
+        opportunities = []
+        for opp in summary.top_opportunities:
+            opportunities.append({
+                "keyword": opp.keyword,
+                "search_volume": opp.search_volume,
+                "keyword_difficulty": opp.keyword_difficulty,
+                "your_position": opp.your_position,
+                "competitor": opp.competitor,
+                "competitor_position": opp.competitor_position,
+                "gap_type": opp.gap_type.value,
+                "opportunity_score": round(opp.opportunity_score, 2),
+                "business_relevance": opp.business_relevance,
+            })
+
+        output_data.append({
+            "competitor": summary.competitor,
+            "total_keywords_analyzed": summary.total_keywords_analyzed,
+            "missing_count": summary.missing_count,
+            "weak_count": summary.weak_count,
+            "strong_count": summary.strong_count,
+            "shared_count": summary.shared_count,
+            "unique_count": summary.unique_count,
+            "top_opportunities": opportunities,
+        })
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(output_data, f, indent=2, ensure_ascii=False)
+
+    logger.info("Exported gap analysis results to %s", output_path)
 
 
 if __name__ == "__main__":

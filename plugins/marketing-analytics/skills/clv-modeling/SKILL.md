@@ -6,6 +6,9 @@ description: >
   prediction, monetary value prediction, churn probability, customer retention modeling,
   expected transactions, customer-level forecasting, or high-value customer identification.
   Also trigger on 'which customers are most valuable' or 'predict future customer revenue.'
+  If transaction data is not yet extracted, suggest running data-extraction first.
+  CLV predictions enrich audience-segmentation with a value dimension and feed into
+  paid-media (acquisition targets), email-analytics (lifecycle), and reporting skills.
 ---
 
 Implement probabilistic customer lifetime value modeling using BG/NBD for purchase frequency

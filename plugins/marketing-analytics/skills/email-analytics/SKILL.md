@@ -8,7 +8,9 @@ description: >
   email blocklist, inbox placement, email revenue attribution, or email
   segmentation. Also trigger on 'how are our emails performing' or 'improve
   email engagement.' If segment-level analysis is needed and segments are not
-  defined, suggest running audience-segmentation first.
+  defined, suggest running audience-segmentation first. All A/B testing is
+  delegated to the experimentation skill. Results feed into reporting. In
+  financial services mode, content must pass compliance-review before deployment.
 ---
 
 # Email Marketing Analytics

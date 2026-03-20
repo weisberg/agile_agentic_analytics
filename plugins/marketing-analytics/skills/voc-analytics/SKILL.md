@@ -7,7 +7,9 @@ description: >
   customer, VoC, customer comments, feedback themes, review analysis, or
   satisfaction tracking. Also trigger on 'what are customers saying' or 'analyze
   our survey results.' If segment-level cross-tabulation is needed and segments
-  are not defined, suggest running audience-segmentation first.
+  are not defined, suggest running audience-segmentation first. Theme insights
+  inform seo-content strategy and email-analytics messaging. Satisfaction trends
+  feed into reporting.
 ---
 
 # Survey & Voice-of-Customer Analytics

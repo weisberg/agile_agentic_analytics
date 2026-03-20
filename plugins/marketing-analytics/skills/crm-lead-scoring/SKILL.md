@@ -7,7 +7,8 @@ description: >
   conversion probability, propensity model, account scoring, or sales attribution.
   Also trigger on 'which leads should sales prioritize' or 'why are we losing deals.'
   If segment enrichment is needed and segments are not defined, suggest running
-  audience-segmentation first.
+  audience-segmentation first. Lead quality signals feed into paid-media for
+  campaign targeting. Pipeline metrics feed into reporting.
 ---
 
 # CRM Analytics & Lead Scoring

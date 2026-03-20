@@ -6,7 +6,10 @@ description: >
   segment profiles, retention curves, cohort retention, segment migration,
   customer tiers, high-value customers, at-risk segment, churn cohort,
   acquisition cohort, engagement tiers, or audience definition. Also trigger
-  on 'group our customers' or 'which customers should we target.'
+  on 'group our customers' or 'which customers should we target.' If CLV
+  scores are available from clv-modeling, they enrich segment profiles. Segments
+  feed into experimentation (stratification), email-analytics (targeting),
+  paid-media (lookalike audiences), and reporting skills.
 ---
 
 # Customer Segmentation & Cohort Analysis

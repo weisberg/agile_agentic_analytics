@@ -8,7 +8,8 @@ description: >
   search visibility, SERP, featured snippets, content optimization, or page
   speed. Also trigger on 'how is our content performing' or 'which keywords
   should we target.' If web traffic context is needed, suggest running
-  web-analytics first.
+  web-analytics first. Keyword data feeds into competitive-intel and paid-media
+  (organic/paid keyword overlap). Results feed into reporting.
 ---
 
 # SEO & Content Analytics

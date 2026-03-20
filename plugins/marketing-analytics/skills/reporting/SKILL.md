@@ -6,7 +6,9 @@ description: >
   KPI dashboard, marketing scorecard, insight generation, report automation,
   stakeholder update, board deck, or performance review. Also trigger on
   'summarize our marketing performance' or 'create a deck for leadership.'
-  This skill consumes outputs from all other skills in the portfolio.
+  This skill consumes outputs from all other skills in the portfolio. In
+  financial services mode, all reports containing performance claims must pass
+  through compliance-review before distribution.
 ---
 
 # Dashboard & Reporting Automation

@@ -7,7 +7,10 @@ description: >
   reach, share of voice, social sentiment, brand mentions, social content
   performance, viral content, social ROI, social listening, or social
   benchmarking. Also trigger on 'how are we doing on social' or 'what's
-  performing on LinkedIn.'
+  performing on LinkedIn.' If social platform data is not yet extracted, suggest
+  running data-extraction first. Share-of-voice data feeds into competitive-intel.
+  Social engagement data feeds attribution-analysis as a channel input. Results
+  feed into reporting.
 category: Channel Analytics
 priority: P2
 depends_on:

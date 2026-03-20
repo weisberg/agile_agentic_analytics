@@ -1,0 +1,1001 @@
+query,page,clicks,impressions,ctr,position,date
+cro tool,/docs/api-reference,4,23,0.2119,39.0,2025-10-01
+marketing analytics for startups,/blog/ab-testing-guide,9,49,0.1939,52.5,2025-10-01
+sem reporting tool,/blog/segmentation-101,14,131,0.1098,62.0,2025-10-01
+checkout abandonment analysis,/blog/clv-guide,3,36,0.0866,64.9,2025-10-01
+marketing dashboard,/blog/segmentation-101,7,28,0.2826,14.0,2025-10-01
+campaign performance report,/integrations,3,50,0.0639,75.9,2025-10-01
+customer lifetime value,/blog/clv-guide,11,40,0.2981,5.1,2025-10-02
+how to calculate clv,/docs/api-reference,166,555,0.3003,19.5,2025-10-02
+google ads reporting,/features,39,92,0.4332,3.6,2025-10-02
+saas marketing metrics,/pricing,15,128,0.1177,52.5,2025-10-02
+churn prediction tool,/docs/api-reference,2,24,0.1018,45.0,2025-10-02
+best marketing analytics tools 2025,/,44,254,0.174,27.2,2025-10-02
+campaign performance report,/blog/segmentation-101,2,50,0.0509,77.6,2025-10-02
+email marketing analytics,/blog/ab-testing-guide,10,60,0.182,56.0,2025-10-02
+voice of customer analytics,/docs/api-reference,18,86,0.2099,28.9,2025-10-02
+marketing automation analytics,/blog/funnel-optimization,4,58,0.0734,75.0,2025-10-02
+ab testing platform,/case-studies,0,20,0.0376,79.7,2025-10-02
+marketing compliance,/blog/ab-testing-guide,8,29,0.2959,37.9,2025-10-02
+marketing dashboard,/case-studies,6,31,0.2131,15.3,2025-10-02
+voice of customer analytics,/docs/getting-started,14,98,0.152,16.6,2025-10-02
+lookalike audience optimization,/blog/funnel-optimization,3,24,0.1488,50.9,2025-10-02
+how to calculate clv,/blog/segmentation-101,3,23,0.1394,46.7,2025-10-02
+ecommerce analytics,/pricing,10,224,0.0466,78.2,2025-10-02
+checkout abandonment analysis,/blog/attribution-explained,11,65,0.1776,34.8,2025-10-03
+saas marketing metrics,/blog/segmentation-101,4,23,0.199,2.5,2025-10-03
+gdpr marketing analytics,/integrations,2,24,0.0927,56.0,2025-10-03
+campaign performance report,/blog/segmentation-101,5,25,0.2379,3.0,2025-10-03
+competitive intelligence marketing,/pricing,23,73,0.3241,10.5,2025-10-03
+marketing experimentation,/pricing,12,30,0.4293,6.3,2025-10-03
+nps analysis tool,/docs/getting-started,3,23,0.1712,12.8,2025-10-03
+ecommerce analytics,/case-studies,1,26,0.0532,62.6,2025-10-03
+form conversion rate,/docs/api-reference,1,23,0.0436,74.8,2025-10-03
+form conversion rate,/integrations,5,40,0.1491,53.0,2025-10-03
+form conversion rate,/,21,114,0.1914,31.5,2025-10-03
+checkout abandonment analysis,/features,13,59,0.2326,25.7,2025-10-03
+how to calculate clv,/features,1,27,0.058,71.7,2025-10-03
+campaign analytics,/docs/api-reference,5,28,0.1887,1.4,2025-10-03
+paid media analytics,/pricing,6,21,0.3107,18.6,2025-10-03
+email marketing analytics,/blog/attribution-explained,40,365,0.1121,65.4,2025-10-03
+retention analytics,/blog/clv-guide,30,164,0.1855,35.6,2025-10-04
+google ads reporting,/features,1,30,0.0532,73.7,2025-10-04
+saas marketing metrics,/integrations,25,90,0.2796,24.0,2025-10-04
+multi-touch attribution,/blog/segmentation-101,4,29,0.1633,24.4,2025-10-04
+campaign analytics,/docs/getting-started,12,54,0.2381,13.5,2025-10-04
+gdpr marketing analytics,/blog/funnel-optimization,9,50,0.1904,10.9,2025-10-04
+incrementality testing,/case-studies,3,21,0.1817,26.4,2025-10-04
+content performance tracking,/case-studies,3,26,0.144,31.5,2025-10-04
+ppc analytics,/blog/attribution-explained,67,877,0.0775,62.1,2025-10-04
+paid media analytics,/,2,28,0.0881,62.6,2025-10-04
+attribution modeling,/blog/ab-testing-guide,2,43,0.0627,70.6,2025-10-05
+lookalike audience optimization,/features,1,21,0.063,65.2,2025-10-05
+conversion rate optimization,/case-studies,32,142,0.2265,19.0,2025-10-05
+seo analytics,/case-studies,8,23,0.3592,22.2,2025-10-05
+lead scoring model,/docs/api-reference,5,24,0.232,46.3,2025-10-05
+marketing dashboard,/integrations,6,52,0.1346,38.2,2025-10-05
+ppc analytics,/integrations,6,20,0.3143,33.1,2025-10-05
+incrementality testing,/blog/clv-guide,6,31,0.1953,48.5,2025-10-05
+voice of customer analytics,/blog/clv-guide,7,36,0.2094,6.5,2025-10-05
+marketing experimentation,/blog/funnel-optimization,7,22,0.3297,13.2,2025-10-06
+lookalike audience optimization,/blog/funnel-optimization,26,181,0.1442,20.4,2025-10-06
+nps analysis tool,/blog/segmentation-101,13,56,0.2431,18.8,2025-10-06
+marketing compliance,/blog/funnel-optimization,20,110,0.185,32.9,2025-10-06
+marketing analytics for startups,/blog/clv-guide,2,28,0.0833,60.2,2025-10-06
+landing page optimization,/case-studies,2,25,0.1154,67.6,2025-10-06
+marketing dashboard,/pricing,9,103,0.0875,70.1,2025-10-06
+lead scoring model,/docs/api-reference,3,21,0.1504,20.8,2025-10-06
+marketing compliance,/pricing,1,21,0.0515,67.3,2025-10-06
+lookalike audience optimization,/case-studies,1,22,0.0747,56.8,2025-10-06
+competitive intelligence marketing,/features,10,41,0.2665,39.3,2025-10-07
+remarketing analytics,/blog/clv-guide,202,1276,0.1585,26.7,2025-10-07
+nps analysis tool,/,15,42,0.3727,2.9,2025-10-07
+google ads reporting,/blog/attribution-explained,11,209,0.0543,66.9,2025-10-07
+cro tool,/pricing,1,25,0.0616,70.5,2025-10-07
+incrementality testing,/integrations,13,184,0.0707,65.2,2025-10-07
+attribution modeling,/,3,62,0.054,77.3,2025-10-07
+content performance tracking,/blog/clv-guide,8,23,0.3673,19.4,2025-10-07
+incrementality testing,/blog/funnel-optimization,5,89,0.0664,74.1,2025-10-08
+marketing analytics tool,/blog/clv-guide,7,82,0.0889,43.9,2025-10-08
+marketing automation analytics,/docs/api-reference,13,43,0.3188,20.3,2025-10-08
+marketing analytics for startups,/features,25,69,0.3731,6.0,2025-10-08
+cro tool,/pricing,4,24,0.1728,27.0,2025-10-08
+form conversion rate,/blog/clv-guide,16,42,0.3877,17.0,2025-10-08
+marketing dashboard,/blog/clv-guide,1,36,0.0543,71.6,2025-10-08
+clv calculator,/blog/clv-guide,1,20,0.0836,60.9,2025-10-08
+cro tool,/blog/segmentation-101,2,29,0.0874,47.5,2025-10-08
+first-touch attribution,/blog/clv-guide,9,29,0.3218,11.9,2025-10-08
+paid media analytics,/blog/attribution-explained,0,31,0.029,75.7,2025-10-08
+form conversion rate,/blog/attribution-explained,1,22,0.0782,52.9,2025-10-09
+ppc analytics,/,5,42,0.1221,47.2,2025-10-09
+marketing automation analytics,/blog/ab-testing-guide,6,31,0.2019,47.6,2025-10-09
+cart abandonment rate,/pricing,4,25,0.1762,51.3,2025-10-09
+how to calculate clv,/docs/api-reference,0,28,0.0278,76.7,2025-10-09
+meta ads dashboard,/blog/attribution-explained,22,81,0.2718,42.2,2025-10-09
+incrementality testing,/docs/api-reference,5,33,0.16,50.7,2025-10-09
+landing page optimization,/blog/attribution-explained,11,55,0.2058,13.2,2025-10-09
+multi-touch attribution,/blog/funnel-optimization,4,23,0.1836,50.3,2025-10-09
+seo analytics,/blog/ab-testing-guide,7,26,0.2806,13.6,2025-10-10
+campaign analytics,/blog/funnel-optimization,14,41,0.3627,24.5,2025-10-10
+lookalike audience optimization,/blog/clv-guide,11,54,0.2207,49.9,2025-10-10
+marketing experimentation,/blog/segmentation-101,17,36,0.4823,3.9,2025-10-10
+paid media analytics,/blog/attribution-explained,21,135,0.1581,14.5,2025-10-10
+customer lifetime value,/integrations,0,23,0.0417,73.4,2025-10-10
+churn prediction tool,/docs/getting-started,3,27,0.119,61.8,2025-10-10
+marketing automation analytics,/,1,25,0.0589,73.7,2025-10-10
+campaign performance report,/blog/segmentation-101,14,41,0.3596,9.4,2025-10-10
+email deliverability analytics,/case-studies,31,132,0.2386,27.7,2025-10-10
+gdpr marketing analytics,/docs/api-reference,17,45,0.3896,3.3,2025-10-11
+display ads analytics,/blog/segmentation-101,16,53,0.3095,28.0,2025-10-11
+incrementality testing,/docs/getting-started,93,349,0.2685,7.8,2025-10-11
+funnel analysis tool,/,4,22,0.1834,30.8,2025-10-11
+saas marketing metrics,/,2,20,0.1342,24.8,2025-10-11
+marketing analytics tool,/docs/api-reference,1,20,0.0651,57.2,2025-10-11
+paid media analytics,/blog/attribution-explained,1,74,0.0188,78.6,2025-10-11
+campaign performance report,/docs/api-reference,46,180,0.2569,29.8,2025-10-11
+ab testing platform,/blog/clv-guide,1,26,0.0446,74.3,2025-10-11
+ecommerce analytics,/,4,29,0.1531,30.0,2025-10-11
+saas marketing metrics,/blog/clv-guide,6,40,0.1545,45.5,2025-10-11
+lead scoring model,/blog/funnel-optimization,14,50,0.2808,39.9,2025-10-11
+google ads reporting,/blog/attribution-explained,3,58,0.0637,75.1,2025-10-11
+marketing compliance,/features,2,20,0.1022,45.0,2025-10-11
+multi-touch attribution,/integrations,12,51,0.2474,13.0,2025-10-12
+marketing mix model,/blog/ab-testing-guide,5,25,0.2356,3.6,2025-10-12
+best marketing analytics tools 2025,/docs/api-reference,48,236,0.2042,38.8,2025-10-12
+marketing experimentation,/blog/clv-guide,2,42,0.0637,65.3,2025-10-12
+checkout abandonment analysis,/blog/segmentation-101,4,66,0.0703,66.2,2025-10-12
+customer lifetime value,/blog/ab-testing-guide,7,29,0.2563,42.8,2025-10-12
+funnel analysis tool,/docs/getting-started,9,35,0.2747,27.3,2025-10-12
+voice of customer analytics,/features,67,278,0.243,33.4,2025-10-12
+social media analytics,/docs/api-reference,6,29,0.2155,17.7,2025-10-12
+funnel analysis tool,/blog/ab-testing-guide,3,34,0.0961,63.3,2025-10-12
+customer lifetime value,/blog/ab-testing-guide,70,260,0.271,37.9,2025-10-12
+form conversion rate,/features,14,36,0.3985,17.2,2025-10-12
+multi-touch attribution,/,456,3339,0.1366,60.6,2025-10-12
+marketing roi calculator,/features,7,38,0.2052,28.6,2025-10-12
+social media analytics,/blog/attribution-explained,9,37,0.2627,39.5,2025-10-12
+marketing experimentation,/,17,45,0.382,10.9,2025-10-12
+competitive intelligence marketing,/features,5,21,0.2475,8.2,2025-10-12
+first-touch attribution,/blog/attribution-explained,7,58,0.125,53.9,2025-10-12
+ecommerce analytics,/blog/ab-testing-guide,6,23,0.2894,17.1,2025-10-13
+gdpr marketing analytics,/case-studies,13,62,0.2106,5.3,2025-10-13
+marketing data warehouse,/blog/clv-guide,4,29,0.1572,29.1,2025-10-13
+gdpr marketing analytics,/,16,65,0.2496,38.2,2025-10-13
+email deliverability analytics,/docs/getting-started,2,30,0.0746,64.4,2025-10-13
+display ads analytics,/blog/segmentation-101,13,166,0.0827,66.0,2025-10-13
+ab testing platform,/blog/clv-guide,5,22,0.2273,46.3,2025-10-13
+saas marketing metrics,/blog/funnel-optimization,4,86,0.0539,75.8,2025-10-13
+nps analysis tool,/blog/clv-guide,7,21,0.369,11.1,2025-10-13
+landing page optimization,/blog/segmentation-101,5,22,0.2653,34.2,2025-10-14
+ab testing platform,/docs/getting-started,2,21,0.119,52.6,2025-10-14
+email marketing analytics,/,1,23,0.0683,64.8,2025-10-14
+marketing data warehouse,/docs/api-reference,3,30,0.1309,55.0,2025-10-14
+how to calculate clv,/docs/api-reference,64,200,0.3233,28.4,2025-10-14
+campaign performance report,/case-studies,10,27,0.4062,2.3,2025-10-14
+nps analysis tool,/blog/clv-guide,10,61,0.1726,50.2,2025-10-14
+ecommerce analytics,/blog/ab-testing-guide,5,39,0.1426,56.8,2025-10-14
+funnel analysis tool,/integrations,10,33,0.3086,31.5,2025-10-14
+funnel analysis tool,/features,0,22,0.0233,75.9,2025-10-14
+meta ads dashboard,/blog/attribution-explained,5,28,0.2044,31.1,2025-10-15
+google ads reporting,/blog/ab-testing-guide,5,29,0.1872,51.0,2025-10-15
+conversion rate optimization,/features,8,45,0.1973,44.5,2025-10-15
+content performance tracking,/blog/attribution-explained,13,44,0.2984,18.6,2025-10-15
+marketing compliance,/,87,988,0.0887,59.6,2025-10-15
+lead scoring model,/pricing,4,28,0.1498,43.7,2025-10-15
+customer lifetime value,/blog/segmentation-101,11,71,0.1555,23.0,2025-10-15
+ppc analytics,/blog/attribution-explained,8,90,0.0947,61.3,2025-10-15
+display ads analytics,/docs/api-reference,5,23,0.2197,38.7,2025-10-15
+saas marketing metrics,/features,6,21,0.3074,8.2,2025-10-16
+marketing dashboard,/docs/api-reference,12,42,0.2863,33.7,2025-10-16
+display ads analytics,/features,4,20,0.2039,43.4,2025-10-16
+marketing mix model,/case-studies,6,23,0.2802,17.9,2025-10-16
+ecommerce analytics,/docs/api-reference,4,21,0.2227,16.5,2025-10-16
+incrementality testing,/,0,23,0.0324,76.5,2025-10-16
+competitive intelligence marketing,/blog/ab-testing-guide,1,21,0.0879,64.8,2025-10-16
+competitive intelligence marketing,/integrations,10,34,0.3232,13.9,2025-10-16
+conversion rate optimization,/docs/api-reference,28,91,0.3091,31.8,2025-10-16
+ppc analytics,/integrations,15,113,0.138,35.4,2025-10-16
+remarketing analytics,/blog/ab-testing-guide,3,21,0.1617,34.5,2025-10-16
+marketing roi calculator,/case-studies,2,41,0.0574,76.3,2025-10-16
+ppc analytics,/blog/funnel-optimization,2,26,0.1009,37.6,2025-10-16
+paid media analytics,/integrations,4,21,0.1913,40.7,2025-10-16
+incrementality testing,/pricing,14,120,0.1176,64.6,2025-10-17
+ecommerce analytics,/docs/getting-started,14,34,0.4375,10.0,2025-10-17
+best marketing analytics tools 2025,/blog/clv-guide,4,36,0.1387,45.8,2025-10-17
+marketing mix model,/docs/getting-started,1,23,0.0546,70.1,2025-10-17
+ecommerce analytics,/blog/segmentation-101,5,24,0.2324,3.7,2025-10-17
+landing page optimization,/docs/api-reference,5,36,0.1399,62.2,2025-10-17
+attribution modeling,/blog/ab-testing-guide,33,110,0.308,17.2,2025-10-17
+ppc analytics,/docs/api-reference,14,52,0.2771,33.0,2025-10-17
+content performance tracking,/case-studies,15,55,0.2801,40.0,2025-10-18
+social media analytics,/integrations,13,50,0.267,28.1,2025-10-18
+cart abandonment rate,/docs/getting-started,8,63,0.1347,63.8,2025-10-18
+meta ads dashboard,/docs/api-reference,26,162,0.1633,41.8,2025-10-18
+competitive intelligence marketing,/pricing,30,106,0.2889,16.9,2025-10-18
+paid media analytics,/,10,27,0.3946,11.0,2025-10-18
+conversion rate optimization,/pricing,21,70,0.3125,16.6,2025-10-18
+social media analytics,/blog/funnel-optimization,4,73,0.0561,73.9,2025-10-18
+ppc analytics,/case-studies,292,1105,0.2646,22.6,2025-10-18
+retention analytics,/docs/getting-started,19,65,0.3016,33.4,2025-10-18
+cart abandonment rate,/integrations,12,83,0.1496,53.1,2025-10-18
+checkout abandonment analysis,/features,1,33,0.0379,72.1,2025-10-18
+clv calculator,/pricing,4,26,0.185,39.8,2025-10-18
+ppc analytics,/blog/attribution-explained,14,98,0.1493,25.3,2025-10-18
+cro tool,/docs/api-reference,1,24,0.0833,73.6,2025-10-18
+customer lifetime value,/blog/ab-testing-guide,2,32,0.0782,74.1,2025-10-18
+customer segmentation software,/blog/funnel-optimization,1,25,0.079,72.4,2025-10-19
+first-touch attribution,/docs/api-reference,2,58,0.0417,77.4,2025-10-19
+lead scoring model,/blog/segmentation-101,0,20,0.0448,66.9,2025-10-19
+paid media analytics,/pricing,14,170,0.0831,60.2,2025-10-19
+customer lifetime value,/integrations,14,56,0.2655,42.0,2025-10-19
+social media analytics,/pricing,65,197,0.3308,17.8,2025-10-19
+funnel analysis tool,/docs/getting-started,5,35,0.1581,35.8,2025-10-19
+conversion rate optimization,/blog/attribution-explained,3,29,0.1127,67.7,2025-10-19
+customer lifetime value,/blog/ab-testing-guide,2,21,0.1216,36.2,2025-10-19
+seo analytics,/blog/ab-testing-guide,4,20,0.2231,32.4,2025-10-19
+conversion rate optimization,/features,11,54,0.2125,51.6,2025-10-20
+form conversion rate,/,12,63,0.2059,25.6,2025-10-20
+marketing compliance,/blog/segmentation-101,16,68,0.2394,22.7,2025-10-20
+marketing dashboard,/blog/clv-guide,6,45,0.1506,14.8,2025-10-20
+incrementality testing,/case-studies,2,22,0.1082,56.0,2025-10-20
+email marketing analytics,/features,4,22,0.1867,11.6,2025-10-20
+cart abandonment rate,/blog/segmentation-101,5,32,0.1778,55.7,2025-10-20
+first-touch attribution,/docs/api-reference,21,88,0.2412,29.8,2025-10-20
+marketing data warehouse,/blog/ab-testing-guide,16,117,0.1449,25.1,2025-10-20
+funnel analysis tool,/docs/getting-started,22,266,0.0846,65.5,2025-10-20
+landing page optimization,/blog/ab-testing-guide,105,280,0.3757,4.6,2025-10-21
+seo analytics,/docs/api-reference,2,20,0.1499,58.9,2025-10-21
+nps analysis tool,/blog/funnel-optimization,7,59,0.1198,63.1,2025-10-21
+marketing data warehouse,/features,6,20,0.3253,22.2,2025-10-21
+sem reporting tool,/blog/attribution-explained,5,24,0.2478,6.2,2025-10-21
+lead scoring model,/,23,99,0.2411,37.3,2025-10-21
+ab testing platform,/blog/segmentation-101,1,20,0.0801,52.8,2025-10-21
+first-touch attribution,/integrations,326,1827,0.1788,10.9,2025-10-21
+campaign performance report,/docs/getting-started,1,20,0.0636,75.7,2025-10-21
+marketing automation analytics,/blog/segmentation-101,7,27,0.2658,36.9,2025-10-21
+conversion rate optimization,/blog/clv-guide,0,28,0.0348,78.5,2025-10-21
+email deliverability analytics,/blog/attribution-explained,34,87,0.4003,17.8,2025-10-21
+social media analytics,/blog/clv-guide,5,22,0.2288,38.2,2025-10-21
+conversion rate optimization,/case-studies,5,37,0.1396,55.0,2025-10-22
+remarketing analytics,/blog/segmentation-101,7,35,0.2103,14.4,2025-10-22
+marketing compliance,/docs/getting-started,5,114,0.0512,63.8,2025-10-22
+checkout abandonment analysis,/case-studies,16,67,0.2429,9.9,2025-10-22
+conversion rate optimization,/features,16,178,0.0929,68.7,2025-10-22
+retention analytics,/features,45,213,0.2152,27.6,2025-10-22
+marketing analytics tool,/blog/clv-guide,16,34,0.4923,2.6,2025-10-22
+ab testing platform,/blog/attribution-explained,8,54,0.1553,48.0,2025-10-22
+landing page optimization,/docs/getting-started,1,55,0.0315,78.4,2025-10-22
+cart abandonment rate,/blog/clv-guide,5,40,0.1476,37.8,2025-10-22
+landing page optimization,/case-studies,12,29,0.4211,11.4,2025-10-22
+first-touch attribution,/,12,73,0.1767,35.2,2025-10-22
+nps analysis tool,/pricing,6,38,0.1712,45.8,2025-10-22
+nps analysis tool,/docs/api-reference,5,24,0.2319,36.8,2025-10-22
+saas marketing metrics,/blog/ab-testing-guide,9,29,0.3303,1.9,2025-10-22
+email marketing analytics,/blog/clv-guide,0,23,0.0239,79.9,2025-10-22
+marketing experimentation,/pricing,10,33,0.3219,27.4,2025-10-23
+marketing analytics for startups,/blog/attribution-explained,6,62,0.1005,50.7,2025-10-23
+first-touch attribution,/docs/getting-started,7,95,0.0767,56.0,2025-10-23
+google ads reporting,/case-studies,5,20,0.2588,20.3,2025-10-23
+social media analytics,/docs/getting-started,4,38,0.1299,58.2,2025-10-23
+attribution modeling,/docs/api-reference,3,41,0.0815,59.4,2025-10-23
+how to calculate clv,/docs/getting-started,86,331,0.2603,30.2,2025-10-23
+cro tool,/blog/attribution-explained,30,66,0.4579,9.8,2025-10-23
+retention analytics,/blog/attribution-explained,5,41,0.1322,41.8,2025-10-23
+ppc analytics,/docs/api-reference,20,175,0.1178,66.8,2025-10-23
+first-touch attribution,/case-studies,36,410,0.0894,62.1,2025-10-23
+paid media analytics,/docs/getting-started,5,31,0.1757,12.1,2025-10-23
+gdpr marketing analytics,/blog/attribution-explained,23,217,0.1062,54.4,2025-10-24
+clv calculator,/docs/api-reference,8,158,0.055,74.3,2025-10-24
+marketing automation analytics,/features,7,32,0.2263,23.3,2025-10-24
+marketing analytics for startups,/blog/clv-guide,4,24,0.167,55.2,2025-10-24
+landing page optimization,/integrations,13,60,0.2321,41.9,2025-10-24
+best marketing analytics tools 2025,/,9,40,0.2329,11.6,2025-10-24
+best marketing analytics tools 2025,/features,1,22,0.0679,62.0,2025-10-24
+display ads analytics,/,4,46,0.1001,43.8,2025-10-24
+marketing experimentation,/features,5,20,0.2927,5.3,2025-10-24
+marketing mix model,/blog/attribution-explained,2,41,0.0547,73.4,2025-10-24
+marketing compliance,/features,5,32,0.1847,9.3,2025-10-24
+churn prediction tool,/integrations,2,23,0.1008,69.5,2025-10-24
+marketing data warehouse,/docs/getting-started,9,80,0.1219,49.7,2025-10-25
+lead scoring model,/blog/clv-guide,349,714,0.4889,2.0,2025-10-25
+checkout abandonment analysis,/blog/segmentation-101,14,51,0.2866,17.5,2025-10-25
+remarketing analytics,/docs/getting-started,4,29,0.148,44.0,2025-10-25
+campaign performance report,/docs/api-reference,8,22,0.3781,10.3,2025-10-25
+conversion rate optimization,/,2,34,0.0718,65.3,2025-10-25
+lookalike audience optimization,/docs/getting-started,9,45,0.2157,37.4,2025-10-25
+customer segmentation software,/case-studies,143,728,0.1969,35.8,2025-10-25
+marketing compliance,/blog/clv-guide,2,20,0.1199,42.6,2025-10-25
+first-touch attribution,/integrations,857,4735,0.1812,45.6,2025-10-25
+marketing roi calculator,/blog/ab-testing-guide,1,50,0.0398,74.9,2025-10-25
+marketing compliance,/,2,25,0.1115,60.6,2025-10-25
+remarketing analytics,/docs/getting-started,97,283,0.3442,15.3,2025-10-25
+first-touch attribution,/features,12,60,0.2003,12.1,2025-10-25
+meta ads dashboard,/case-studies,5,37,0.1619,22.1,2025-10-26
+funnel analysis tool,/case-studies,11,43,0.2717,40.8,2025-10-26
+checkout abandonment analysis,/integrations,2,20,0.1049,57.4,2025-10-26
+saas marketing metrics,/pricing,13,85,0.1571,50.9,2025-10-26
+nps analysis tool,/blog/ab-testing-guide,29,60,0.4891,4.7,2025-10-26
+cro tool,/pricing,3,29,0.1322,64.1,2025-10-26
+funnel analysis tool,/docs/getting-started,5,32,0.1629,40.9,2025-10-26
+cro tool,/,8,37,0.2297,46.4,2025-10-26
+checkout abandonment analysis,/case-studies,9,25,0.3625,2.8,2025-10-27
+retention analytics,/integrations,26,84,0.3184,21.0,2025-10-27
+sem reporting tool,/case-studies,5,22,0.2613,25.5,2025-10-27
+remarketing analytics,/blog/segmentation-101,2,49,0.0575,69.9,2025-10-28
+campaign analytics,/blog/segmentation-101,90,990,0.0914,49.3,2025-10-28
+display ads analytics,/blog/clv-guide,1,33,0.0309,77.0,2025-10-28
+social media analytics,/,24,104,0.2343,27.8,2025-10-28
+retention analytics,/blog/ab-testing-guide,129,939,0.138,46.1,2025-10-28
+google ads reporting,/blog/funnel-optimization,1,35,0.037,75.2,2025-10-28
+marketing analytics tool,/docs/api-reference,417,1260,0.3312,10.6,2025-10-28
+attribution modeling,/docs/api-reference,1,28,0.0516,78.6,2025-10-28
+best marketing analytics tools 2025,/features,2,22,0.1103,46.4,2025-10-28
+checkout abandonment analysis,/docs/api-reference,9,26,0.3557,15.4,2025-10-28
+remarketing analytics,/blog/attribution-explained,5,21,0.2573,30.4,2025-10-28
+marketing data warehouse,/blog/attribution-explained,7,20,0.3836,9.7,2025-10-28
+churn prediction tool,/blog/funnel-optimization,12,186,0.0659,71.1,2025-10-28
+paid media analytics,/pricing,14,67,0.2164,18.2,2025-10-28
+gdpr marketing analytics,/blog/clv-guide,5,30,0.1851,46.7,2025-10-29
+form conversion rate,/features,2,21,0.1208,38.3,2025-10-29
+gdpr marketing analytics,/docs/api-reference,1,40,0.0263,75.2,2025-10-29
+attribution modeling,/blog/funnel-optimization,4,38,0.1181,58.4,2025-10-29
+conversion rate optimization,/pricing,28,76,0.3755,21.5,2025-10-29
+marketing analytics tool,/blog/segmentation-101,106,967,0.1106,38.3,2025-10-29
+customer lifetime value,/blog/clv-guide,5,30,0.1705,36.9,2025-10-29
+competitive intelligence marketing,/case-studies,21,54,0.4058,13.0,2025-10-29
+email marketing analytics,/,4,34,0.1396,55.2,2025-10-29
+incrementality testing,/docs/api-reference,7,24,0.3245,17.0,2025-10-29
+retention analytics,/blog/ab-testing-guide,3,21,0.1659,21.8,2025-10-30
+checkout abandonment analysis,/docs/api-reference,7,30,0.2648,30.2,2025-10-30
+multi-touch attribution,/blog/ab-testing-guide,489,1231,0.3973,5.9,2025-10-30
+content performance tracking,/blog/attribution-explained,6,25,0.2502,22.0,2025-10-30
+ab testing platform,/,5,22,0.2309,43.1,2025-10-30
+marketing compliance,/pricing,1,31,0.0404,76.8,2025-10-30
+conversion rate optimization,/,1,21,0.0591,72.2,2025-10-30
+sem reporting tool,/blog/funnel-optimization,3,22,0.1366,63.4,2025-10-30
+marketing compliance,/pricing,19,93,0.2114,1.9,2025-10-30
+marketing mix model,/blog/funnel-optimization,8,55,0.1625,48.5,2025-10-30
+best marketing analytics tools 2025,/case-studies,15,70,0.2198,43.8,2025-10-30
+email marketing analytics,/blog/attribution-explained,10,72,0.1402,50.6,2025-10-30
+cro tool,/,6,24,0.2595,30.6,2025-10-30
+ab testing platform,/blog/segmentation-101,80,191,0.4222,8.6,2025-10-30
+marketing compliance,/blog/clv-guide,6,34,0.2025,34.0,2025-10-31
+multi-touch attribution,/,9,22,0.425,3.6,2025-10-31
+google ads reporting,/blog/ab-testing-guide,2,68,0.0358,78.2,2025-10-31
+marketing analytics for startups,/blog/ab-testing-guide,21,158,0.134,29.3,2025-10-31
+marketing compliance,/blog/clv-guide,9,32,0.2998,32.5,2025-10-31
+customer lifetime value,/case-studies,17,41,0.4259,1.8,2025-10-31
+funnel analysis tool,/,3,20,0.1985,13.9,2025-10-31
+landing page optimization,/blog/segmentation-101,12,39,0.3216,25.0,2025-10-31
+ecommerce analytics,/blog/segmentation-101,49,245,0.2011,47.0,2025-10-31
+cart abandonment rate,/,6,40,0.1694,48.8,2025-10-31
+marketing roi calculator,/pricing,7,29,0.2685,27.2,2025-10-31
+checkout abandonment analysis,/blog/ab-testing-guide,4,29,0.1518,35.5,2025-10-31
+funnel analysis tool,/blog/clv-guide,7,23,0.3053,22.2,2025-10-31
+marketing analytics tool,/pricing,24,70,0.3525,9.0,2025-10-31
+checkout abandonment analysis,/docs/api-reference,7,24,0.3066,17.3,2025-10-31
+sem reporting tool,/blog/funnel-optimization,3,27,0.1295,45.6,2025-10-31
+cart abandonment rate,/docs/api-reference,1,29,0.0561,73.4,2025-10-31
+form conversion rate,/integrations,5,34,0.1518,60.0,2025-11-01
+marketing analytics tool,/blog/clv-guide,4,46,0.0879,71.0,2025-11-01
+ab testing platform,/blog/funnel-optimization,4,21,0.2301,25.4,2025-11-01
+conversion rate optimization,/docs/getting-started,2,35,0.0702,60.1,2025-11-01
+ppc analytics,/docs/api-reference,5,22,0.2371,28.5,2025-11-01
+marketing analytics tool,/case-studies,4,39,0.1273,57.5,2025-11-01
+email marketing analytics,/case-studies,4,24,0.1745,32.4,2025-11-01
+google ads reporting,/blog/segmentation-101,4,34,0.1372,53.2,2025-11-01
+ppc analytics,/blog/funnel-optimization,1,41,0.0485,66.8,2025-11-02
+gdpr marketing analytics,/,7,21,0.3807,12.6,2025-11-02
+marketing experimentation,/features,1,58,0.0298,78.3,2025-11-02
+multi-touch attribution,/blog/attribution-explained,0,22,0.0363,70.1,2025-11-02
+customer segmentation software,/blog/ab-testing-guide,80,401,0.2018,23.6,2025-11-02
+best marketing analytics tools 2025,/docs/api-reference,8,48,0.1791,51.1,2025-11-02
+marketing analytics tool,/docs/getting-started,13,111,0.1245,40.6,2025-11-02
+marketing experimentation,/blog/attribution-explained,4,26,0.1569,57.1,2025-11-03
+marketing data warehouse,/pricing,7,30,0.2487,42.5,2025-11-03
+lookalike audience optimization,/case-studies,9,25,0.3865,7.5,2025-11-03
+cart abandonment rate,/docs/getting-started,26,87,0.3046,26.4,2025-11-03
+nps analysis tool,/blog/attribution-explained,118,307,0.3856,15.4,2025-11-03
+retention analytics,/blog/ab-testing-guide,2,42,0.0711,58.0,2025-11-03
+ppc analytics,/blog/ab-testing-guide,4,23,0.2001,9.5,2025-11-03
+ecommerce analytics,/case-studies,12,26,0.4655,1.6,2025-11-03
+marketing automation analytics,/,3,42,0.0883,66.4,2025-11-03
+best marketing analytics tools 2025,/docs/api-reference,58,1645,0.0358,73.6,2025-11-03
+conversion rate optimization,/docs/api-reference,1365,3896,0.3504,20.8,2025-11-03
+churn prediction tool,/blog/attribution-explained,8,20,0.4164,7.9,2025-11-04
+display ads analytics,/docs/getting-started,7,23,0.3315,21.9,2025-11-04
+paid media analytics,/blog/clv-guide,13,163,0.084,46.9,2025-11-04
+seo analytics,/blog/attribution-explained,3,23,0.1677,42.9,2025-11-04
+marketing analytics for startups,/blog/funnel-optimization,5,115,0.0462,64.6,2025-11-04
+landing page optimization,/blog/segmentation-101,8,20,0.4474,11.6,2025-11-04
+customer lifetime value,/features,13,63,0.2081,6.0,2025-11-05
+marketing mix model,/case-studies,3,34,0.1036,64.2,2025-11-05
+marketing automation analytics,/blog/ab-testing-guide,7,110,0.0648,60.7,2025-11-05
+voice of customer analytics,/blog/attribution-explained,3,24,0.1492,57.2,2025-11-05
+form conversion rate,/blog/clv-guide,23,88,0.2621,42.1,2025-11-05
+voice of customer analytics,/features,7,20,0.3872,15.8,2025-11-05
+retention analytics,/integrations,1,28,0.0714,71.6,2025-11-05
+churn prediction tool,/integrations,38,217,0.1788,40.6,2025-11-05
+funnel analysis tool,/pricing,1,21,0.0748,68.2,2025-11-05
+saas marketing metrics,/docs/getting-started,2,41,0.0696,72.6,2025-11-05
+google ads reporting,/blog/segmentation-101,9,38,0.2431,43.9,2025-11-05
+churn prediction tool,/features,2,38,0.0678,74.3,2025-11-05
+marketing experimentation,/,3,51,0.0608,69.3,2025-11-05
+sem reporting tool,/blog/attribution-explained,11,72,0.1621,33.0,2025-11-05
+how to calculate clv,/docs/getting-started,2,21,0.0993,64.5,2025-11-06
+competitive intelligence marketing,/,13,107,0.128,59.4,2025-11-06
+ppc analytics,/blog/funnel-optimization,15,51,0.2992,31.5,2025-11-06
+lookalike audience optimization,/docs/api-reference,3,36,0.1076,59.1,2025-11-06
+saas marketing metrics,/pricing,3,20,0.1811,22.1,2025-11-06
+voice of customer analytics,/blog/clv-guide,10,30,0.3451,18.1,2025-11-06
+ab testing platform,/blog/ab-testing-guide,671,3368,0.1994,25.4,2025-11-06
+attribution modeling,/pricing,3,23,0.1532,23.2,2025-11-06
+marketing mix model,/,3,37,0.0936,69.5,2025-11-06
+landing page optimization,/features,2,21,0.1168,45.2,2025-11-06
+marketing analytics tool,/docs/getting-started,4,24,0.1892,9.1,2025-11-06
+content performance tracking,/,12,31,0.3932,1.1,2025-11-06
+saas marketing metrics,/blog/segmentation-101,13,40,0.3472,7.6,2025-11-06
+marketing compliance,/docs/getting-started,6,44,0.1489,28.7,2025-11-06
+marketing experimentation,/blog/funnel-optimization,1,33,0.0424,77.5,2025-11-07
+marketing experimentation,/blog/clv-guide,1,46,0.0399,73.6,2025-11-07
+multi-touch attribution,/blog/attribution-explained,3,22,0.1784,41.8,2025-11-07
+cro tool,/blog/clv-guide,2,41,0.0711,71.2,2025-11-07
+google ads reporting,/case-studies,8,27,0.3247,18.2,2025-11-07
+email marketing analytics,/integrations,2,28,0.0958,67.7,2025-11-07
+marketing analytics for startups,/blog/attribution-explained,10,59,0.1743,39.5,2025-11-07
+attribution modeling,/,66,283,0.2353,11.4,2025-11-07
+landing page optimization,/pricing,4,31,0.1611,8.9,2025-11-07
+content performance tracking,/blog/segmentation-101,31,143,0.2189,49.2,2025-11-07
+google ads reporting,/,8,40,0.222,35.5,2025-11-08
+gdpr marketing analytics,/docs/getting-started,4,41,0.109,59.7,2025-11-08
+conversion rate optimization,/pricing,14,78,0.1887,37.3,2025-11-08
+first-touch attribution,/blog/attribution-explained,15,107,0.1442,29.8,2025-11-08
+lookalike audience optimization,/pricing,6,116,0.0583,69.0,2025-11-08
+display ads analytics,/features,5,33,0.1796,12.6,2025-11-08
+gdpr marketing analytics,/blog/segmentation-101,70,366,0.1923,5.7,2025-11-08
+conversion rate optimization,/blog/attribution-explained,27,72,0.378,20.1,2025-11-08
+marketing roi calculator,/integrations,2,21,0.1084,42.4,2025-11-09
+funnel analysis tool,/docs/getting-started,447,1421,0.3152,29.2,2025-11-09
+marketing experimentation,/blog/segmentation-101,4,27,0.1637,21.9,2025-11-09
+content performance tracking,/features,14,56,0.2591,35.9,2025-11-09
+how to calculate clv,/blog/funnel-optimization,4,50,0.0848,72.3,2025-11-09
+attribution modeling,/docs/api-reference,23,79,0.2957,10.5,2025-11-09
+campaign analytics,/case-studies,1,48,0.04,73.9,2025-11-10
+social media analytics,/blog/funnel-optimization,98,291,0.3377,21.7,2025-11-10
+marketing roi calculator,/blog/segmentation-101,5,30,0.1881,53.2,2025-11-10
+lookalike audience optimization,/pricing,6,33,0.2037,11.1,2025-11-10
+conversion rate optimization,/docs/getting-started,1,30,0.0621,66.4,2025-11-10
+voice of customer analytics,/blog/clv-guide,22,122,0.1814,21.1,2025-11-10
+remarketing analytics,/blog/funnel-optimization,4,39,0.1165,57.8,2025-11-11
+marketing mix model,/blog/ab-testing-guide,3,20,0.1667,37.7,2025-11-11
+customer lifetime value,/integrations,48,283,0.1722,30.2,2025-11-11
+best marketing analytics tools 2025,/pricing,12,100,0.1299,46.4,2025-11-11
+retention analytics,/blog/ab-testing-guide,4,171,0.0292,76.2,2025-11-11
+content performance tracking,/case-studies,21,149,0.1427,30.4,2025-11-11
+gdpr marketing analytics,/blog/funnel-optimization,9,29,0.3306,8.8,2025-11-11
+incrementality testing,/integrations,2,21,0.1085,37.3,2025-11-11
+marketing analytics for startups,/blog/clv-guide,32,88,0.3678,3.6,2025-11-11
+how to calculate clv,/blog/ab-testing-guide,3,42,0.0783,67.5,2025-11-11
+gdpr marketing analytics,/blog/segmentation-101,1,43,0.0447,68.5,2025-11-11
+ab testing platform,/case-studies,3,24,0.1405,60.5,2025-11-11
+competitive intelligence marketing,/blog/ab-testing-guide,5,28,0.1815,35.4,2025-11-11
+marketing analytics for startups,/blog/funnel-optimization,8,31,0.2894,3.7,2025-11-11
+cro tool,/docs/api-reference,7,229,0.0333,79.3,2025-11-12
+landing page optimization,/blog/clv-guide,31,136,0.2294,37.5,2025-11-12
+clv calculator,/blog/funnel-optimization,7,54,0.135,50.0,2025-11-12
+social media analytics,/features,27,107,0.2592,36.1,2025-11-12
+clv calculator,/docs/api-reference,1,22,0.0601,68.3,2025-11-12
+campaign performance report,/blog/ab-testing-guide,9,34,0.2801,34.9,2025-11-13
+form conversion rate,/integrations,4,30,0.1622,21.3,2025-11-13
+ecommerce analytics,/features,32,77,0.4162,2.6,2025-11-13
+nps analysis tool,/docs/getting-started,1,20,0.0524,67.9,2025-11-13
+content performance tracking,/features,1,68,0.0177,79.9,2025-11-13
+paid media analytics,/integrations,2,23,0.0983,45.8,2025-11-13
+cart abandonment rate,/blog/segmentation-101,15,74,0.2035,48.6,2025-11-13
+marketing analytics for startups,/docs/getting-started,22,92,0.2486,25.5,2025-11-13
+campaign performance report,/blog/attribution-explained,71,270,0.2633,18.2,2025-11-13
+conversion rate optimization,/pricing,8,26,0.3148,6.5,2025-11-13
+ecommerce analytics,/features,17,74,0.2422,14.8,2025-11-13
+churn prediction tool,/blog/funnel-optimization,0,21,0.0451,65.9,2025-11-13
+content performance tracking,/,18,111,0.1658,11.2,2025-11-13
+multi-touch attribution,/blog/funnel-optimization,4,32,0.141,62.4,2025-11-13
+cro tool,/case-studies,11,123,0.0945,59.5,2025-11-13
+google ads reporting,/case-studies,4,20,0.2278,6.2,2025-11-13
+funnel analysis tool,/docs/api-reference,1,30,0.0613,63.5,2025-11-13
+lookalike audience optimization,/blog/segmentation-101,1,21,0.0896,52.2,2025-11-13
+content performance tracking,/blog/ab-testing-guide,3,28,0.142,17.3,2025-11-14
+campaign performance report,/docs/getting-started,20,71,0.2829,35.3,2025-11-14
+marketing compliance,/blog/ab-testing-guide,2,35,0.0654,62.8,2025-11-14
+marketing roi calculator,/case-studies,6,20,0.3326,13.8,2025-11-14
+social media analytics,/case-studies,4,59,0.0721,61.5,2025-11-14
+paid media analytics,/docs/getting-started,5,21,0.2618,9.1,2025-11-14
+attribution modeling,/blog/attribution-explained,40,146,0.2803,25.5,2025-11-14
+content performance tracking,/blog/attribution-explained,17,150,0.1134,45.0,2025-11-14
+voice of customer analytics,/blog/clv-guide,2,22,0.0985,47.7,2025-11-14
+marketing roi calculator,/docs/api-reference,15,44,0.3448,1.3,2025-11-14
+marketing experimentation,/blog/ab-testing-guide,2,48,0.0593,65.8,2025-11-14
+lookalike audience optimization,/integrations,9,35,0.2704,30.7,2025-11-15
+customer segmentation software,/blog/funnel-optimization,5,53,0.1007,67.6,2025-11-15
+conversion rate optimization,/features,28,178,0.1602,54.7,2025-11-15
+incrementality testing,/features,62,137,0.454,1.9,2025-11-15
+saas marketing metrics,/blog/ab-testing-guide,9,22,0.4228,7.3,2025-11-15
+how to calculate clv,/docs/getting-started,1978,11596,0.1706,49.8,2025-11-15
+clv calculator,/blog/attribution-explained,9,37,0.2671,2.5,2025-11-15
+remarketing analytics,/pricing,32,131,0.2516,27.7,2025-11-15
+content performance tracking,/blog/segmentation-101,0,21,0.0401,73.2,2025-11-15
+nps analysis tool,/docs/getting-started,7,20,0.3506,19.3,2025-11-15
+email deliverability analytics,/blog/ab-testing-guide,1,20,0.0874,44.7,2025-11-15
+checkout abandonment analysis,/blog/funnel-optimization,2,29,0.0933,45.6,2025-11-15
+multi-touch attribution,/features,8,79,0.1046,48.0,2025-11-15
+meta ads dashboard,/blog/funnel-optimization,18,115,0.1609,43.8,2025-11-15
+meta ads dashboard,/pricing,8,33,0.2623,12.2,2025-11-16
+conversion rate optimization,/integrations,22,194,0.1174,38.6,2025-11-16
+checkout abandonment analysis,/blog/ab-testing-guide,70,274,0.2564,5.5,2025-11-16
+google ads reporting,/blog/clv-guide,1,25,0.075,70.5,2025-11-16
+funnel analysis tool,/features,10,67,0.1588,11.9,2025-11-16
+churn prediction tool,/blog/ab-testing-guide,4,23,0.2083,45.9,2025-11-16
+clv calculator,/,4,22,0.1958,18.8,2025-11-16
+attribution modeling,/features,3,57,0.0573,77.5,2025-11-16
+customer segmentation software,/blog/funnel-optimization,78,222,0.3543,16.1,2025-11-16
+marketing analytics tool,/blog/segmentation-101,7,42,0.1803,20.1,2025-11-16
+marketing automation analytics,/integrations,1,107,0.0171,79.0,2025-11-16
+marketing analytics tool,/integrations,6,65,0.0939,63.0,2025-11-16
+content performance tracking,/blog/funnel-optimization,15,60,0.265,20.2,2025-11-16
+marketing automation analytics,/pricing,3,36,0.0847,71.3,2025-11-17
+churn prediction tool,/,14,31,0.4608,5.3,2025-11-17
+seo analytics,/integrations,6,101,0.0659,71.9,2025-11-17
+funnel analysis tool,/blog/segmentation-101,1,25,0.07,65.0,2025-11-17
+meta ads dashboard,/blog/ab-testing-guide,10,78,0.1355,27.4,2025-11-17
+lookalike audience optimization,/blog/ab-testing-guide,1,38,0.039,76.5,2025-11-17
+content performance tracking,/pricing,8,23,0.377,11.1,2025-11-17
+customer lifetime value,/pricing,11,28,0.4166,6.4,2025-11-17
+marketing analytics tool,/blog/ab-testing-guide,3,22,0.1657,7.1,2025-11-17
+campaign performance report,/docs/api-reference,15,113,0.1329,63.1,2025-11-17
+checkout abandonment analysis,/pricing,0,21,0.0316,74.4,2025-11-17
+content performance tracking,/case-studies,20,59,0.3454,18.3,2025-11-18
+marketing analytics tool,/case-studies,4,28,0.15,20.6,2025-11-18
+incrementality testing,/blog/funnel-optimization,8,44,0.1977,26.8,2025-11-18
+remarketing analytics,/features,11,39,0.2992,37.3,2025-11-18
+conversion rate optimization,/features,1,29,0.0378,76.7,2025-11-18
+social media analytics,/blog/funnel-optimization,11,116,0.0982,70.9,2025-11-18
+landing page optimization,/docs/api-reference,1,29,0.0484,70.8,2025-11-18
+multi-touch attribution,/docs/getting-started,3,35,0.1038,69.0,2025-11-18
+conversion rate optimization,/docs/api-reference,23,77,0.3001,37.4,2025-11-18
+landing page optimization,/blog/attribution-explained,5,25,0.2225,13.8,2025-11-18
+attribution modeling,/,2,36,0.0755,63.5,2025-11-18
+ecommerce analytics,/case-studies,7,44,0.1592,24.2,2025-11-18
+conversion rate optimization,/blog/ab-testing-guide,72,263,0.2741,30.8,2025-11-18
+email marketing analytics,/,4,39,0.1111,50.6,2025-11-18
+nps analysis tool,/blog/funnel-optimization,10,32,0.3331,19.9,2025-11-18
+churn prediction tool,/features,2,28,0.0972,57.3,2025-11-18
+saas marketing metrics,/features,8,41,0.1973,35.6,2025-11-19
+social media analytics,/docs/getting-started,3,25,0.1286,53.8,2025-11-19
+customer lifetime value,/,10,43,0.2406,13.2,2025-11-19
+seo analytics,/features,117,278,0.4227,13.1,2025-11-19
+content performance tracking,/,4,67,0.062,65.0,2025-11-19
+display ads analytics,/docs/getting-started,7,37,0.1946,16.1,2025-11-19
+ppc analytics,/case-studies,19,232,0.0838,48.9,2025-11-19
+ecommerce analytics,/docs/getting-started,12,139,0.0926,63.8,2025-11-19
+ecommerce analytics,/pricing,3,22,0.1572,59.2,2025-11-20
+landing page optimization,/docs/getting-started,125,285,0.4402,11.1,2025-11-20
+google ads reporting,/integrations,1,22,0.059,69.0,2025-11-20
+marketing data warehouse,/blog/ab-testing-guide,9,51,0.1896,45.1,2025-11-20
+lead scoring model,/blog/funnel-optimization,12,55,0.2204,32.6,2025-11-20
+funnel analysis tool,/integrations,1,31,0.0367,77.5,2025-11-20
+form conversion rate,/blog/clv-guide,7,35,0.2053,50.6,2025-11-20
+marketing roi calculator,/docs/getting-started,9,44,0.2063,51.5,2025-11-20
+cart abandonment rate,/blog/funnel-optimization,4,31,0.1586,10.4,2025-11-20
+campaign analytics,/blog/funnel-optimization,14,35,0.4081,4.7,2025-11-20
+nps analysis tool,/pricing,9,38,0.2568,10.5,2025-11-20
+marketing mix model,/blog/segmentation-101,10,94,0.1108,57.6,2025-11-21
+funnel analysis tool,/blog/attribution-explained,8,35,0.2461,23.9,2025-11-21
+marketing experimentation,/docs/api-reference,9,28,0.3305,2.8,2025-11-21
+marketing data warehouse,/blog/segmentation-101,2160,19552,0.1105,43.3,2025-11-21
+marketing roi calculator,/blog/funnel-optimization,19,71,0.2713,15.6,2025-11-21
+marketing data warehouse,/pricing,9,22,0.4341,15.0,2025-11-21
+email marketing analytics,/docs/getting-started,1,25,0.0562,77.7,2025-11-21
+paid media analytics,/blog/attribution-explained,19,89,0.2244,31.7,2025-11-21
+seo analytics,/case-studies,16,107,0.1504,21.0,2025-11-21
+marketing compliance,/,11,32,0.3486,17.5,2025-11-21
+sem reporting tool,/docs/api-reference,45,133,0.3437,15.7,2025-11-21
+campaign performance report,/docs/api-reference,7,21,0.3338,31.4,2025-11-21
+retention analytics,/,8,25,0.342,3.2,2025-11-21
+lead scoring model,/blog/clv-guide,4,28,0.1517,53.6,2025-11-22
+funnel analysis tool,/features,9,62,0.1473,47.4,2025-11-22
+marketing roi calculator,/case-studies,9,35,0.261,18.9,2025-11-22
+marketing analytics for startups,/features,12,38,0.3339,1.8,2025-11-22
+how to calculate clv,/blog/segmentation-101,23,97,0.2387,45.8,2025-11-22
+multi-touch attribution,/features,12,72,0.18,57.5,2025-11-22
+lookalike audience optimization,/case-studies,2,20,0.1069,60.7,2025-11-22
+saas marketing metrics,/blog/attribution-explained,17,123,0.1441,30.1,2025-11-22
+marketing analytics for startups,/integrations,2,20,0.1115,36.0,2025-11-22
+churn prediction tool,/pricing,5452,20067,0.2717,33.8,2025-11-22
+clv calculator,/pricing,22,85,0.2703,6.3,2025-11-22
+attribution modeling,/blog/clv-guide,7,50,0.1479,31.5,2025-11-23
+display ads analytics,/blog/attribution-explained,3,67,0.0474,75.2,2025-11-23
+funnel analysis tool,/blog/clv-guide,8,21,0.4208,16.6,2025-11-23
+first-touch attribution,/blog/clv-guide,3,107,0.0305,78.5,2025-11-23
+display ads analytics,/blog/segmentation-101,2,26,0.0875,56.5,2025-11-23
+lead scoring model,/docs/getting-started,26,307,0.0862,72.3,2025-11-23
+conversion rate optimization,/blog/ab-testing-guide,10,33,0.3133,17.0,2025-11-23
+marketing dashboard,/,3,36,0.1004,55.9,2025-11-23
+marketing automation analytics,/features,122,284,0.4296,9.6,2025-11-23
+funnel analysis tool,/blog/attribution-explained,2,20,0.1176,55.8,2025-11-23
+meta ads dashboard,/,7,38,0.1891,26.2,2025-11-23
+multi-touch attribution,/blog/ab-testing-guide,9,22,0.4339,2.6,2025-11-23
+first-touch attribution,/blog/clv-guide,11,35,0.3188,27.4,2025-11-23
+customer segmentation software,/features,56,241,0.2331,46.1,2025-11-23
+clv calculator,/,7,21,0.3654,4.9,2025-11-24
+incrementality testing,/blog/ab-testing-guide,269,841,0.3209,7.3,2025-11-24
+first-touch attribution,/blog/segmentation-101,234,1058,0.2217,45.7,2025-11-24
+lookalike audience optimization,/,3,20,0.1626,17.5,2025-11-24
+churn prediction tool,/integrations,4,26,0.1795,29.3,2025-11-24
+best marketing analytics tools 2025,/docs/getting-started,3,23,0.1574,26.6,2025-11-24
+marketing roi calculator,/docs/api-reference,28,112,0.2542,17.6,2025-11-24
+nps analysis tool,/blog/segmentation-101,8,26,0.3344,8.7,2025-11-24
+retention analytics,/blog/ab-testing-guide,4,24,0.173,6.1,2025-11-24
+marketing experimentation,/case-studies,17,47,0.367,19.0,2025-11-24
+ecommerce analytics,/blog/clv-guide,23,135,0.1731,10.1,2025-11-24
+email marketing analytics,/blog/attribution-explained,38,115,0.3372,30.6,2025-11-24
+email marketing analytics,/case-studies,0,21,0.0306,79.7,2025-11-24
+marketing experimentation,/blog/funnel-optimization,174,756,0.2311,14.9,2025-11-24
+first-touch attribution,/docs/getting-started,5,65,0.0913,71.5,2025-11-24
+google ads reporting,/docs/api-reference,4,93,0.0512,62.4,2025-11-24
+how to calculate clv,/blog/clv-guide,10,45,0.2409,44.7,2025-11-24
+lead scoring model,/pricing,5,28,0.2042,24.6,2025-11-24
+marketing experimentation,/blog/segmentation-101,1,28,0.0576,64.0,2025-11-25
+funnel analysis tool,/features,10,37,0.2862,32.1,2025-11-25
+marketing automation analytics,/blog/clv-guide,212,818,0.2602,18.5,2025-11-25
+incrementality testing,/blog/attribution-explained,40,283,0.1416,57.0,2025-11-25
+marketing compliance,/docs/api-reference,2,21,0.1013,69.2,2025-11-25
+campaign analytics,/,1,20,0.0717,73.0,2025-11-25
+competitive intelligence marketing,/,2,21,0.1033,56.5,2025-11-25
+seo analytics,/case-studies,20,51,0.3952,14.9,2025-11-25
+marketing analytics tool,/blog/clv-guide,33,160,0.2108,13.4,2025-11-25
+marketing data warehouse,/pricing,0,23,0.0327,79.9,2025-11-25
+incrementality testing,/integrations,4,20,0.2066,36.8,2025-11-25
+meta ads dashboard,/case-studies,4,23,0.2136,5.6,2025-11-26
+competitive intelligence marketing,/docs/getting-started,10,74,0.1387,29.7,2025-11-26
+ecommerce analytics,/blog/funnel-optimization,2,24,0.0966,70.0,2025-11-26
+cro tool,/case-studies,15,44,0.3524,16.0,2025-11-26
+nps analysis tool,/blog/ab-testing-guide,2,20,0.1472,48.5,2025-11-26
+lead scoring model,/blog/attribution-explained,1,24,0.045,72.5,2025-11-26
+email deliverability analytics,/case-studies,4,20,0.2279,45.6,2025-11-26
+churn prediction tool,/features,2,36,0.0597,71.2,2025-11-27
+ecommerce analytics,/pricing,0,23,0.0321,79.2,2025-11-27
+marketing dashboard,/docs/api-reference,2,76,0.0347,78.8,2025-11-27
+marketing data warehouse,/docs/getting-started,1,38,0.0443,79.0,2025-11-27
+incrementality testing,/docs/getting-started,30,104,0.2969,37.3,2025-11-27
+customer lifetime value,/blog/ab-testing-guide,10,30,0.3383,20.3,2025-11-27
+saas marketing metrics,/blog/funnel-optimization,3,24,0.1645,25.6,2025-11-28
+cart abandonment rate,/features,1,28,0.0416,74.8,2025-11-28
+marketing analytics tool,/case-studies,16,134,0.1196,43.5,2025-11-28
+clv calculator,/blog/clv-guide,4,23,0.1916,29.7,2025-11-28
+meta ads dashboard,/blog/segmentation-101,13,38,0.3449,18.3,2025-11-28
+sem reporting tool,/blog/ab-testing-guide,9,34,0.2649,22.0,2025-11-28
+churn prediction tool,/features,1,32,0.0529,70.5,2025-11-28
+content performance tracking,/integrations,23,68,0.3414,8.6,2025-11-28
+funnel analysis tool,/blog/clv-guide,9,34,0.2799,27.6,2025-11-28
+email deliverability analytics,/docs/api-reference,4,29,0.1557,48.4,2025-11-28
+landing page optimization,/blog/segmentation-101,3,33,0.1147,60.4,2025-11-28
+campaign performance report,/case-studies,58,200,0.2915,9.5,2025-11-28
+retention analytics,/docs/api-reference,18,47,0.3973,8.4,2025-11-28
+lookalike audience optimization,/blog/segmentation-101,1,25,0.0762,58.2,2025-11-28
+email deliverability analytics,/features,23,127,0.1851,41.3,2025-11-28
+gdpr marketing analytics,/integrations,2,21,0.0979,49.4,2025-11-28
+clv calculator,/blog/attribution-explained,19,179,0.1077,48.7,2025-11-29
+marketing dashboard,/,1,20,0.0591,66.7,2025-11-29
+incrementality testing,/,2,20,0.1404,53.8,2025-11-29
+marketing roi calculator,/,67,388,0.1735,43.3,2025-11-29
+marketing analytics tool,/blog/ab-testing-guide,30,110,0.274,8.0,2025-11-29
+marketing mix model,/,11,146,0.0779,53.3,2025-11-29
+social media analytics,/,92,236,0.3912,19.0,2025-11-29
+campaign performance report,/integrations,83,407,0.2041,28.7,2025-11-29
+social media analytics,/features,3,24,0.1287,32.1,2025-11-29
+voice of customer analytics,/features,4,28,0.1518,56.3,2025-11-29
+conversion rate optimization,/case-studies,9,33,0.2965,34.4,2025-11-30
+social media analytics,/blog/attribution-explained,3,36,0.1077,68.9,2025-11-30
+google ads reporting,/features,0,21,0.028,77.9,2025-11-30
+ab testing platform,/pricing,3,20,0.1565,51.6,2025-11-30
+how to calculate clv,/blog/ab-testing-guide,2,102,0.0282,76.3,2025-11-30
+landing page optimization,/blog/attribution-explained,5,73,0.0818,70.3,2025-11-30
+marketing automation analytics,/features,5,25,0.2182,29.6,2025-11-30
+landing page optimization,/blog/attribution-explained,24,126,0.1905,22.8,2025-11-30
+campaign analytics,/docs/getting-started,1,24,0.0522,78.5,2025-11-30
+voice of customer analytics,/integrations,5,24,0.2483,8.7,2025-12-01
+voice of customer analytics,/blog/segmentation-101,81,527,0.1546,37.4,2025-12-01
+marketing analytics tool,/blog/segmentation-101,25,146,0.1773,57.0,2025-12-01
+marketing roi calculator,/features,10,34,0.3021,17.4,2025-12-01
+voice of customer analytics,/blog/ab-testing-guide,7,97,0.0795,49.6,2025-12-01
+retention analytics,/integrations,6,26,0.2675,35.2,2025-12-01
+competitive intelligence marketing,/case-studies,3,48,0.0716,74.8,2025-12-01
+churn prediction tool,/pricing,3,23,0.1442,52.9,2025-12-01
+email deliverability analytics,/blog/segmentation-101,1,37,0.0472,78.9,2025-12-01
+retention analytics,/blog/funnel-optimization,36,307,0.1189,38.9,2025-12-01
+google ads reporting,/docs/api-reference,18,68,0.279,24.2,2025-12-01
+clv calculator,/blog/segmentation-101,5,25,0.2193,21.7,2025-12-01
+best marketing analytics tools 2025,/features,9,30,0.3123,19.7,2025-12-02
+ab testing platform,/blog/funnel-optimization,2,69,0.0323,77.5,2025-12-02
+nps analysis tool,/blog/segmentation-101,20,58,0.3563,4.9,2025-12-02
+ecommerce analytics,/blog/clv-guide,0,34,0.0287,75.1,2025-12-02
+marketing automation analytics,/blog/attribution-explained,2697,15922,0.1694,17.0,2025-12-02
+saas marketing metrics,/,8,179,0.0462,79.0,2025-12-02
+funnel analysis tool,/docs/getting-started,8,46,0.1939,50.8,2025-12-02
+marketing analytics tool,/docs/getting-started,28,89,0.3148,20.7,2025-12-02
+incrementality testing,/features,133,553,0.2417,24.9,2025-12-02
+marketing automation analytics,/blog/ab-testing-guide,1,31,0.0474,76.7,2025-12-02
+marketing data warehouse,/,1,51,0.0349,77.2,2025-12-02
+customer lifetime value,/blog/ab-testing-guide,1,37,0.0491,78.8,2025-12-02
+competitive intelligence marketing,/,5,21,0.2782,40.9,2025-12-02
+retention analytics,/blog/ab-testing-guide,2,26,0.1095,44.0,2025-12-02
+content performance tracking,/blog/ab-testing-guide,131,285,0.4625,9.3,2025-12-02
+marketing automation analytics,/blog/clv-guide,8,28,0.3102,30.8,2025-12-02
+multi-touch attribution,/,5,24,0.2202,9.1,2025-12-03
+customer lifetime value,/blog/ab-testing-guide,5,30,0.1843,21.9,2025-12-03
+multi-touch attribution,/features,17,63,0.2756,27.7,2025-12-03
+checkout abandonment analysis,/docs/getting-started,11,58,0.2049,6.7,2025-12-03
+ecommerce analytics,/features,158,675,0.2343,33.5,2025-12-03
+first-touch attribution,/integrations,8,41,0.1978,42.1,2025-12-03
+marketing experimentation,/blog/segmentation-101,3,21,0.1767,19.2,2025-12-04
+checkout abandonment analysis,/integrations,13,63,0.2106,45.6,2025-12-04
+competitive intelligence marketing,/blog/clv-guide,61,243,0.2537,29.0,2025-12-04
+marketing analytics for startups,/docs/api-reference,1,21,0.0831,46.8,2025-12-04
+customer lifetime value,/blog/clv-guide,3,24,0.1493,46.4,2025-12-04
+voice of customer analytics,/blog/clv-guide,5,31,0.1657,4.8,2025-12-04
+ecommerce analytics,/docs/api-reference,11,55,0.2089,38.8,2025-12-04
+retention analytics,/blog/ab-testing-guide,4,31,0.1301,62.6,2025-12-04
+form conversion rate,/blog/segmentation-101,9,41,0.2273,19.4,2025-12-04
+social media analytics,/blog/clv-guide,6,20,0.3344,30.0,2025-12-04
+marketing automation analytics,/pricing,9,39,0.2527,28.2,2025-12-04
+marketing roi calculator,/features,16,63,0.2652,9.0,2025-12-05
+funnel analysis tool,/features,12,64,0.1877,20.4,2025-12-05
+churn prediction tool,/blog/funnel-optimization,8,21,0.3971,1.3,2025-12-05
+marketing analytics tool,/pricing,2,23,0.0925,67.9,2025-12-05
+campaign analytics,/blog/attribution-explained,6,23,0.2749,36.9,2025-12-05
+marketing experimentation,/docs/api-reference,15,52,0.2985,21.4,2025-12-06
+saas marketing metrics,/blog/ab-testing-guide,13,33,0.4192,3.8,2025-12-06
+seo analytics,/blog/segmentation-101,18,67,0.2774,38.3,2025-12-06
+conversion rate optimization,/features,4,20,0.2424,28.2,2025-12-06
+funnel analysis tool,/integrations,1,26,0.0701,75.3,2025-12-06
+campaign analytics,/,1,30,0.0415,77.2,2025-12-06
+ppc analytics,/docs/getting-started,5,37,0.1358,55.6,2025-12-06
+voice of customer analytics,/case-studies,32,110,0.2959,35.5,2025-12-06
+cart abandonment rate,/blog/attribution-explained,6,23,0.3,5.1,2025-12-06
+retention analytics,/blog/ab-testing-guide,82,713,0.1151,52.9,2025-12-06
+campaign performance report,/docs/getting-started,4,45,0.0986,64.6,2025-12-07
+incrementality testing,/features,3,40,0.0785,63.4,2025-12-07
+marketing analytics for startups,/blog/attribution-explained,22,69,0.3225,26.3,2025-12-07
+incrementality testing,/blog/attribution-explained,12,31,0.398,10.8,2025-12-07
+ab testing platform,/docs/getting-started,6,40,0.1591,53.7,2025-12-07
+best marketing analytics tools 2025,/case-studies,2,33,0.0907,54.2,2025-12-07
+clv calculator,/docs/api-reference,7,84,0.0898,61.3,2025-12-07
+marketing mix model,/blog/attribution-explained,3,22,0.1735,51.9,2025-12-07
+seo analytics,/,22,84,0.2727,18.9,2025-12-07
+remarketing analytics,/docs/getting-started,8,109,0.0803,70.6,2025-12-08
+marketing automation analytics,/,6,31,0.2055,49.4,2025-12-08
+first-touch attribution,/features,2,36,0.0577,71.5,2025-12-08
+attribution modeling,/blog/attribution-explained,3,30,0.1087,38.2,2025-12-08
+lead scoring model,/case-studies,9,30,0.3228,32.9,2025-12-08
+marketing dashboard,/docs/api-reference,5,23,0.2272,17.2,2025-12-08
+sem reporting tool,/blog/ab-testing-guide,2,27,0.1062,69.3,2025-12-08
+gdpr marketing analytics,/blog/funnel-optimization,4,52,0.0957,66.5,2025-12-08
+marketing mix model,/blog/segmentation-101,22,80,0.2843,10.2,2025-12-08
+email deliverability analytics,/blog/clv-guide,26,135,0.1963,25.2,2025-12-08
+display ads analytics,/case-studies,3,84,0.0421,79.9,2025-12-08
+lead scoring model,/docs/getting-started,3,39,0.0786,70.2,2025-12-08
+paid media analytics,/case-studies,38,241,0.1615,56.8,2025-12-08
+google ads reporting,/case-studies,7,44,0.1786,2.5,2025-12-08
+retention analytics,/case-studies,1,20,0.0504,73.2,2025-12-08
+clv calculator,/integrations,48,231,0.2112,12.8,2025-12-08
+lookalike audience optimization,/features,6,35,0.1789,9.5,2025-12-08
+first-touch attribution,/blog/funnel-optimization,15,54,0.2806,8.9,2025-12-09
+cro tool,/docs/api-reference,0,22,0.0312,78.1,2025-12-09
+marketing analytics tool,/docs/api-reference,3,72,0.0475,73.5,2025-12-09
+nps analysis tool,/blog/segmentation-101,20,59,0.3394,27.4,2025-12-09
+churn prediction tool,/blog/segmentation-101,144,344,0.4212,7.0,2025-12-09
+campaign performance report,/docs/getting-started,347,1547,0.2246,28.0,2025-12-09
+meta ads dashboard,/,12,35,0.3526,18.1,2025-12-09
+email deliverability analytics,/blog/ab-testing-guide,3,42,0.0771,70.0,2025-12-09
+campaign analytics,/docs/getting-started,1,25,0.0505,78.9,2025-12-09
+nps analysis tool,/docs/getting-started,6,20,0.3473,3.3,2025-12-09
+saas marketing metrics,/docs/getting-started,3,20,0.1768,52.1,2025-12-09
+saas marketing metrics,/blog/ab-testing-guide,6,129,0.0476,71.3,2025-12-09
+clv calculator,/docs/api-reference,16,64,0.2503,41.6,2025-12-09
+incrementality testing,/docs/api-reference,9,64,0.1409,29.1,2025-12-10
+ab testing platform,/pricing,15,33,0.4579,2.0,2025-12-10
+funnel analysis tool,/integrations,8,47,0.1785,55.4,2025-12-10
+attribution modeling,/docs/getting-started,33,138,0.2431,12.3,2025-12-10
+gdpr marketing analytics,/blog/clv-guide,2,39,0.0568,76.0,2025-12-10
+churn prediction tool,/,87,904,0.0972,67.6,2025-12-10
+marketing automation analytics,/blog/ab-testing-guide,43,102,0.4288,2.8,2025-12-10
+lookalike audience optimization,/blog/clv-guide,17,116,0.1518,59.8,2025-12-10
+voice of customer analytics,/docs/getting-started,10,43,0.2408,43.3,2025-12-10
+marketing experimentation,/docs/getting-started,0,21,0.0304,76.2,2025-12-10
+marketing automation analytics,/docs/api-reference,1,23,0.067,63.6,2025-12-10
+campaign analytics,/case-studies,8,40,0.2088,45.0,2025-12-11
+first-touch attribution,/features,24,640,0.0388,77.4,2025-12-11
+ab testing platform,/integrations,3,21,0.1469,35.0,2025-12-11
+lookalike audience optimization,/case-studies,1,31,0.0373,69.5,2025-12-11
+paid media analytics,/features,2,21,0.1154,49.0,2025-12-11
+voice of customer analytics,/blog/clv-guide,531,2221,0.2392,45.9,2025-12-11
+saas marketing metrics,/blog/attribution-explained,2,23,0.0961,49.4,2025-12-11
+marketing dashboard,/blog/segmentation-101,5,86,0.0695,73.1,2025-12-11
+marketing automation analytics,/integrations,17,133,0.1311,27.1,2025-12-11
+campaign performance report,/blog/attribution-explained,3,27,0.1215,39.6,2025-12-12
+seo analytics,/docs/getting-started,11,242,0.0485,69.1,2025-12-12
+voice of customer analytics,/,3,35,0.0863,71.8,2025-12-12
+seo analytics,/blog/segmentation-101,29,88,0.3399,20.3,2025-12-12
+first-touch attribution,/features,5,28,0.2121,43.7,2025-12-12
+how to calculate clv,/pricing,5,20,0.2755,18.9,2025-12-12
+lookalike audience optimization,/blog/attribution-explained,6,26,0.2513,22.0,2025-12-12
+marketing analytics tool,/blog/attribution-explained,2,34,0.0753,64.9,2025-12-13
+funnel analysis tool,/blog/ab-testing-guide,1,27,0.0691,60.6,2025-12-13
+meta ads dashboard,/blog/attribution-explained,1,46,0.0306,79.7,2025-12-13
+meta ads dashboard,/docs/getting-started,8,42,0.193,36.6,2025-12-13
+social media analytics,/case-studies,9,30,0.3262,2.0,2025-12-13
+marketing dashboard,/,8,37,0.2222,38.6,2025-12-13
+checkout abandonment analysis,/docs/api-reference,12,61,0.2068,13.0,2025-12-13
+cart abandonment rate,/blog/ab-testing-guide,4,67,0.0707,74.7,2025-12-13
+funnel analysis tool,/blog/segmentation-101,11,34,0.3319,10.9,2025-12-13
+saas marketing metrics,/blog/clv-guide,4,45,0.1108,55.5,2025-12-13
+lead scoring model,/,1,33,0.0549,77.2,2025-12-13
+customer segmentation software,/blog/clv-guide,2,38,0.0773,61.7,2025-12-13
+first-touch attribution,/blog/segmentation-101,17,72,0.2495,22.8,2025-12-13
+marketing dashboard,/case-studies,17,61,0.294,18.7,2025-12-13
+retention analytics,/docs/getting-started,18,94,0.1986,12.9,2025-12-13
+social media analytics,/docs/api-reference,12,33,0.3875,10.4,2025-12-13
+conversion rate optimization,/docs/getting-started,3,43,0.089,46.9,2025-12-14
+cro tool,/blog/ab-testing-guide,24,71,0.34,10.4,2025-12-14
+cro tool,/,3,58,0.0558,63.8,2025-12-14
+ab testing platform,/blog/ab-testing-guide,16,65,0.2552,15.6,2025-12-14
+conversion rate optimization,/integrations,5,60,0.098,39.7,2025-12-14
+cro tool,/features,1,26,0.0413,74.3,2025-12-14
+ecommerce analytics,/docs/getting-started,3,47,0.0802,63.6,2025-12-14
+retention analytics,/features,5,60,0.0951,62.7,2025-12-14
+first-touch attribution,/case-studies,4,37,0.1124,37.1,2025-12-14
+meta ads dashboard,/blog/funnel-optimization,60,762,0.0788,67.1,2025-12-15
+google ads reporting,/features,6,50,0.1278,40.0,2025-12-15
+marketing roi calculator,/blog/funnel-optimization,6,34,0.1986,54.2,2025-12-15
+campaign performance report,/docs/api-reference,15,74,0.2032,14.2,2025-12-15
+cart abandonment rate,/case-studies,2,36,0.0752,68.0,2025-12-15
+marketing analytics tool,/blog/ab-testing-guide,28,125,0.2256,48.3,2025-12-15
+ab testing platform,/blog/attribution-explained,15,40,0.3831,17.1,2025-12-15
+ab testing platform,/blog/attribution-explained,8,68,0.1285,47.4,2025-12-15
+cro tool,/blog/clv-guide,11,25,0.472,4.3,2025-12-15
+lead scoring model,/blog/segmentation-101,14,56,0.2602,35.3,2025-12-15
+marketing dashboard,/docs/api-reference,105,2628,0.04,76.0,2025-12-15
+display ads analytics,/docs/api-reference,13,54,0.2446,8.9,2025-12-15
+conversion rate optimization,/case-studies,8,25,0.3524,12.5,2025-12-15
+marketing compliance,/blog/funnel-optimization,1,21,0.0836,73.1,2025-12-15
+marketing automation analytics,/blog/attribution-explained,13,38,0.3464,10.0,2025-12-15
+first-touch attribution,/blog/ab-testing-guide,536,1359,0.3946,17.8,2025-12-15
+email deliverability analytics,/docs/getting-started,3,22,0.1768,3.5,2025-12-16
+funnel analysis tool,/case-studies,13,45,0.2944,13.5,2025-12-16
+saas marketing metrics,/case-studies,7,20,0.3602,22.8,2025-12-16
+meta ads dashboard,/blog/attribution-explained,28,110,0.2588,43.0,2025-12-16
+marketing analytics for startups,/integrations,46,368,0.1256,48.2,2025-12-16
+competitive intelligence marketing,/blog/attribution-explained,114,1107,0.1031,42.4,2025-12-16
+paid media analytics,/blog/segmentation-101,7,27,0.2862,38.3,2025-12-16
+form conversion rate,/docs/getting-started,7,24,0.2979,5.3,2025-12-16
+cart abandonment rate,/blog/clv-guide,16,100,0.1604,12.1,2025-12-16
+clv calculator,/blog/segmentation-101,2,31,0.0774,57.0,2025-12-16
+lead scoring model,/blog/ab-testing-guide,5,21,0.2537,37.4,2025-12-16
+display ads analytics,/blog/funnel-optimization,2,52,0.0495,74.0,2025-12-16
+gdpr marketing analytics,/pricing,4,44,0.1008,45.4,2025-12-16
+gdpr marketing analytics,/features,3,20,0.1965,32.9,2025-12-16
+competitive intelligence marketing,/blog/segmentation-101,6,20,0.3367,13.0,2025-12-17
+conversion rate optimization,/integrations,1,44,0.0259,76.6,2025-12-17
+lookalike audience optimization,/blog/funnel-optimization,9,195,0.0506,68.9,2025-12-17
+sem reporting tool,/integrations,107,742,0.1444,43.1,2025-12-17
+content performance tracking,/integrations,3,28,0.1368,60.7,2025-12-17
+marketing dashboard,/case-studies,1,25,0.0722,75.0,2025-12-17
+marketing data warehouse,/docs/getting-started,7,51,0.1541,34.4,2025-12-17
+cart abandonment rate,/,13,44,0.2984,28.3,2025-12-17
+voice of customer analytics,/blog/clv-guide,2,36,0.0809,62.5,2025-12-17
+marketing analytics tool,/,59,125,0.4722,6.5,2025-12-17
+lookalike audience optimization,/,4,30,0.1642,40.7,2025-12-18
+best marketing analytics tools 2025,/features,1,36,0.0287,73.7,2025-12-18
+churn prediction tool,/,22,46,0.4788,7.5,2025-12-18
+form conversion rate,/blog/ab-testing-guide,19,132,0.1442,39.3,2025-12-18
+campaign analytics,/docs/getting-started,1,20,0.0502,77.8,2025-12-18
+marketing mix model,/pricing,6,21,0.2918,13.4,2025-12-18
+marketing analytics for startups,/blog/segmentation-101,5,27,0.1967,31.3,2025-12-18
+customer lifetime value,/blog/segmentation-101,21,51,0.4274,4.7,2025-12-18
+funnel analysis tool,/,3,32,0.1064,49.8,2025-12-18
+churn prediction tool,/blog/clv-guide,6,22,0.3165,29.0,2025-12-18
+conversion rate optimization,/case-studies,2,20,0.1026,69.5,2025-12-19
+email marketing analytics,/pricing,4,47,0.0942,50.2,2025-12-19
+how to calculate clv,/blog/ab-testing-guide,4,24,0.1785,12.4,2025-12-19
+ecommerce analytics,/blog/funnel-optimization,8,55,0.1459,28.7,2025-12-19
+customer lifetime value,/pricing,2,26,0.081,63.7,2025-12-19
+ppc analytics,/docs/getting-started,21,64,0.343,18.9,2025-12-19
+gdpr marketing analytics,/features,9,27,0.3419,13.5,2025-12-19
+gdpr marketing analytics,/blog/attribution-explained,6,22,0.2824,1.6,2025-12-19
+cro tool,/features,0,20,0.027,76.3,2025-12-19
+retention analytics,/features,3,21,0.1878,18.7,2025-12-20
+marketing data warehouse,/blog/segmentation-101,1,30,0.0598,76.0,2025-12-20
+landing page optimization,/blog/clv-guide,1,22,0.0788,63.7,2025-12-20
+marketing automation analytics,/case-studies,5,23,0.2418,4.9,2025-12-20
+checkout abandonment analysis,/blog/clv-guide,6,40,0.1509,25.8,2025-12-20
+voice of customer analytics,/blog/attribution-explained,7,60,0.1288,39.9,2025-12-21
+google ads reporting,/docs/getting-started,7,37,0.2091,25.1,2025-12-21
+funnel analysis tool,/blog/attribution-explained,30,129,0.2336,15.0,2025-12-21
+best marketing analytics tools 2025,/features,4,35,0.1204,33.6,2025-12-21
+campaign analytics,/blog/funnel-optimization,9,79,0.1204,40.5,2025-12-21
+funnel analysis tool,/pricing,4,33,0.132,63.3,2025-12-21
+funnel analysis tool,/features,4,35,0.1359,22.7,2025-12-21
+ab testing platform,/docs/getting-started,1,21,0.0894,59.1,2025-12-21
+gdpr marketing analytics,/case-studies,2,45,0.06,71.0,2025-12-21
+marketing data warehouse,/features,7,88,0.0808,58.7,2025-12-21
+marketing analytics tool,/blog/attribution-explained,0,25,0.0356,78.8,2025-12-21
+incrementality testing,/case-studies,9,30,0.3252,7.8,2025-12-21
+marketing analytics tool,/case-studies,8,52,0.165,38.5,2025-12-22
+ab testing platform,/integrations,8,41,0.1971,10.5,2025-12-22
+retention analytics,/features,7,75,0.1031,48.6,2025-12-22
+attribution modeling,/blog/segmentation-101,1,50,0.0308,79.0,2025-12-22
+landing page optimization,/integrations,7,48,0.1619,12.8,2025-12-22
+retention analytics,/blog/attribution-explained,4,100,0.0459,77.2,2025-12-22
+seo analytics,/case-studies,13,214,0.0617,72.1,2025-12-22
+first-touch attribution,/features,2,24,0.0905,70.9,2025-12-22
+competitive intelligence marketing,/,4,63,0.071,62.7,2025-12-22
+customer lifetime value,/pricing,1,20,0.0527,68.0,2025-12-22
+marketing data warehouse,/case-studies,3,20,0.1852,37.8,2025-12-22
+lookalike audience optimization,/,7,38,0.1907,5.9,2025-12-22
+marketing compliance,/blog/ab-testing-guide,1,20,0.0947,63.0,2025-12-22
+content performance tracking,/blog/funnel-optimization,10,37,0.2726,24.6,2025-12-22
+marketing experimentation,/features,5,30,0.1805,51.5,2025-12-22
+meta ads dashboard,/case-studies,7,30,0.2367,27.6,2025-12-23
+marketing experimentation,/docs/getting-started,1,28,0.0652,55.1,2025-12-23
+competitive intelligence marketing,/blog/attribution-explained,29,80,0.3719,20.7,2025-12-23
+customer lifetime value,/features,1,21,0.0861,60.5,2025-12-23
+marketing analytics for startups,/case-studies,4,23,0.178,52.6,2025-12-23
+multi-touch attribution,/,71,446,0.1605,21.8,2025-12-23
+social media analytics,/docs/api-reference,6,98,0.0663,60.6,2025-12-23
+nps analysis tool,/blog/attribution-explained,4,25,0.1651,58.2,2025-12-23
+marketing roi calculator,/blog/segmentation-101,0,21,0.0414,77.6,2025-12-23
+marketing compliance,/docs/getting-started,6,29,0.2318,23.5,2025-12-23
+gdpr marketing analytics,/blog/attribution-explained,6,22,0.3019,20.9,2025-12-24
+gdpr marketing analytics,/case-studies,7,32,0.2267,16.7,2025-12-24
+gdpr marketing analytics,/pricing,19,70,0.2791,20.5,2025-12-24
+sem reporting tool,/blog/segmentation-101,21,58,0.3766,23.1,2025-12-24
+campaign performance report,/features,9,28,0.3222,24.4,2025-12-24
+lead scoring model,/features,17,44,0.3966,18.5,2025-12-24
+competitive intelligence marketing,/blog/clv-guide,1,21,0.0849,67.1,2025-12-24
+retention analytics,/case-studies,6,67,0.0922,67.5,2025-12-25
+competitive intelligence marketing,/features,63,621,0.1022,70.1,2025-12-25
+marketing mix model,/features,5,88,0.0602,70.8,2025-12-25
+attribution modeling,/blog/ab-testing-guide,7,33,0.2418,45.6,2025-12-25
+seo analytics,/integrations,55,133,0.417,9.8,2025-12-25
+marketing compliance,/docs/api-reference,5,145,0.0407,72.5,2025-12-25
+first-touch attribution,/pricing,8,26,0.3085,2.4,2025-12-25
+retention analytics,/pricing,8,46,0.1842,46.1,2025-12-25
+marketing dashboard,/blog/ab-testing-guide,5,33,0.1592,51.7,2025-12-25
+cart abandonment rate,/blog/attribution-explained,29,118,0.2527,43.2,2025-12-25
+marketing mix model,/pricing,6,38,0.1619,26.6,2025-12-25
+multi-touch attribution,/case-studies,6,25,0.2651,17.4,2025-12-26
+ecommerce analytics,/blog/funnel-optimization,4,22,0.2225,50.2,2025-12-26
+marketing automation analytics,/features,3,40,0.0977,70.5,2025-12-26
+competitive intelligence marketing,/,10,23,0.4508,7.2,2025-12-26
+how to calculate clv,/blog/clv-guide,25,100,0.2511,41.7,2025-12-26
+ppc analytics,/blog/funnel-optimization,5,23,0.2285,25.8,2025-12-26
+email marketing analytics,/blog/funnel-optimization,15,43,0.3692,19.1,2025-12-26
+incrementality testing,/blog/funnel-optimization,11,56,0.2138,30.0,2025-12-26
+content performance tracking,/docs/getting-started,1,42,0.0366,79.6,2025-12-27
+lookalike audience optimization,/pricing,7,21,0.3377,22.3,2025-12-27
+cro tool,/pricing,0,26,0.0296,75.7,2025-12-27
+marketing roi calculator,/case-studies,2,61,0.0334,79.1,2025-12-27
+churn prediction tool,/docs/getting-started,5,47,0.1103,36.5,2025-12-27
+campaign analytics,/pricing,2,35,0.0694,53.2,2025-12-27
+funnel analysis tool,/docs/getting-started,2,60,0.0379,74.6,2025-12-27
+marketing dashboard,/docs/api-reference,3,31,0.1278,56.8,2025-12-27
+sem reporting tool,/,1,30,0.036,70.7,2025-12-27
+conversion rate optimization,/blog/ab-testing-guide,17,184,0.0963,41.8,2025-12-27
+voice of customer analytics,/blog/attribution-explained,5,29,0.198,43.3,2025-12-27
+attribution modeling,/blog/ab-testing-guide,56,202,0.2802,11.5,2025-12-27
+marketing roi calculator,/pricing,3,40,0.0841,61.2,2025-12-27
+email marketing analytics,/features,8,35,0.2515,45.4,2025-12-27
+churn prediction tool,/case-studies,1,20,0.0894,58.2,2025-12-27
+saas marketing metrics,/docs/getting-started,5,27,0.2088,33.8,2025-12-28
+competitive intelligence marketing,/docs/api-reference,14,43,0.3423,8.8,2025-12-28
+marketing dashboard,/blog/clv-guide,1,31,0.0421,77.9,2025-12-28
+marketing automation analytics,/case-studies,73,408,0.1799,35.1,2025-12-28
+nps analysis tool,/integrations,1,25,0.0762,67.7,2025-12-28
+meta ads dashboard,/blog/clv-guide,3,79,0.042,68.3,2025-12-28
+marketing data warehouse,/blog/segmentation-101,112,1389,0.0813,68.0,2025-12-28
+customer segmentation software,/docs/getting-started,5,31,0.1764,29.4,2025-12-28
+marketing experimentation,/blog/clv-guide,221,991,0.224,50.1,2025-12-28
+form conversion rate,/,13,122,0.1078,64.9,2025-12-28
+remarketing analytics,/,26,148,0.1787,24.9,2025-12-28
+marketing analytics for startups,/,89,401,0.2233,38.1,2025-12-28
+multi-touch attribution,/pricing,2,26,0.1017,62.7,2025-12-28
+attribution modeling,/features,537,1640,0.3278,22.2,2025-12-28
+marketing automation analytics,/features,70,724,0.098,65.7,2025-12-28
+marketing analytics tool,/pricing,3,28,0.1095,48.6,2025-12-28
+marketing automation analytics,/blog/ab-testing-guide,40,1026,0.0391,79.0,2025-12-28
+social media analytics,/,1,32,0.0413,75.0,2025-12-29
+multi-touch attribution,/docs/api-reference,28,81,0.3469,22.6,2025-12-29
+campaign performance report,/pricing,20,107,0.1942,43.2,2025-12-29
+marketing mix model,/docs/api-reference,10,29,0.3695,21.7,2025-12-29
+competitive intelligence marketing,/,13,37,0.3559,27.6,2025-12-29
+multi-touch attribution,/blog/clv-guide,4,21,0.2332,3.5,2025-12-29
+paid media analytics,/,4,43,0.1011,40.6,2025-12-29

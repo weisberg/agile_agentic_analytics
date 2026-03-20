@@ -7,7 +7,9 @@ description: >
   fatigue, ad creative, quality score, search terms, negative keywords, bid
   strategy, campaign optimization, ad copy analysis, or audience targeting
   performance. Also trigger on 'how are our ads performing' or 'are we on track
-  with ad spend.'
+  with ad spend.' If campaign spend data is not yet extracted, suggest running
+  data-extraction first. Normalized spend data feeds into attribution-analysis
+  for MMM. Results also feed into reporting and funnel-analysis skills.
 category: Channel Analytics
 priority: P0
 depends_on:

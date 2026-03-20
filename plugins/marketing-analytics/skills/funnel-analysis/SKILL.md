@@ -7,7 +7,10 @@ description: >
   cart abandonment, form abandonment, user flow, step completion, or funnel
   comparison. Also trigger on 'where are we losing people' or 'why is conversion
   low.' If segment-level funnel comparison is needed and segments are not
-  defined, suggest running audience-segmentation first.
+  defined, suggest running audience-segmentation first. Behavioral event data
+  typically comes from web-analytics. CRO hypotheses feed into experimentation
+  for A/B testing. Results feed into reporting and paid-media (landing page
+  optimization) skills.
 ---
 
 # Funnel Analysis & Conversion Optimization

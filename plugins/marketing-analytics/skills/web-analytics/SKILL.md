@@ -7,7 +7,9 @@ description: >
   conversion tracking, UTM parameters, event tracking, behavioral analysis,
   Mixpanel, Amplitude, user journey, click path, scroll depth, or heatmap data.
   Also trigger on 'what's happening on our website' or 'where is traffic coming
-  from.'
+  from.' If GA4 data is not yet extracted, suggest running data-extraction first.
+  Web metrics feed into funnel-analysis, seo-content, paid-media,
+  audience-segmentation, experimentation (CUPED covariates), and reporting skills.
 ---
 
 # Web Analytics & Behavioral Analysis

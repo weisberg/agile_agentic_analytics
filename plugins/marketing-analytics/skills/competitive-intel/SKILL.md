@@ -6,7 +6,10 @@ description: >
   market share, competitive benchmarking, competitor traffic, competitor strategy,
   competitive landscape, SWOT, competitor monitoring, ad spy, competitor ad
   creative, pricing intelligence, or market positioning. Also trigger on 'what
-  are competitors doing' or 'how do we compare to [competitor].'
+  are competitors doing' or 'how do we compare to [competitor].' Consumes keyword
+  data from seo-content and social benchmarks from social-analytics. Competitor
+  activity levels feed into attribution-analysis as MMM control variables. Results
+  feed into reporting.
 category: Market Intelligence
 priority: P2
 depends_on:

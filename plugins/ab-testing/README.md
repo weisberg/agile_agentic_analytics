@@ -34,9 +34,9 @@ Design, analyze, and review A/B tests with statistical rigor.
 5. **Analyze** — `/ab-testing:analyze-results` (paste data or provide file path)
 6. **Report** — `/ab-testing:experiment-report`
 
-## Configuration
+## Built-In Defaults
 
-Default settings in `settings.json`:
+The plugin uses these defaults in its skill instructions unless the user or experiment plan specifies otherwise:
 
 | Setting | Default | Description |
 |---------|---------|-------------|

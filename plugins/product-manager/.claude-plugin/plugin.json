@@ -1,0 +1,8 @@
+{
+  "name": "product-manager",
+  "description": "Product management toolkit: discovery, prioritization, roadmapping, and stakeholder communication.",
+  "version": "0.1.0",
+  "author": "Brian Weisberg",
+  "license": "MIT",
+  "keywords": ["product-management", "roadmap", "prioritization", "discovery", "prd"]
+}

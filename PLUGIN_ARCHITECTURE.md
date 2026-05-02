@@ -421,10 +421,10 @@ This repository does not currently ship LSP plugins. If it later includes langua
 
 Plugins can include `settings.json`, but there is an important nuance:
 
-- official Claude Code docs currently document plugin-applied support primarily for the `agent` setting
+- official Claude Code docs currently support only `agent` and `subagentStatusLine`
 - unknown keys may be ignored by Claude Code itself
 
-This matters in this repository because `plugins/ab-testing/settings.json` currently stores domain defaults such as:
+Domain defaults such as these should live in skill instructions, reference files, or runtime code that explicitly reads them:
 
 - significance level
 - statistical power
@@ -432,12 +432,12 @@ This matters in this repository because `plugins/ab-testing/settings.json` curre
 - default language
 - report audience
 
-Those values are useful repository data, but they should be treated as **plugin-owned configuration content**, not as automatically enforced Claude Code platform settings unless supporting runtime logic explicitly reads them.
+Those values are useful repository data, but they should not be stored as arbitrary plugin `settings.json` keys unless supporting runtime logic explicitly reads them.
 
 In other words:
 
-- `settings.json` can be included
-- but contributors should not assume arbitrary keys are interpreted by Claude Code automatically
+- `settings.json` can be included for supported Claude Code platform settings
+- contributors should not assume arbitrary keys are interpreted by Claude Code automatically
 
 ## 8. Installation, Scope, and Lifecycle
 
@@ -695,7 +695,7 @@ The current repository is already a valid marketplace, but its next natural evol
    - Use Claude Code plugin validation and local test installs before publishing changes.
 
 5. **Clarify plugin-owned config semantics**
-   - If domain defaults in `settings.json` are meant to be machine-readable, add explicit readers or supporting runtime components rather than relying on implicit behavior.
+   - If domain defaults need to be machine-readable, add explicit readers or supporting runtime components rather than relying on arbitrary `settings.json` keys.
 
 ## 14. Current State Snapshot
 

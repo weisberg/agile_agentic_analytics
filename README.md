@@ -93,7 +93,7 @@ plugins/my-plugin/
 │   └── hooks.json
 ├── .mcp.json               # MCP server configs
 ├── .lsp.json               # LSP server configs
-├── settings.json           # Default settings
+├── settings.json           # Supported Claude Code settings only
 └── README.md
 ```
 

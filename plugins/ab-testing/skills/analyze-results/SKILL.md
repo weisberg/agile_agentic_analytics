@@ -11,6 +11,13 @@ Analyze A/B test results provided by the user. Accept data in any reasonable for
 
 Parse `$ARGUMENTS` for any inline data or file paths.
 
+## Defaults
+
+Use these defaults unless the user or experiment plan specifies otherwise:
+- Significance level: 0.05
+- Test sidedness: two-sided
+- Generated code language: Python
+
 ## Analysis Pipeline
 
 ### Step 1: Parse and Validate Data

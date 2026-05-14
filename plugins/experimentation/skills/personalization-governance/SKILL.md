@@ -1,300 +1,341 @@
 ---
 name: personalization-governance
-description: "Decide whether personalization, segmentation, CATE, uplift modeling, or heterogeneous treatment evidence is strong and safe enough to deploy in high-trust or regulated environments."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Decide whether personalization, segmentation, CATE, uplift modeling, or heterogeneous treatment evidence is strong and safe enough to deploy in high-trust or regulated environments. Proactively suggest this skill when a team wants to target, suppress, personalize, or automate based on subgroup experiment results.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - personalization
+  - CATE
+  - uplift
+  - heterogeneous
+  - segment
+  - targeting
+  - suppression
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Personalization Governance
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are a personalization governance reviewer. Your job is to keep teams from turning fragile heterogeneity into expensive, unfair, or unstable targeting logic.
 
-## Primary Source Files
+**Hard gate:** Do not recommend personalization from post-hoc or underpowered segment results. Require validation, fairness review, operational monitoring, and a simpler alternative comparison.
 
-- `../../references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md`
-- `../../references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md`
-- `../../references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md`
-- `../../references/notebook/17. Experimentation, Trust, and Consumer Perception.md`
-- `../../references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Post-hoc segment wins require validation before deployment.
-- In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` | flat average effects can hide offsetting treatment effects. |
+| `../../references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` | personalization requires evidence thresholds, reversibility checks, and governance. |
+| `../../references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` | personalization can blur advice boundaries and create disparate impact. |
+| `../../references/notebook/17. Experimentation, Trust, and Consumer Perception.md` | targeting can feel manipulative and damage trust. |
+| `../../references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` | adaptive allocation and personalization trade optimization against clean inference and governance. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
 
-1. Identify the proposed personalized action and who receives different treatment.
-1. Clarify whether heterogeneity was pre-specified, exploratory, or model-discovered.
-1. Check sample size and uncertainty within each proposed segment.
-1. Check multiple testing, winner's curse, shrinkage, and out-of-sample validation.
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- personalization
+- CATE
+- uplift
+- heterogeneous
+
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
+
+
+## Advanced Operating Loop
+
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `heterogeneity-review`: inspect subgroup or CATE evidence.
+- `deployment-gate`: decide whether to personalize.
+- `suppression-policy`: decide whether not treating some users is safer.
+- `model-risk-review`: evaluate operational, fairness, and drift controls.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- segment definitions and whether they were pre-specified
+- effect estimates and intervals by segment
+- validation or holdout performance
+- targeting variables and protected-class proxy risk
+- operational implementation plan
+- monitoring and rollback plan
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `12. When (and When Not) to Personalize Based on Experimental Results.md`, search for personalization thresholds, evidence sufficiency, governance, and fairness.
+- In `11. From ATE to CATE_ Extracting Value from Flat Experiments.md`, search for CATE, uplift, Transylvania matrix, cost-sensitive learning, algorithmic redlining, and champion/challenger governance.
+- In `13. Multi-Armed Bandits vs Controlled Experiments.md`, search for adaptive allocation, regret, exploration, and inference tradeoffs.
+- In `17. Experimentation, Trust, and Consumer Perception.md`, search for perceived manipulation, fairness, disclosure, and trust erosion.
+- In `18. Legal and Compliance Considerations in Marketing Experiments.md`, search for protected classes, advice boundaries, privacy, consent, and recordkeeping.
+
+### Inspect Locally
+
+- Segment definitions, model features, treatment assignment logic, decision rules, fairness review notes, and consent/privacy constraints.
+- Evidence that heterogeneity was pre-specified or validated out of sample.
+- Existing champion/challenger, model risk, drift, and monitoring standards.
+
+### Governance Protocol
+
+- Do not personalize from a flat or noisy ATE without validated heterogeneity.
+- Distinguish response heterogeneity from targeting convenience.
+- Require benefit, harm, and fairness checks by segment before deployment.
+- Prefer interpretable segment rules when evidence is early or stakes are high.
+- Use adaptive allocation only when optimization is more important than clean inference, or when a separate holdout preserves learning.
+- Define sunset criteria, drift monitoring, and appeal/escalation path for regulated contexts.
+
+### Output Schema
+
+For `.experimentation/decision-memos/<experiment_id>.md`, include:
+
+- personalization hypothesis, CATE/uplift evidence, validation source, segment definitions, and treatment policy;
+- benefit/harm matrix, protected-class proxy review, disclosure/consent considerations, and operational constraints;
+- holdout or champion/challenger plan, drift thresholds, sunset criteria, and audit fields;
+- decision: do not personalize, limited rules, validated model, bandit, or further experiment.
+
+### Red Flags
+
+- A segment is selected because it is profitable but may be vulnerable or protected.
+- Uplift is inferred from post-hoc slices with no validation.
+- Bandits remove the ability to answer the causal question stakeholders need.
+- Personalization changes advice quality, eligibility, or perceived fairness.
+- No owner is named for model drift, complaint review, or sunset.
+
+## Domain Workflow
+
+1. Identify the personalized action and who receives different treatment.
+1. Classify heterogeneity evidence as pre-specified, exploratory, model-discovered, or externally validated.
+1. Check sample size, uncertainty, multiple comparisons, and winner's curse by segment.
+1. Check out-of-sample validation, holdout confirmation, shrinkage, and stability over time.
 1. Distinguish moderation from mediation.
-1. Assess whether a simple rule performs nearly as well as a complex model.
-1. Evaluate operational complexity and personalization debt.
-1. Check for feedback loops and baseline pollution.
-1. Review disparate impact, proxy discrimination, vulnerability, suitability, and adverse-action concerns.
-1. Assess explainability needs for the domain.
-1. Define monitoring, sunset criteria, and drift checks.
-1. Decide personalize, suppress, use best-for-most, retest, or keep exploratory.
-1. Require compliance review for regulated targeting.
-1. Document which groups could be harmed by the action.
-1. Prefer restraint when evidence strength is lower than deployment risk.
+1. Compare personalization with best-for-most and simple rules.
+1. Assess operational debt, feedback loops, baseline pollution, and drift risk.
+1. Review disparate impact, proxy discrimination, vulnerability, suitability, and adverse-action exposure.
+1. Define monitoring, sunset criteria, and rollback.
+1. Recommend personalize, suppress, best-for-most, retest, or keep exploratory.
 
-## Questions To Resolve
+## Decision Gates
 
-- Was the subgroup hypothesis pre-registered?
-- Does the subgroup effect replicate out of sample?
-- Could the targeting variable proxy for a protected class?
-- What operational debt does personalization create?
-- Would a simpler best-for-most intervention produce safer value?
+Use these decision gates when the task crosses a material choice:
 
-## Expected Outputs
+- D1: Is heterogeneity evidence confirmatory enough?
+- D2: Does personalization beat a simpler alternative?
+- D3: Is fairness/model-risk review required before deployment?
+- D4: Personalize, suppress, best-for-most, retest, or archive.
 
-- Personalization decision brief
-- Heterogeneity evidence assessment
-- Fairness and compliance review needs
-- Operational debt assessment
-- Monitoring and sunset plan
-- Recommendation
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
+- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust exposure.
+- `measurement-architect` for MMM, attribution, global holdouts, geo-lift, proxy calibration, and evidence hierarchy.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- personalization evidence review
+- fairness and model-risk checklist
+- deployment decision brief
+- monitoring and sunset plan
+- simpler-alternative comparison
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: personalization-governance
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 11. From ATE to CATE_ Extracting Value from Flat Experiments.md
+  - 12. When (and When Not) to Personalize Based on Experimental Results.md
+  - 18. Legal and Compliance Considerations in Marketing Experiments.md
+  - 17. Experimentation, Trust, and Consumer Perception.md
+  - 13. Multi-Armed Bandits vs Controlled Experiments.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The answer rejects noisy post-hoc targeting.
+- The answer compares against simpler alternatives.
+- The answer names fairness and trust exposure.
+- The answer includes monitoring and sunset criteria.
+- The answer preserves exploratory findings as exploratory.
 
 ## Anti-Patterns To Block
 
-- Deploying personalization from noisy exploratory segments.
-- Ignoring protected-class proxies because protected-class fields are absent.
-- Using uplift models without holdout validation.
-- Creating permanent targeting logic from one temporary experiment.
-- Assuming personalization is always superior to a robust common experience.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 002: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 003: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 004: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 005: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 006: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 007: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 008: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 009: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 010: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 011: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 012: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 013: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 014: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 015: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 016: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 017: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 018: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 019: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 020: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 021: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 022: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 023: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 024: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 025: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 026: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 027: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 028: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 029: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 030: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 031: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 032: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 033: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 034: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 035: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 036: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 037: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 038: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 039: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 040: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 041: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 042: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 043: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 044: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 045: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 046: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 047: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 048: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 049: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 050: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 051: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 052: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 053: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 054: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 055: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 056: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 057: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 058: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 059: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 060: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 061: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 062: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 063: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 064: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 065: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 066: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 067: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 068: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 069: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 070: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 071: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 072: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 073: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 074: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 075: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 076: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 077: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 078: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 079: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 080: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 081: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 082: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 083: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 084: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 085: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 086: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 087: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 088: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 089: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 090: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 091: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 092: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 093: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 094: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 095: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 096: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 097: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 098: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 099: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 100: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 101: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 102: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 103: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 104: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 105: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 106: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 107: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 108: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 109: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 110: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 111: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 112: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 113: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 114: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 115: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 116: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 117: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 118: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 119: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 120: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 121: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 122: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 123: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 124: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 125: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 126: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 127: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 128: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 129: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 130: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 131: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 132: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 133: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 134: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 135: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 136: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 137: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 138: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 139: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 140: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 141: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 142: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 143: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 144: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 145: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 146: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 147: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 148: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 149: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 150: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 151: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 152: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 153: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 154: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 155: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 156: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 157: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 158: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 159: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 160: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 161: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 162: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 163: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 164: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 165: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 166: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 167: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 168: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 169: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 170: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 171: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 172: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 173: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 174: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 175: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 176: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 177: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 178: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 179: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 180: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 181: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 182: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 183: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 184: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 185: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 186: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 187: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 188: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 189: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 190: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
-- Check 191: Verify heterogeneity evidence is not only post-hoc pattern finding. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Flat average effects can hide meaningful heterogeneous effects, but heterogeneity claims are fragile.
-- Check 192: Verify deployment risk is proportionate to validation strength. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that Personalization creates operational debt, feedback loops, fairness exposure, and model-risk obligations.
-- Check 193: Verify fairness, vulnerability, and suitability risks are reviewed. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Post-hoc segment wins require validation before deployment.
-- Check 194: Verify model drift and feedback loops have monitoring plans. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that In high-trust settings, best-for-most may be preferable to complex targeting when evidence is weak.
-- Check 195: Verify simpler alternatives were considered. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Suppression and restraint can be valid uplift actions, especially when treatment causes harm for some groups.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

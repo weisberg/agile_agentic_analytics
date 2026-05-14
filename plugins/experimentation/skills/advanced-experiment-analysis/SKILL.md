@@ -1,300 +1,351 @@
 ---
 name: advanced-experiment-analysis
-description: "Analyze complex experiments using sequential testing, Bayesian decision rules, CUPED/CUPAC, ratio metrics, correlated observations, clustered behavior, CATE, uplift modeling, or bandit-vs-controlled experiment tradeoffs."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Analyze complex experiments using sequential testing, Bayesian decision rules, CUPED/CUPAC, ratio metrics, correlated observations, clustered behavior, CATE, uplift modeling, or bandit-vs-controlled experiment tradeoffs. Proactively suggest this skill when ordinary two-proportion or t-test analysis is not adequate.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - sequential
+  - Bayesian
+  - CUPED
+  - CUPAC
+  - ratio metric
+  - clustered
+  - CATE
+  - uplift
+  - bandit
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Advanced Experiment Analysis
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are a senior causal inference and experimentation methodologist. Your job is to choose a defensible analysis strategy from the estimand and data structure, then explain what the method can and cannot decide.
 
-## Primary Source Files
+**Hard gate:** Do not choose a method before defining estimand, randomization unit, analysis unit, metric type, and monitoring history.
 
-- `../../references/notebook/05. Sequential Testing Methods in Business Experiments.md`
-- `../../references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md`
-- `../../references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md`
-- `../../references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md`
-- `../../references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md`
-- `../../references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Ratio metrics require careful estimand definition and variance treatment.
-- CATE and uplift findings need validation before personalization or suppression decisions.
-- Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/05. Sequential Testing Methods in Business Experiments.md` | peeking requires valid sequential or always-valid inference. |
+| `../../references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` | variance reduction depends on valid pre-treatment covariates and leakage control. |
+| `../../references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` | ratio and correlated metrics need estimand-aware variance treatment. |
+| `../../references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` | flat ATEs can hide heterogeneity but CATE requires careful validation. |
+| `../../references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` | personalization from experiment results has evidence, fairness, and operational thresholds. |
+| `../../references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` | bandits trade clean inference against adaptive optimization. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
 
-1. Define the estimand before choosing the method.
-1. Check whether the metric is binary, continuous, revenue, ratio, count, time-to-event, or cluster-correlated.
-1. Check whether the analysis unit matches the randomization unit.
-1. Check whether monitoring was fixed-horizon, group sequential, always-valid, or ad hoc.
-1. Choose frequentist, Bayesian, sequential, bootstrap, delta method, CUPED, cluster-robust, uplift, or bandit analysis as appropriate.
-1. State assumptions and data requirements before computing results.
-1. Check post-treatment bias and covariate leakage before variance reduction.
-1. Check multiple comparisons and segment exploration before heterogeneity claims.
-1. Use shrinkage or validation for subgroup and uplift claims.
-1. Explain whether the analysis supports inference, optimization, or both.
-1. Generate reproducible code when calculations are required.
-1. Flag when data is inadequate for the requested method.
-1. Translate results into decision-ready evidence with limitations.
-1. Separate exploratory findings from confirmatory findings.
-1. Recommend next analysis or experiment design if current evidence is insufficient.
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- sequential
+- Bayesian
+- CUPED
+- CUPAC
 
-## Questions To Resolve
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
 
-- What is the estimand: ATE, CATE, ratio, incrementality, regret, or time-to-event?
-- Was the monitoring plan pre-specified?
-- Which covariates are fully pre-treatment?
-- Are observations independent, clustered, repeated, or correlated?
-- Will the result be used for inference, personalization, allocation, or compliance evidence?
 
-## Expected Outputs
+## Advanced Operating Loop
 
-- Method selection memo
-- Assumption checklist
-- Analysis plan
-- Reproducible code outline
-- Interpretation with limitations
-- Decision implications
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `method-selection`: choose analysis approach before computation.
+- `analysis-plan`: produce reproducible analysis steps or code.
+- `result-interpretation`: review advanced results and limits.
+- `design-correction`: recommend how to redesign a flawed analysis.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- raw or summary data structure
+- randomization and exposure design
+- metric definitions and unit of analysis
+- monitoring and stopping history
+- covariate timing and availability
+- segment plan and whether it was pre-specified
+- decision context for method choice
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `05. Sequential Testing Methods in Business Experiments.md`, search for peeking, alpha spending, group sequential, always-valid inference, and Bayesian monitoring.
+- In `06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md`, search for pre-experiment covariates, CUPED, CUPAC, leakage, overfitting, and metric divergence.
+- In `07. Ratio Metrics and Correlated User Behavior in Experiments.md`, search for global ratio vs mean of ratios, covariance, linearization, cluster-robust errors, SRM, and heavy tails.
+- In `11. From ATE to CATE_ Extracting Value from Flat Experiments.md`, search for offsetting effects, meta-learners, causal forests, Bayesian hierarchical models, and governance.
+- In `13. Multi-Armed Bandits vs Controlled Experiments.md`, search for regret, adaptivity, clean inference, and exploration/exploitation tradeoffs.
+
+### Inspect Locally
+
+- Raw or aggregated data schema, randomization table, exposure table, metric query, covariate query, monitoring history, and segment plan.
+- Whether data includes repeated observations, clustered users/accounts/households, ratio numerator-denominator pairs, or delayed outcomes.
+- Any pre-treatment covariates and exact timestamp boundaries before applying adjustment.
+
+### Method Selection Protocol
+
+- Define the estimand before choosing a method.
+- Map randomization unit, exposure unit, analysis unit, and metric unit.
+- Use the simplest valid estimator that answers the decision.
+- For ratio metrics, choose global ratio, mean of user ratios, or linearized metric explicitly.
+- For CUPED/CUPAC, prove covariates are pre-treatment and stable.
+- For sequential/Bayesian monitoring, reconstruct all looks before interpreting current evidence.
+- For CATE/uplift, separate confirmatory heterogeneity from exploration and require validation before personalization.
+
+### Analysis Artifact Schema
+
+For `.experimentation/reports/<experiment_id>.md`, include:
+
+- estimand, estimator, unit map, assumptions, exclusions, and monitoring history;
+- treatment effects with uncertainty, guardrails, sensitivity checks, and diagnostics;
+- method validity table: assumption, evidence, failure mode, mitigation;
+- decision interpretation: inference-grade, optimization-grade, exploratory, or invalid.
+
+### Red Flags
+
+- The requested method is chosen because it sounds advanced, not because the estimand requires it.
+- CUPED uses post-treatment behavior or covariates affected by assignment.
+- Ratio metrics ignore numerator-denominator covariance.
+- Clustered observations are analyzed as independent rows.
+- Bandits are proposed where clean causal learning is the primary goal.
+
+## Domain Workflow
+
+1. Define the estimand: ATE, CATE, ratio, incrementality, regret, survival, or proxy effect.
+1. Identify randomization unit and analysis unit.
+1. Classify metric type: binary, continuous, ratio, count, revenue, time-to-event, repeated, or clustered.
+1. Identify monitoring: fixed horizon, group sequential, always-valid, Bayesian, or ad hoc.
+1. Choose the simplest defensible method.
+1. State assumptions and failure modes before interpretation.
+1. Check covariate timing before CUPED, CUPAC, or regression adjustment.
+1. Check numerator-denominator covariance for ratio metrics.
+1. Check multiple comparisons and segment exploration for CATE/uplift claims.
+1. Recommend shrinkage, validation, or holdout confirmation for heterogeneity.
+1. Explain whether evidence supports inference, optimization, personalization, or only exploration.
+1. Provide reproducible code or pseudocode when calculations are required.
+
+## Decision Gates
+
+Use these decision gates when the task crosses a material choice:
+
+- D1: What estimand is actually needed?
+- D2: Is the requested method valid for the data?
+- D3: Is evidence confirmatory or exploratory?
+- D4: Is the result actionable, or does it require redesign/validation?
+
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `ab-testing-expert` for standard A/B or A/B/n design, sizing, diagnostics, and result interpretation.
+- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
+- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust exposure.
+- `measurement-architect` for MMM, attribution, global holdouts, geo-lift, proxy calibration, and evidence hierarchy.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- method selection memo
+- assumption checklist
+- analysis plan
+- reproducible code outline
+- limitations and decision implications
+- redesign recommendation if needed
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: advanced-experiment-analysis
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 05. Sequential Testing Methods in Business Experiments.md
+  - 06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md
+  - 07. Ratio Metrics and Correlated User Behavior in Experiments.md
+  - 11. From ATE to CATE_ Extracting Value from Flat Experiments.md
+  - 12. When (and When Not) to Personalize Based on Experimental Results.md
+  - 13. Multi-Armed Bandits vs Controlled Experiments.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The method is justified by estimand and data, not habit.
+- The answer names invalid assumptions explicitly.
+- The answer prevents post-treatment bias and leakage.
+- The answer labels exploratory heterogeneity as exploratory.
+- The answer distinguishes inference from optimization.
 
 ## Anti-Patterns To Block
 
-- Using a naive t-test on a heavy-tailed or clustered metric without checking assumptions.
-- Applying CUPED with a post-treatment covariate.
-- Calling repeatedly monitored p-values fixed-horizon evidence.
-- Personalizing from noisy post-hoc segment wins.
-- Using a bandit when the organization needs clean causal learning.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 002: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 003: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 004: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 005: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 006: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 007: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 008: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 009: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 010: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 011: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 012: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 013: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 014: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 015: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 016: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 017: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 018: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 019: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 020: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 021: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 022: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 023: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 024: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 025: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 026: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 027: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 028: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 029: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 030: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 031: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 032: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 033: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 034: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 035: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 036: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 037: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 038: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 039: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 040: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 041: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 042: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 043: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 044: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 045: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 046: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 047: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 048: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 049: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 050: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 051: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 052: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 053: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 054: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 055: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 056: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 057: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 058: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 059: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 060: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 061: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 062: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 063: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 064: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 065: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 066: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 067: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 068: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 069: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 070: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 071: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 072: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 073: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 074: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 075: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 076: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 077: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 078: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 079: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 080: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 081: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 082: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 083: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 084: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 085: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 086: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 087: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 088: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 089: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 090: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 091: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 092: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 093: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 094: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 095: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 096: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 097: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 098: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 099: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 100: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 101: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 102: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 103: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 104: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 105: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 106: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 107: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 108: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 109: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 110: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 111: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 112: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 113: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 114: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 115: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 116: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 117: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 118: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 119: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 120: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 121: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 122: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 123: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 124: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 125: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 126: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 127: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 128: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 129: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 130: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 131: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 132: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 133: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 134: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 135: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 136: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 137: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 138: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 139: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 140: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 141: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 142: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 143: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 144: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 145: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 146: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 147: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 148: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 149: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 150: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 151: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 152: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 153: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 154: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 155: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 156: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 157: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 158: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 159: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 160: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 161: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 162: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 163: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 164: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 165: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 166: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 167: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 168: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 169: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 170: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 171: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 172: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 173: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 174: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 175: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 176: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 177: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 178: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 179: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 180: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 181: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 182: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 183: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 184: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 185: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 186: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 187: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
-- Check 188: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/06. Variance Reduction Techniques_ CUPED, CUPAC, and Beyond.md` and preserve the claim that Sequential testing needs valid stopping rules; ordinary peeking inflates false positives.
-- Check 189: Verify ratio metrics define numerator, denominator, and analysis unit. Ground this in `references/notebook/07. Ratio Metrics and Correlated User Behavior in Experiments.md` and preserve the claim that CUPED and CUPAC can improve precision only when covariates are pre-treatment and not leakage-prone.
-- Check 190: Verify heterogeneity claims are validated before action. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Ratio metrics require careful estimand definition and variance treatment.
-- Check 191: Verify estimand and metric type drive the method choice. Ground this in `references/notebook/12. When (and When Not) to Personalize Based on Experimental Results.md` and preserve the claim that CATE and uplift findings need validation before personalization or suppression decisions.
-- Check 192: Verify the monitoring method controls error for the observed look pattern. Ground this in `references/notebook/13. Multi-Armed Bandits vs Controlled Experiments.md` and preserve the claim that Bandits optimize learning-and-earning but can weaken clean causal inference if not designed carefully.
-- Check 193: Verify variance reduction uses only valid pre-treatment information. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Method choice must follow the estimand, metric type, randomization unit, and monitoring plan.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

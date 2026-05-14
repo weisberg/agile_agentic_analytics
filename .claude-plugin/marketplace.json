@@ -24,6 +24,14 @@
       "version": "1.0.0",
       "keywords": ["marketing", "analytics", "attribution", "experimentation", "paid-media", "reporting", "clv", "segmentation", "funnel", "email", "web-analytics", "seo", "crm", "social-media", "competitive-intelligence", "compliance", "financial-services"],
       "license": "MIT"
+    },
+    {
+      "name": "experimentation",
+      "source": "./plugins/experimentation",
+      "description": "Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, operating models, and executive evidence briefs",
+      "version": "1.0.0",
+      "keywords": ["experimentation", "ab-testing", "regulated-finance", "email-incrementality", "sequential-testing", "cuped", "causal-inference", "measurement-governance", "compliance"],
+      "license": "MIT"
     }
   ]
 }

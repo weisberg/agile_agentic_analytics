@@ -1,0 +1,21 @@
+{
+  "name": "experimentation",
+  "description": "Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, and executive evidence briefs",
+  "version": "1.0.0",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "license": "MIT",
+  "keywords": [
+    "experimentation",
+    "ab-testing",
+    "regulated-finance",
+    "email-incrementality",
+    "sequential-testing",
+    "cuped",
+    "causal-inference",
+    "measurement-governance",
+    "compliance",
+    "executive-briefing"
+  ]
+}

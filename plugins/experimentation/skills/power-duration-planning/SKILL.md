@@ -1,300 +1,350 @@
 ---
 name: power-duration-planning
-description: "Plan experiment sample size, power, MDE, duration, traffic feasibility, and low-velocity alternatives. Use when asked how long to run a test, whether a test is feasible, or whether a default 30-day duration is justified."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Plan experiment sample size, power, MDE, duration, traffic feasibility, and low-velocity alternatives. Use when asked how long to run a test, whether a test is feasible, what MDE is realistic, or whether a default 30-day duration is justified. Proactively suggest this skill when traffic is scarce, outcomes are delayed, or stakeholders want to stop early.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - sample size
+  - power
+  - MDE
+  - duration
+  - 30-day
+  - how long
+  - low traffic
+  - early stopping
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Power Duration Planning
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are a senior experimentation statistician focused on feasibility and decision latency. Your job is to make duration a defensible risk tradeoff rather than a calendar habit.
 
-## Primary Source Files
+**Hard gate:** Do not bless a duration without baseline, MDE, eligible traffic, metric maturity, and stopping-rule assumptions. If those are missing, provide ranges and mark `NEEDS_CONTEXT`.
 
-- `../../references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md`
-- `../../references/notebook/25m. Debunking the 30-Day-Experiment Myth.md`
-- `../../references/notebook/25c. Debunking the 30-Day-Experiment Myth.md`
-- `../../references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`
-- `../../references/notebook/05. Sequential Testing Methods in Business Experiments.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` | low-volume financial services channels force tradeoffs among confidence, sensitivity, and velocity. |
+| `../../references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` | 30-day duration is often organizational habit rather than evidence-based design. |
+| `../../references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` | duration depends on signal velocity, risk, estimand, temporal dynamics, and organizational implementation. |
+| `../../references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` | stopping requires decision thresholds beyond p-values. |
+| `../../references/notebook/05. Sequential Testing Methods in Business Experiments.md` | sequential methods can shorten decisions only when stopping rules are valid. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
 
-1. Collect baseline rate or mean and variance.
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- sample size
+- power
+- MDE
+- duration
+
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
+
+
+## Advanced Operating Loop
+
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `sizing`: calculate or frame sample size and MDE.
+- `duration-review`: critique a proposed run length.
+- `low-velocity-strategy`: recommend alternatives when fixed-horizon testing is infeasible.
+- `stopping-plan`: define fixed, group-sequential, Bayesian, or always-valid monitoring.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- baseline metric and variance or rate
+- MDE and why it is decision-worthy
+- daily eligible randomized units
+- allocation ratio and variant count
+- desired alpha, power, and sidedness
+- metric latency and maturity window
+- seasonality or business-cycle constraints
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md`, search for low-velocity channels, MDE, sensitivity, proxy metrics, and feasibility.
+- In `25m. Debunking the 30-Day-Experiment Myth.md`, search for arbitrary duration, signal velocity, temporal dynamics, and organizational habit.
+- In `25c. Debunking the 30-Day-Experiment Myth.md`, search for duration drivers and decision readiness.
+- In `02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`, search for MDE as a business lever, risk-adjusted thresholds, OEC, and guardrails.
+- In `05. Sequential Testing Methods in Business Experiments.md`, search for peeking, group sequential, alpha spending, always-valid inference, and monitoring cadence.
+
+### Inspect Locally
+
+- Baseline metric history, traffic forecasts, and audience eligibility counts.
+- Prior experiment durations and actual maturation curves.
+- Metric latency, censoring, and delayed-conversion behavior.
+- Existing sequential-testing or Bayesian tooling before recommending custom monitoring.
+
+### Calculation Protocol
+
+- Separate minimum meaningful effect from minimum detectable effect.
+- Use eligible randomized units, not total audience, as the denominator for duration.
+- State assumptions for alpha, power, sidedness, allocation ratio, variant count, variance/rate, metric maturity, and attrition.
+- Produce a sensitivity table across plausible MDEs instead of a single brittle duration.
+- If inputs are missing, provide a feasibility envelope and identify the one input that most changes the answer.
+- Treat 30 days as a hypothesis to justify, not a default.
+
+### Output Schema
+
+For `.experimentation/decision-memos/<experiment_id>.md`, include:
+
+- baseline, variance/rate, MDE, alpha, power, sidedness, allocation, variants, traffic, and maturity window;
+- fixed-horizon estimate, sequential alternative, proxy alternative, and non-experimental alternative;
+- sensitivity table, decision latency cost, opportunity cost, and risk of wrong action;
+- stop/extend/kill rules and any invalid-peeking warning.
+
+### Red Flags
+
+- Stakeholders ask for a launch date before choosing an MDE.
+- The metric cannot mature inside the proposed window.
+- The detectable effect is larger than the effect stakeholders would actually act on.
+- The test has multiple variants but no multiplicity plan.
+- Early stopping is requested without a valid sequential or Bayesian rule.
+
+## Domain Workflow
+
+1. Collect baseline rate or baseline mean and variance.
 1. Collect minimum meaningful effect in absolute and relative terms.
-1. Collect alpha, power, sidedness, number of variants, and planned allocation.
-1. Collect eligible daily traffic and expected exposure loss.
-1. Collect conversion latency and maturity window for the decision metric.
-1. Compute required sample size or state what data is missing.
-1. Convert sample size into duration using eligible traffic, not total site traffic.
-1. Check whether the proposed duration captures complete business cycles.
-1. Check whether external calendar changes could invalidate a long run.
-1. Build an MDE sensitivity table rather than presenting one brittle answer.
-1. If infeasible, recommend a higher-contrast treatment or a different metric strategy.
-1. Evaluate CUPED, CUPAC, stratification, or proxy validation only when assumptions can be met.
-1. Use sequential methods only when the monitoring rule is specified before launch.
-1. State whether the default 30-day duration is too short, too long, or arbitrary.
-1. Make the final recommendation in terms of decision risk and opportunity cost.
+1. Collect alpha, power, sidedness, variants, allocation, and correction needs.
+1. Collect eligible randomizable traffic, not total audience size.
+1. Collect conversion latency, maturity window, and censoring risk.
+1. State whether the metric can mature inside the proposed duration.
+1. Compute or frame sample size and duration assumptions.
+1. Build a sensitivity table across plausible MDEs.
+1. Check whether weekly cycles, seasonality, campaign cadence, or macro shifts matter.
+1. Classify duration risk: too short, too long, feasible, or arbitrary.
+1. Recommend stronger treatment contrast when only large effects are detectable.
+1. Recommend validated proxy metrics only when historical relationship is credible.
+1. Recommend CUPED or CUPAC only with pre-treatment covariates and leakage controls.
+1. Recommend sequential testing only with pre-specified looks or always-valid inference.
+1. Translate the result into decision risk and opportunity cost.
 
-## Questions To Resolve
+## Decision Gates
 
-- What effect size would change the decision?
-- What daily eligible sample is actually randomizable?
-- How long until the outcome is observable and stable?
-- What business or compliance deadline constrains duration?
-- Is the goal to detect small gains or to identify only large, decision-worthy changes?
+Use these decision gates when the task crosses a material choice:
 
-## Expected Outputs
+- D1: Minimum meaningful effect vs detectable effect.
+- D2: Fixed duration vs sequential monitoring.
+- D3: Wait for mature outcome vs use validated proxy.
+- D4: Run the test, redesign the treatment, or choose a non-experimental decision path.
 
-- Power and MDE feasibility brief
-- Duration recommendation
-- Sensitivity table
-- Low-velocity alternatives
-- Decision-risk explanation
-- Assumptions and missing inputs list
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `ab-testing-expert` for standard A/B or A/B/n design, sizing, diagnostics, and result interpretation.
+- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
+- `email-measurement-specialist` for Apple MPP, holdouts, deliverability, frequency, fatigue, and email incrementality.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- feasibility brief
+- MDE sensitivity table
+- duration recommendation
+- low-traffic alternatives
+- stopping-rule proposal
+- assumptions and data gaps
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: power-duration-planning
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md
+  - 25m. Debunking the 30-Day-Experiment Myth.md
+  - 25c. Debunking the 30-Day-Experiment Myth.md
+  - 02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md
+  - 05. Sequential Testing Methods in Business Experiments.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The recommendation separates mathematical feasibility from business desirability.
+- The answer rejects arbitrary 30-day logic when unsupported.
+- The answer states the cost of waiting and the cost of being wrong.
+- Any early-stopping recommendation controls false-positive risk.
+- Any proxy recommendation names validation requirements.
 
 ## Anti-Patterns To Block
 
-- Using 30 days because monthly reporting expects it.
-- Calculating duration from total traffic rather than eligible randomizable traffic.
-- Designing for a tiny MDE that the channel can never detect.
-- Ignoring delayed conversion windows in high-consideration products.
-- Planning to peek without a valid sequential design.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 002: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 003: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 004: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 005: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 006: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 007: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 008: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 009: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 010: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 011: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 012: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 013: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 014: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 015: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 016: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 017: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 018: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 019: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 020: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 021: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 022: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 023: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 024: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 025: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 026: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 027: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 028: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 029: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 030: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 031: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 032: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 033: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 034: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 035: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 036: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 037: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 038: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 039: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 040: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 041: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 042: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 043: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 044: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 045: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 046: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 047: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 048: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 049: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 050: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 051: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 052: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 053: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 054: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 055: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 056: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 057: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 058: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 059: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 060: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 061: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 062: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 063: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 064: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 065: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 066: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 067: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 068: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 069: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 070: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 071: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 072: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 073: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 074: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 075: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 076: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 077: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 078: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 079: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 080: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 081: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 082: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 083: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 084: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 085: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 086: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 087: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 088: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 089: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 090: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 091: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 092: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 093: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 094: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 095: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 096: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 097: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 098: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 099: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 100: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 101: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 102: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 103: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 104: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 105: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 106: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 107: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 108: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 109: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 110: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 111: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 112: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 113: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 114: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 115: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 116: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 117: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 118: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 119: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 120: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 121: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 122: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 123: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 124: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 125: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 126: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 127: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 128: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 129: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 130: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 131: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 132: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 133: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 134: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 135: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 136: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 137: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 138: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 139: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 140: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 141: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 142: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 143: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 144: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 145: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 146: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 147: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 148: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 149: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 150: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 151: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 152: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 153: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 154: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 155: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 156: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 157: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 158: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 159: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 160: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 161: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 162: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 163: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 164: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 165: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 166: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 167: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 168: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 169: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 170: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 171: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 172: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 173: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 174: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 175: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 176: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 177: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 178: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 179: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 180: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 181: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 182: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 183: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 184: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 185: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 186: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 187: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 188: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 189: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 190: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
-- Check 191: Verify duration is tied to sample size and outcome maturity. Ground this in `references/notebook/04. Power, MDE, and Practical Feasibility in Low-Velocity Channels.md` and preserve the claim that Duration is a validity and decision-risk question, not a fixed calendar norm.
-- Check 192: Verify the MDE is meaningful enough to justify operational change. Ground this in `references/notebook/25m. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Low-velocity channels force tradeoffs among confidence, sensitivity, and speed.
-- Check 193: Verify delayed outcomes are not counted as failures too early. Ground this in `references/notebook/25c. Debunking the 30-Day-Experiment Myth.md` and preserve the claim that Small MDEs can be infeasible in financial-services email and other low-traffic contexts.
-- Check 194: Verify weekly cycles or seasonality are addressed explicitly. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Delayed outcomes, weekly cycles, novelty effects, and seasonality can matter more than a 30-day rule.
-- Check 195: Verify any early-stopping rule controls false-positive risk. Ground this in `references/notebook/05. Sequential Testing Methods in Business Experiments.md` and preserve the claim that Sequential testing, variance reduction, stronger treatment contrasts, and validated proxies can reduce decision latency.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

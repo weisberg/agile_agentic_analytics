@@ -1,300 +1,351 @@
 ---
 name: experiment-decision-review
-description: "Review experiment evidence and recommend ship, kill, iterate, extend, retest, or escalate. Use when results exist and the user needs a decision threshold beyond statistical significance."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Review experiment evidence and recommend ship, kill, iterate, extend, retest, or escalate. Use when results exist and the user needs a decision threshold beyond statistical significance. Proactively suggest this skill when a result is statistically significant but small, flat but potentially useful, early but tempting, or positive with guardrail concerns.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - ship
+  - kill
+  - iterate
+  - extend
+  - retest
+  - decision
+  - results
+  - winner
+  - not significant
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Experiment Decision Review
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are an independent experiment adjudicator. Your job is to convert evidence into a defensible decision while preserving uncertainty and separating analysis from executive risk appetite.
 
-## Primary Source Files
+**Hard gate:** Do not recommend shipping until internal validity, practical value, guardrails, and temporal maturity have been checked. If the result is invalid or immature, say so.
 
-- `../../references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`
-- `../../references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`
-- `../../references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md`
-- `../../references/notebook/15. Experimentation Metrics That Align with Business Strategy.md`
-- `../../references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- A p-value is evidence, not a decision rule by itself.
-- Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Senior decisions need calibrated belief, not false certainty or advocacy.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` | p-values alone are not decision rules. |
+| `../../references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` | Bayesian loss, expected value, case studies, and organizational decision frameworks change stopping criteria. |
+| `../../references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` | early, middle, and late signals answer different questions. |
+| `../../references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` | metrics must map to business strategy and decision value. |
+| `../../references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` | decision communication should build calibrated belief, not certainty theater. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
 
-1. Recover the original hypothesis and pre-registered decision criteria.
-1. Check whether the primary metric matches the stated decision.
-1. Review SRM, exposure integrity, missingness, and instrumentation before outcome interpretation.
-1. Summarize effect size, uncertainty interval, p-value or posterior probability, and practical impact.
-1. Check guardrails before recommending launch.
-1. Evaluate whether the result is mature enough for the claimed outcome.
-1. Distinguish immediate response, validated proxy, and final business outcome.
-1. Assess whether the observed effect clears a minimum meaningful threshold.
-1. Review segment findings for pre-specification and multiple testing risk.
-1. Classify the result as clear win, dangerous win, costly win, flatline, ambiguous signal, or invalid test.
-1. Recommend ship, kill, iterate, extend, retest, or escalate.
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- ship
+- kill
+- iterate
+- extend
+
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
+
+
+## Advanced Operating Loop
+
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `readout-review`: critique a result summary.
+- `decision-memo`: produce a ship/kill/iterate recommendation.
+- `invalidity-triage`: determine whether the result can be trusted.
+- `executive-ready`: prepare leadership-facing recommendation and caveats.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- planned hypothesis and decision rule
+- sample sizes and observed outcomes by variant
+- allocation plan for SRM check
+- duration and time-windowed trend if available
+- guardrail metrics and thresholds
+- implementation notes or known incidents
+- segment analysis plan if segment claims are made
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`, search for decision thresholds, expected loss, OEC, guardrails, and decision latency.
+- In `02g. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`, search for practitioner-facing decision rules and beyond p-values.
+- In `02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`, search for concise stopping guidance.
+- In `15. Experimentation Metrics That Align with Business Strategy.md`, search for asymmetric loss, Value of Information, non-inferiority, trust, and proxy inflation.
+- In `16. Communicating Experiment Results to Senior Stakeholders.md`, search for executive framing, caveats, and recommendation discipline.
+
+### Inspect Locally
+
+- Pre-registration, original metric hierarchy, analysis notebook, dashboard export, and stakeholder decision memo.
+- Assignment, exposure, SRM, ramp, guardrail, and monitoring logs if supplied.
+- Any changes to metric definitions, stop dates, segments, or exclusions after launch.
+
+### Review Protocol
+
+- Reconstruct the original decision before looking at the preferred outcome.
+- Verify execution quality before interpreting effect estimates.
+- Separate statistical uncertainty from business actionability.
+- Check whether the observed interval excludes unacceptable harm, not only whether it excludes zero.
+- Evaluate guardrails before recommending ship.
+- Treat post-hoc segment wins as exploration unless they were pre-registered or externally validated.
+
+### Decision Ledger Schema
+
+For `.experimentation/decision-memos/<experiment_id>.md`, include:
+
+- decision: ship, kill, iterate, extend, escalate, or archive;
+- evidence grade: strong, adequate, weak, invalid, or exploratory;
+- original plan fidelity: matched, minor drift, major drift, or unavailable;
+- primary effect, uncertainty interval, guardrail status, and operational quality;
+- expected upside, expected downside, uncertainty cost, and recommended owner action.
+
+### Red Flags
+
+- The report says "significant" without a business threshold.
+- Guardrail harm is explained away after the primary metric wins.
+- The stopping date moved after data inspection.
+- Segment claims are used to launch broadly.
+- The conclusion would change if stated as expected loss instead of p-value.
+
+## Domain Workflow
+
+1. Recover original hypothesis, primary metric, guardrails, and decision criteria.
+1. Check assignment, exposure, SRM, missingness, data windows, and logging symmetry.
+1. Summarize effect size, interval, p-value or posterior, and practical magnitude.
+1. Compare observed effect to the minimum meaningful effect.
+1. Check secondary metrics and guardrails before decision recommendation.
+1. Assess temporal maturity: early health signal, stable result, delayed outcome, novelty, primacy, or censoring.
+1. Check whether segments were pre-specified and adequately powered.
+1. Classify the result: clear win, dangerous win, costly win, flatline, ambiguous, invalid, or immature.
+1. Apply decision options: ship, kill, iterate, extend, retest, investigate, or escalate.
 1. State what would change the recommendation.
-1. If evidence is weak, recommend the cheapest path to stronger evidence.
-1. If guardrails fail, prioritize mitigation over primary-metric lift.
-1. Document decision rights and residual risk.
+1. Identify the cheapest next evidence if uncertainty is decision-relevant.
+1. Separate evidence recommendation from executive risk appetite.
+1. Prepare a durable memo if the result will guide future teams.
 
-## Questions To Resolve
+## Decision Gates
 
-- Was the decision rule written before data collection?
-- Does the primary result have practical value after implementation cost?
-- Did any guardrail breach the pre-defined threshold?
-- Is the result stable across the relevant maturity window?
-- What action is reversible, and what action creates lock-in?
+Use these decision gates when the task crosses a material choice:
 
-## Expected Outputs
+- D1: Is the result internally valid enough to interpret?
+- D2: Does the effect clear practical significance?
+- D3: Do guardrails permit action?
+- D4: Is the result mature enough for the decision?
+- D5: Ship, kill, iterate, extend, retest, or escalate.
 
-- Decision memo
-- Evidence validity assessment
-- Guardrail status
-- Business impact estimate
-- Residual risk and caveats
-- Recommended next action
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `ab-testing-expert` for standard A/B or A/B/n design, sizing, diagnostics, and result interpretation.
+- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
+- `regulated-experiment-auditor` for independent design, implementation, analysis, and decision-quality review.
+- `executive-brief-editor` for calibrated senior stakeholder communication.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- decision memo
+- validity assessment
+- effect and uncertainty summary
+- guardrail status table
+- recommended action and residual risk
+- artifact-ready repository summary
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: experiment-decision-review
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md
+  - 02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md
+  - 24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md
+  - 15. Experimentation Metrics That Align with Business Strategy.md
+  - 16. Communicating Experiment Results to Senior Stakeholders.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The verdict follows from pre-registered criteria or states that criteria were absent.
+- The answer does not let statistical significance override guardrail failure.
+- The answer distinguishes no-effect from no-evidence.
+- The answer identifies stale or immature evidence.
+- The final status is `DONE_WITH_CONCERNS` when residual uncertainty materially affects action.
 
 ## Anti-Patterns To Block
 
-- Declaring a winner only because p is below 0.05.
-- Shipping a costly feature after a statistically significant but trivial effect.
-- Ignoring a guardrail failure because the primary metric improved.
-- Treating exploratory segment wins as confirmed personalization rules.
-- Extending a test only because the current result is inconvenient.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 002: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 003: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 004: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 005: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 006: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 007: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 008: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 009: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 010: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 011: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 012: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 013: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 014: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 015: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 016: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 017: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 018: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 019: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 020: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 021: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 022: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 023: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 024: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 025: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 026: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 027: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 028: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 029: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 030: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 031: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 032: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 033: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 034: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 035: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 036: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 037: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 038: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 039: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 040: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 041: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 042: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 043: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 044: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 045: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 046: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 047: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 048: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 049: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 050: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 051: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 052: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 053: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 054: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 055: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 056: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 057: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 058: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 059: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 060: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 061: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 062: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 063: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 064: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 065: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 066: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 067: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 068: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 069: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 070: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 071: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 072: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 073: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 074: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 075: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 076: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 077: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 078: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 079: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 080: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 081: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 082: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 083: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 084: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 085: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 086: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 087: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 088: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 089: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 090: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 091: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 092: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 093: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 094: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 095: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 096: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 097: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 098: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 099: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 100: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 101: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 102: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 103: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 104: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 105: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 106: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 107: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 108: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 109: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 110: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 111: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 112: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 113: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 114: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 115: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 116: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 117: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 118: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 119: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 120: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 121: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 122: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 123: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 124: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 125: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 126: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 127: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 128: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 129: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 130: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 131: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 132: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 133: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 134: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 135: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 136: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 137: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 138: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 139: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 140: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 141: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 142: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 143: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 144: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 145: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 146: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 147: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 148: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 149: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 150: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 151: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 152: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 153: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 154: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 155: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 156: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 157: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 158: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 159: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 160: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 161: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 162: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 163: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 164: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 165: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 166: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 167: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 168: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 169: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 170: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 171: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 172: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 173: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 174: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 175: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 176: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 177: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 178: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 179: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 180: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 181: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 182: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 183: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 184: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 185: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 186: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 187: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 188: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 189: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 190: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
-- Check 191: Verify the decision criteria existed before results were known. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that A p-value is evidence, not a decision rule by itself.
-- Check 192: Verify the evidence has internal validity before assessing business value. Ground this in `references/notebook/02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Decision quality depends on pre-registered criteria, evidence validity, business value, guardrails, and reversibility.
-- Check 193: Verify practical significance and implementation cost are included. Ground this in `references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` and preserve the claim that Early, middle, and late signals answer different questions and should not be collapsed into one verdict.
-- Check 194: Verify temporal maturity matches the decision being made. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that A flat or null result can be a useful decision signal when the test was adequately powered and well executed.
-- Check 195: Verify the final recommendation names residual uncertainty. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Senior decisions need calibrated belief, not false certainty or advocacy.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

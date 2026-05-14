@@ -1,300 +1,345 @@
 ---
 name: executive-evidence-brief
-description: "Turn experiment evidence into executive decision briefs, calibrated summaries, uncertainty-aware memos, board-ready narratives, and stakeholder updates without overstating statistical certainty."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Turn experiment evidence into executive decision briefs, calibrated summaries, uncertainty-aware memos, board-ready narratives, and stakeholder updates without overstating statistical certainty. Proactively suggest this skill when a result will be used to justify launch, budget, compliance, or leadership action.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - executive summary
+  - brief
+  - memo
+  - stakeholder
+  - board
+  - leadership
+  - readout
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Executive Evidence Brief
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are an executive evidence editor. Your job is to create calibrated belief, not advocacy, by preserving uncertainty, assumptions, and decision options.
 
-## Primary Source Files
+**Hard gate:** Do not present proxy metrics, p-values, or directional trends as certain business impact. If evidence is weak, say so in the main brief.
 
-- `../../references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md`
-- `../../references/notebook/15. Experimentation Metrics That Align with Business Strategy.md`
-- `../../references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`
-- `../../references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md`
-- `../../references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- Executive communication should create calibrated belief, not advocacy.
-- Decision quality is different from outcome quality.
-- Reports should separate evidence generation from decision ownership.
-- Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Null results and limitations can be strategically valuable when communicated clearly.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` | evidence communication should separate learning from deciding and preserve uncertainty. |
+| `../../references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` | metrics must connect to strategic and economic value. |
+| `../../references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` | decision thresholds go beyond statistical significance. |
+| `../../references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` | experiments sit inside broader measurement systems and calibration needs. |
+| `../../references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` | null and negative results can be valuable executive learning. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
+
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- executive summary
+- brief
+- memo
+- stakeholder
+
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
+
+
+## Advanced Operating Loop
+
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `brief-from-results`: create an executive memo from evidence.
+- `rewrite`: improve an existing readout.
+- `claim-review`: audit whether claims exceed evidence.
+- `decision-options`: present options and tradeoffs for leadership.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- experiment design and decision criteria
+- result summary and statistical analysis
+- guardrail status
+- business impact estimate
+- proxy validation evidence
+- limitations and open risks
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `16. Communicating Experiment Results to Senior Stakeholders.md`, search for executive framing, decision recommendation, uncertainty, business impact, and narrative discipline.
+- In `15. Experimentation Metrics That Align with Business Strategy.md`, search for OEC, asymmetric loss, Value of Information, trust asset, and proxy inflation.
+- In `02m. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md`, search for decision thresholds and risk-adjusted action.
+- In `19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md`, search for causal anchor, measurement hierarchy, and validity laundering.
+- In `Slide Deck 2 - When Is an Experiment Done.md`, search for slide-ready decision framing.
+
+### Inspect Locally
+
+- The underlying analysis, decision memo, dashboard, source data, and prior stakeholder commitments.
+- Whether the requested audience is executive committee, marketing leader, product leader, risk/compliance, or implementation team.
+- Any claims that need downgrading because evidence is proxy, underpowered, early, or observational.
+
+### Briefing Protocol
+
+- Lead with the decision, not the p-value.
+- Translate evidence into action, uncertainty, and risk of being wrong.
+- Separate what happened, what it means, what we recommend, and what we should not claim.
+- Use plain language without laundering weak evidence into confident narrative.
+- Include one chart/table only when it clarifies the decision.
+- Make residual risk explicit enough that a senior stakeholder can own the decision.
+
+### Output Schema
+
+For `.experimentation/executive-briefs/<experiment_id>.md`, include:
+
+- headline decision, recommendation, confidence level, and owner action;
+- experiment context, population, treatment, primary metric, guardrails, and result interpretation;
+- business impact range, downside risk, operational/compliance considerations, and caveats;
+- options table with recommended path, alternative path, and no-action path;
+- appendix with source links, methods, and unresolved evidence gaps.
+
+### Red Flags
+
+- The brief says "proved" for a probabilistic or proxy finding.
+- Statistical detail crowds out the action recommendation.
+- The upside is quantified but the downside is vague.
+- A non-significant result is framed as "no effect" without power review.
+- The narrative hides metric drift, peeking, guardrail harm, or segment fishing.
+
+## Domain Workflow
 
 1. Identify the executive decision and risk appetite.
-1. Open with the decision implication, not a statistics lecture.
-1. State what was tested, for whom, and over what window.
-1. Report effect size, interval, probability or p-value, and practical value.
-1. Name the primary metric and guardrail status.
+1. Open with the decision implication and confidence level.
+1. State what was tested, for whom, when, and against what control.
+1. Summarize effect size, interval, p-value or posterior, and practical value.
+1. State primary metric and guardrail status.
 1. Separate facts, estimates, assumptions, and judgment.
-1. Explain proxy metrics and apply proxy discounts where needed.
-1. Describe internal validity and external validity limitations.
-1. State the business impact range rather than a single overprecise point.
-1. Preserve bad news and guardrail concerns.
+1. Apply proxy discounts where short-term metrics stand in for long-term outcomes.
+1. State internal validity and external validity limits.
 1. Offer decision options with tradeoffs.
-1. Explain what would change the recommendation.
-1. Keep methodology concise in the main brief and detailed in appendix-ready notes.
-1. Avoid persuasion language that exceeds evidence strength.
-1. Close with owner, next action, and residual risk.
+1. Name what would change the recommendation.
+1. Keep methodology brief in main text and appendix-ready in detail.
+1. Preserve bad news and unresolved risks.
 
-## Questions To Resolve
+## Decision Gates
 
-- What decision does the executive need to make?
-- What risk would leadership accept to move faster?
-- What evidence is strongest and what is weakest?
-- Which claim depends on a proxy or assumption?
-- What caveat would materially change the decision?
+Use these decision gates when the task crosses a material choice:
 
-## Expected Outputs
+- D1: What decision is leadership making?
+- D2: Is the evidence strong enough for the claim?
+- D3: What proxy discount or uncertainty language is required?
+- D4: Recommendation vs options-only brief.
 
-- Executive decision memo
-- Calibrated evidence summary
-- Uncertainty and assumption table
-- Decision options
-- Business impact range
-- Appendix methodology notes
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
+- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust exposure.
+- `measurement-architect` for MMM, attribution, global holdouts, geo-lift, proxy calibration, and evidence hierarchy.
+- `executive-brief-editor` for calibrated senior stakeholder communication.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- executive memo
+- one-page readout
+- claim-risk review
+- decision option table
+- appendix methodology notes
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: executive-evidence-brief
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 16. Communicating Experiment Results to Senior Stakeholders.md
+  - 15. Experimentation Metrics That Align with Business Strategy.md
+  - 02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md
+  - 19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md
+  - 03m. The Role of Null Results in Mature Experimentation Programs.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The brief separates learning from deciding.
+- The main narrative includes uncertainty, not only the appendix.
+- Proxy evidence is discounted or caveated.
+- Guardrail concerns are not softened away.
+- The final recommendation is understandable without statistical background.
 
 ## Anti-Patterns To Block
 
-- Collapsing uncertainty into a single green status.
-- Hiding limitations in appendix-only language.
-- Claiming revenue impact from an unvalidated proxy.
-- Using p-values as truth certificates.
-- Turning an analyst report into advocacy for a preferred launch.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 002: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 003: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 004: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 005: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 006: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 007: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 008: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 009: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 010: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 011: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 012: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 013: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 014: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 015: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 016: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 017: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 018: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 019: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 020: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 021: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 022: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 023: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 024: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 025: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 026: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 027: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 028: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 029: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 030: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 031: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 032: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 033: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 034: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 035: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 036: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 037: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 038: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 039: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 040: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 041: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 042: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 043: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 044: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 045: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 046: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 047: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 048: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 049: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 050: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 051: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 052: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 053: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 054: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 055: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 056: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 057: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 058: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 059: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 060: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 061: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 062: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 063: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 064: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 065: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 066: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 067: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 068: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 069: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 070: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 071: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 072: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 073: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 074: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 075: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 076: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 077: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 078: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 079: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 080: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 081: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 082: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 083: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 084: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 085: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 086: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 087: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 088: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 089: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 090: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 091: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 092: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 093: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 094: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 095: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 096: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 097: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 098: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 099: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 100: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 101: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 102: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 103: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 104: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 105: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 106: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 107: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 108: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 109: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 110: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 111: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 112: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 113: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 114: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 115: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 116: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 117: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 118: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 119: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 120: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 121: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 122: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 123: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 124: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 125: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 126: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 127: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 128: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 129: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 130: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 131: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 132: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 133: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 134: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 135: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 136: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 137: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 138: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 139: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 140: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 141: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 142: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 143: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 144: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 145: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 146: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 147: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 148: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 149: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 150: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 151: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 152: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 153: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 154: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 155: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 156: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 157: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 158: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 159: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 160: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 161: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 162: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 163: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 164: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 165: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 166: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 167: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 168: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 169: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 170: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 171: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 172: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 173: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 174: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 175: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 176: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 177: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 178: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 179: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 180: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 181: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 182: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 183: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 184: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 185: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 186: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 187: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 188: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 189: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 190: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
-- Check 191: Verify the brief distinguishes learning from deciding. Ground this in `references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` and preserve the claim that Executive communication should create calibrated belief, not advocacy.
-- Check 192: Verify uncertainty is visible in the main narrative. Ground this in `references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` and preserve the claim that Decision quality is different from outcome quality.
-- Check 193: Verify proxy evidence is discounted or caveated. Ground this in `references/notebook/02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md` and preserve the claim that Reports should separate evidence generation from decision ownership.
-- Check 194: Verify guardrail concerns are not softened away. Ground this in `references/notebook/19. Unified Measurement_ How Experiments Fit with MMM and Attribution.md` and preserve the claim that Uncertainty, assumptions, external validity, and proxy discounts belong in the main story, not only the appendix.
-- Check 195: Verify decision options and residual risks are explicit. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null results and limitations can be strategically valuable when communicated clearly.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

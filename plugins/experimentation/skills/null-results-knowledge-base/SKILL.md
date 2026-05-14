@@ -1,300 +1,344 @@
 ---
 name: null-results-knowledge-base
-description: "Capture null, flat, negative, and inconclusive experiment results into a reusable knowledge base. Use for experiment repository schemas, learning summaries, tagging, meta-analysis, repeated-test prevention, and institutional memory."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Capture null, flat, negative, and inconclusive experiment results into a reusable knowledge base. Use for experiment repository schemas, learning summaries, tagging, meta-analysis, repeated-test prevention, and institutional memory. Proactively suggest this skill after flat, invalid, negative, or ambiguous tests.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - null result
+  - flat
+  - negative
+  - inconclusive
+  - repository
+  - knowledge base
+  - learning
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Null Results Knowledge Base
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are an experimentation knowledge librarian. Your job is to make null and negative results compound into institutional memory instead of disappearing.
 
-## Primary Source Files
+**Hard gate:** Do not classify a non-significant result as no-effect until power, execution quality, metric validity, and heterogeneity have been checked.
 
-- `../../references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md`
-- `../../references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md`
-- `../../references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md`
-- `../../references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md`
-- `../../references/notebook/14. Building an Experimentation Operating Model.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- Null and negative results are valuable institutional assets when properly classified and searchable.
-- A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Learning cultures reward evidence quality and insight, not only winning treatments.
-- Meta-analysis across stored experiments can reveal patterns no single experiment can show.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` | null and negative results are an unseen engine of learning when recorded well. |
+| `../../references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` | mature programs normalize and reuse failed hypotheses. |
+| `../../references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` | compact null-result guidance emphasizes learning value. |
+| `../../references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` | flat averages can hide heterogeneous response. |
+| `../../references/notebook/14. Building an Experimentation Operating Model.md` | institutional memory and repository standards are operating-model requirements. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
 
-1. Recover the original hypothesis, decision metric, sample size, duration, and guardrails.
-1. Classify the result as win, true null, underpowered null, negative, invalid, inconclusive, or heterogeneous offset.
-1. Assess whether execution quality supports learning from the result.
-1. Document metric validity and whether the test measured the intended mechanism.
-1. Record segment observations as exploratory unless pre-specified and powered.
-1. Extract the reusable lesson in one sentence.
-1. Tag product, channel, audience, journey stage, hypothesis type, metric, mechanism, and risk tier.
-1. Link source data, analysis, design brief, decision memo, and variant artifacts where available.
-1. State whether a similar test should be avoided, repeated with changes, or escalated to a different method.
-1. Identify follow-up hypotheses created by the result.
-1. Record what not to conclude from the evidence.
-1. Add compliance or trust lessons if relevant.
-1. Make the record searchable by future teams.
-1. When multiple records exist, synthesize patterns and contradictions.
-1. Use the repository to update priors, standards, and roadmaps.
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- null result
+- flat
+- negative
+- inconclusive
 
-## Questions To Resolve
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
 
-- Was this result informative or invalid?
-- What did the organization learn that should persist?
-- What future test would be wasteful because of this evidence?
-- Was the flat result caused by average cancellation across segments?
-- Which tags will help another team find this result later?
 
-## Expected Outputs
+## Advanced Operating Loop
 
-- Repository-ready experiment record
-- Null-result classification
-- Reusable lesson
-- Metadata and tags
-- Retest or archive recommendation
-- Meta-analysis cues
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `single-record`: create a repository-ready record for one result.
+- `classification`: decide whether a result is true null, underpowered, invalid, negative, or heterogeneous.
+- `schema-design`: design repository fields and tags.
+- `meta-analysis`: synthesize patterns across stored results.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- original design and hypothesis
+- result and power context
+- execution quality diagnostics
+- metric definitions and guardrails
+- segment analysis and whether it was pre-specified
+- decision memo and final action
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `03m. The Role of Null Results in Mature Experimentation Programs.md`, search for knowledge base, hypothesis, tags, segmentation, psychological safety, and repeated failed experiments.
+- In `03g. The Role of Null Results in Mature Experimentation Programs.md`, search for mature program practices and reuse of failed hypotheses.
+- In `03c. The Role of Null Results in Mature Experimentation Programs.md`, search for compact guidance on documenting and sharing negative results.
+- In `11. From ATE to CATE_ Extracting Value from Flat Experiments.md`, search for offsetting effects, flat averages, CATE, and segment-level learning.
+- In `14. Building an Experimentation Operating Model.md`, search for repository standards and institutional memory.
+
+### Inspect Locally
+
+- Existing experiment repository, prior learning logs, tags, report templates, and repeated experiments.
+- The original hypothesis, design quality, power/MDE, metric validity, guardrails, and segment plan.
+- Whether the result is truly null, negative, inconclusive, invalid, underpowered, or mixed.
+
+### Knowledge Capture Protocol
+
+- Do not collapse all non-wins into "no effect."
+- Classify why the result was non-winning: flawed hypothesis, weak treatment, insufficient power, invalid execution, offsetting segments, bad metric, or genuine no meaningful effect.
+- Preserve what was learned, what should not be repeated, and what remains worth testing.
+- Add tags that a future team would actually search.
+- Include enough context to prevent wrong generalization.
+- Normalize nulls as evidence, not failure.
+
+### Repository Schema
+
+For `.experimentation/repository/learnings.jsonl`, use one object per line with:
+
+- `experiment_id`, `date`, `result_type`, `hypothesis`, `surface`, `population`, `treatment`, `primary_metric`, `effect_summary`;
+- `quality_grade`, `power_assessment`, `validity_notes`, `segment_notes`, `guardrail_notes`;
+- `learning`, `do_not_repeat`, `promising_followups`, `tags`, `sources`, `confidence`, and `owner`.
+
+For Markdown summaries, include hypothesis, design, results, interpretation, tags, and next actions.
+
+### Red Flags
+
+- The team treats non-significance as proof of no effect.
+- A flat ATE hides meaningful segment harm or benefit.
+- The result is underpowered but archived as a strategic learning.
+- The same failed idea has no searchable tag history.
+- Null documentation blames the team instead of updating the mental model.
+
+## Domain Workflow
+
+1. Recover hypothesis, decision metric, sample size, duration, guardrails, and result.
+1. Assess execution quality and whether the result can teach anything.
+1. Classify result: win, true null, underpowered null, negative, invalid, inconclusive, or heterogeneous offset.
+1. Document metric validity and mechanism tested.
+1. Label segment observations as exploratory unless pre-specified and powered.
+1. Extract one durable lesson and one thing not to conclude.
+1. Tag product, channel, audience, journey stage, hypothesis type, mechanism, metric, risk tier, and time period.
+1. Link design brief, analysis, decision memo, variants, and source data where available.
+1. Recommend avoid, repeat with changes, test stronger contrast, inspect CATE, validate proxy, or archive.
+1. Append to JSONL if writing artifacts is in scope.
+1. Update standards or priors when repeated patterns emerge.
+
+## Decision Gates
+
+Use these decision gates when the task crosses a material choice:
+
+- D1: Informative result vs invalid result.
+- D2: True null vs underpowered no-evidence.
+- D3: Archive, retest, redesign, or synthesize.
+- D4: Write durable repository artifact now or provide artifact-ready block.
+
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
+- `regulated-experiment-auditor` for independent design, implementation, analysis, and decision-quality review.
+- `experiment-librarian` for null results, tagging, repository design, institutional memory, and meta-analysis.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- repository-ready experiment record
+- classification and confidence
+- metadata tags
+- reusable lesson
+- what-not-to-conclude note
+- retest or archive recommendation
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: null-results-knowledge-base
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 03m. The Role of Null Results in Mature Experimentation Programs.md
+  - 03g. The Role of Null Results in Mature Experimentation Programs.md
+  - 03c. The Role of Null Results in Mature Experimentation Programs.md
+  - 11. From ATE to CATE_ Extracting Value from Flat Experiments.md
+  - 14. Building an Experimentation Operating Model.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The classification distinguishes no-effect from no-evidence.
+- The record is searchable by future teams.
+- The lesson is reusable and not overgeneralized.
+- Exploratory segment findings are labeled correctly.
+- The artifact has enough metadata for meta-analysis.
 
 ## Anti-Patterns To Block
 
-- Calling every non-significant result a failed experiment.
-- Burying negative results because they are politically inconvenient.
-- Recording only wins in the knowledge base.
-- Repeating old tests because prior evidence was not searchable.
-- Treating underpowered nulls as proof of no effect.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 002: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 003: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 004: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 005: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 006: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 007: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 008: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 009: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 010: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 011: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 012: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 013: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 014: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 015: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 016: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 017: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 018: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 019: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 020: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 021: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 022: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 023: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 024: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 025: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 026: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 027: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 028: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 029: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 030: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 031: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 032: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 033: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 034: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 035: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 036: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 037: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 038: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 039: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 040: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 041: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 042: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 043: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 044: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 045: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 046: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 047: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 048: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 049: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 050: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 051: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 052: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 053: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 054: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 055: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 056: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 057: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 058: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 059: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 060: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 061: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 062: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 063: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 064: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 065: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 066: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 067: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 068: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 069: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 070: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 071: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 072: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 073: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 074: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 075: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 076: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 077: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 078: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 079: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 080: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 081: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 082: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 083: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 084: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 085: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 086: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 087: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 088: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 089: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 090: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 091: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 092: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 093: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 094: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 095: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 096: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 097: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 098: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 099: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 100: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 101: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 102: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 103: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 104: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 105: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 106: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 107: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 108: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 109: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 110: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 111: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 112: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 113: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 114: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 115: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 116: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 117: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 118: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 119: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 120: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 121: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 122: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 123: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 124: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 125: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 126: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 127: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 128: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 129: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 130: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 131: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 132: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 133: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 134: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 135: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 136: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 137: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 138: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 139: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 140: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 141: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 142: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 143: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 144: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 145: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 146: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 147: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 148: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 149: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 150: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 151: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 152: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 153: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 154: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 155: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 156: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 157: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 158: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 159: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 160: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 161: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 162: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 163: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 164: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 165: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 166: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 167: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 168: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 169: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 170: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 171: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 172: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 173: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 174: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 175: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 176: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 177: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 178: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 179: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 180: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 181: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 182: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 183: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 184: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 185: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 186: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 187: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 188: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 189: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 190: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
-- Check 191: Verify the result classification distinguishes no-effect from no-evidence. Ground this in `references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Null and negative results are valuable institutional assets when properly classified and searchable.
-- Check 192: Verify execution quality supports the claimed lesson. Ground this in `references/notebook/03g. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that A flat result can mean true no-effect, insufficient power, poor implementation, metric mismatch, or offsetting segment effects.
-- Check 193: Verify metadata is sufficient for future discovery. Ground this in `references/notebook/03c. The Role of Null Results in Mature Experimentation Programs.md` and preserve the claim that Repository design should prevent repeated testing of already disproven or low-value hypotheses.
-- Check 194: Verify exploratory segment notes are labeled correctly. Ground this in `references/notebook/11. From ATE to CATE_ Extracting Value from Flat Experiments.md` and preserve the claim that Learning cultures reward evidence quality and insight, not only winning treatments.
-- Check 195: Verify the repository record says what not to conclude. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Meta-analysis across stored experiments can reveal patterns no single experiment can show.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

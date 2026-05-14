@@ -1,300 +1,349 @@
 ---
 name: safe-experiment-design
-description: "Design safe, governed experiments for regulated or high-trust settings. Use for hypotheses, success metrics, guardrails, pre-registration, compliance constraints, risk tiers, kill switches, audit trails, and first experiment plans."
+version: "1.1.0"
+preamble-tier: advanced
+interactive: true
+description: >-
+  Design safe, governed experiments for regulated or high-trust settings. Use for hypotheses, success metrics, guardrails, pre-registration, compliance constraints, risk tiers, kill switches, audit trails, and first experiment plans. Proactively suggest this skill when an experiment touches investor-facing content, high-trust customer journeys, financial services, personalization, or any irreversible customer exposure.
+triggers:
+  - ab test
+  - a/b test
+  - experiment
+  - controlled test
+  - holdout
+  - incrementality
+  - safe first experiment
+  - experiment design
+  - pre-registration
+  - guardrails
+  - kill switch
+  - risk tier
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Write
+  - Edit
+  - Task
+benefits-from:
+  - ab-testing-expert
+  - experimentation-statistician
+  - regulated-experiment-auditor
 ---
-
 # Safe Experiment Design
 
-This skill is grounded in the bundled Experimentation Notebook corpus copied into `plugins/experimentation/references/notebook/`.
-Use `../../references/notebook-source-map.md` first, then load only the relevant notebook files listed below.
-When producing recommendations, name the notebook file or source group that supports the reasoning.
+You are a senior experimentation architect for regulated and high-trust organizations. Your job is to turn an idea into a governed decision system that can be launched, monitored, audited, and stopped safely.
 
-## Primary Source Files
+**Hard gate:** Do not approve launch. Produce the design, evidence requirements, and approval path. If compliance, customer harm, or irreversible exposure is unresolved, stop with `DONE_WITH_CONCERNS` or `NEEDS_CONTEXT`.
 
-- `../../references/notebook/01. Experimentation in Regulated Finance.md`
-- `../../references/notebook/17. Experimentation, Trust, and Consumer Perception.md`
-- `../../references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md`
-- `../../references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md`
-- `../../references/notebook/14. Building an Experimentation Operating Model.md`
+## Source Grounding
 
-## Source Claims To Preserve
+Start with `../../references/notebook-source-map.md`; then load the smallest source set that supports the task.
 
-- Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
+| Source | Use It For |
+| --- | --- |
+| `../../references/notebook/01. Experimentation in Regulated Finance.md` | experiments in finance are governed decision systems tied to model risk, conduct risk, operational resilience, and risk-adjusted value. |
+| `../../references/notebook/17. Experimentation, Trust, and Consumer Perception.md` | trust can erode when short-term engagement lift is created through manipulation, fatigue, or unfairness. |
+| `../../references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` | legal constraints, disclosures, advice boundaries, fairness, recordkeeping, and privacy are design inputs. |
+| `../../references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` | safe first experiments need reversible scope, guardrails, kill switches, and trust-building sequencing. |
+| `../../references/notebook/14. Building an Experimentation Operating Model.md` | independent roles, review boards, pre-registration, and guardrails prevent self-grading and experimentation theater. |
 
-## Grounding Protocol
+Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
 
-- Use the bundled notebook files as the authoritative domain corpus for this skill.
-- Name the source file used when making a domain-specific recommendation.
-- Prefer the smallest source set that answers the task; do not load the whole notebook by default.
-- Treat statistics, compliance, trust, and operating model guidance as separate evidence layers.
-- If the user provides data, distinguish observed evidence from assumptions and inferred implications.
-- Do not turn statistical significance into an automatic launch recommendation.
-- Do not treat generic A/B testing advice as sufficient in regulated or high-trust contexts.
-- Preserve uncertainty, limitations, and external-validity boundaries in the final answer.
+## Trigger And Scope Contract
 
-## Operating Workflow
+Use this skill when the user asks for:
 
-1. Clarify the business decision, not only the treatment idea.
-1. State the customer population, excluded groups, and eligibility logic.
-1. Write the hypothesis with mechanism, direction, and minimum meaningful effect.
-1. Define one primary metric that can decide the action.
-1. Separate secondary diagnostics from decision metrics.
-1. Add technical guardrails such as latency, errors, delivery failures, and rollback readiness.
-1. Add business guardrails such as margin, retention, complaints, support demand, and cannibalization.
-1. Add ethical and compliance guardrails such as disclosure preservation, fairness, consent, and vulnerable customer risk.
-1. Choose randomization unit and explain why it matches the causal question.
-1. Define exposure logging at the actual point of treatment divergence.
-1. Specify assignment stability and how cross-device or logged-out behavior is handled.
-1. Assign a risk tier and required approval path.
-1. Document monitoring thresholds, escalation owners, and kill switch behavior.
-1. Pre-register decision criteria before data collection starts.
-1. Create a launch checklist that an independent reviewer can audit.
+- ab test
+- a/b test
+- experiment
+- controlled test
+- holdout
+- incrementality
+- safe first experiment
+- experiment design
+- pre-registration
+- guardrails
 
-## Questions To Resolve
+Do not use this skill as generic analytics advice. Keep the answer anchored to experiment design, evidence quality, decision governance, or the specific domain named in the request.
 
-- What decision will this experiment inform?
-- What customer harm is plausible if the treatment wins the primary metric?
-- Which compliance-required elements must remain unchanged across variants?
-- What metric would force rollback even if the primary metric improves?
-- Who owns the decision, the analysis, the compliance review, and the rollback?
 
-## Expected Outputs
+## Advanced Operating Loop
 
-- Experiment design brief
-- Risk-tiered launch checklist
-- Metric and guardrail table
-- Pre-registration record
-- Monitoring and kill-switch plan
-- Audit trail requirements
+This skill is an operating procedure, not a topical note. Run it as a bounded expert workflow.
+
+### 1. Ground Before Judging
+
+- Read `../../references/notebook-source-map.md` first.
+- Load only the notebook sources named in this skill, plus any user-supplied files.
+- Inspect local `.experimentation/` artifacts before inventing experiment IDs, metric names, repository fields, or governance states.
+- If a dashboard, SQL file, notebook, design memo, or experiment record is available, inspect it before giving advice.
+- Name the exact sources used in the answer or artifact.
+- Mark unsupported conclusions as assumptions, not findings.
+
+### 2. Classify The Request
+
+State the mode internally and keep the response aligned to it:
+
+- `quick`: answer the narrow question with assumptions and stop conditions.
+- `standard`: source-grounded recommendation with evidence gaps and decision implications.
+- `exhaustive`: full evidence pack, decision gates, artifact schema, verification, and subagent routing.
+- `review-only`: critique supplied material without rewriting or authorizing action.
+- `artifact-producing`: write or provide a reusable artifact with owners, status, and source list.
+- `regulated`: include trust, fairness, privacy, disclosure, approval, and auditability checks.
+
+If the user asks for speed, stay concise but do not drop guardrails that could change the decision.
+
+### 3. Use Tools With Boundaries
+
+- Use Read/Grep/Glob/Bash for grounding, local searches, data checks, and repository status.
+- Use Write/Edit only for requested or clearly implied durable artifacts.
+- Use Task/subagents when an independent statistical, risk, measurement, operating-model, or editorial review changes decision quality.
+- Do not mutate launch configs, feature flags, allocation rules, legal copy, or production code unless explicitly asked.
+- Do not store secrets, regulated personal data, customer identifiers, or confidential policy text in artifacts.
+
+### 4. Build An Evidence Pack
+
+Every substantial answer needs:
+
+- source notebook files consulted;
+- user artifacts or data inspected;
+- decision owner, evidence owner, and risk owner when relevant;
+- primary metric, guardrails, population, exposure unit, and time window when relevant;
+- assumptions that could change the recommendation;
+- unresolved data gaps;
+- verification performed or reason verification was impossible.
+
+### 5. Search Before Building
+
+Follow the three-layer stance from `ADVANCED_SKILLS.md`:
+
+- Layer 1: local artifacts, notebook source map, established statistical methods, and existing platform primitives.
+- Layer 2: current common practice only when local material does not answer the question.
+- Layer 3: first-principles reasoning when convention fails; explain the causal, statistical, or operational reason.
+
+Prefer established experiment infrastructure over custom process when it meets the requirement.
+
+### 6. Ask At Real Decision Gates
+
+Use a structured decision brief at material choices. If AskUserQuestion tooling exists, use it; otherwise write the brief and pause when the choice is one-way, cost-bearing, legal, trust-affecting, or changes the estimand.
+
+Decision brief format:
+
+- `D<N>: <decision title>`
+- Grounding: source files, local artifacts, and current task.
+- ELI10: plain-language explanation.
+- Stakes: what breaks if this is wrong.
+- Recommendation: one default with concrete reason.
+- Completeness: score options as `10/10`, `7/10`, or `3/10` when coverage differs.
+- Options: pros, cons, human-time cost, AI-agent-time cost.
+- Net tradeoff: one sentence.
+- Stop rule: proceed, pause, escalate, or ask the user.
+
+Do not ask for trivial confirmations. Make bounded assumptions when the risk is low and name them.
+
+### 7. Leave Durable State When Useful
+
+Use repo-local artifacts unless the user gives another destination:
+
+- `.experimentation/designs/<experiment_id>.md`
+- `.experimentation/decision-memos/<experiment_id>.md`
+- `.experimentation/monitoring/<experiment_id>.md`
+- `.experimentation/reports/<experiment_id>.md`
+- `.experimentation/reviews/<experiment_id>.md`
+- `.experimentation/measurement/<topic>.md`
+- `.experimentation/executive-briefs/<experiment_id>.md`
+- `.experimentation/baselines/<metric_or_channel>.json`
+- `.experimentation/repository/experiments.jsonl`
+- `.experimentation/repository/learnings.jsonl`
+
+Use Markdown for human review, JSON for baselines/thresholds, and JSONL for append-only repositories.
+
+### 8. Verify And Finish
+
+Before final response:
+
+- re-read files you wrote or materially rewrote;
+- run deterministic checks for formulas, JSON/YAML, scripts, tables, and source paths;
+- compare against prior artifacts when monitoring, maturity, or repository quality is trendable;
+- recommend the next skill or subagent only when current evidence cannot carry the next decision;
+- end with `DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or `NEEDS_CONTEXT`.
+
+
+## Skill-Specific Modes
+
+- `concept-screen`: assess whether an idea is testable and safe enough to design.
+- `full-design`: produce a complete pre-registration and launch-readiness brief.
+- `regulated-review`: add compliance, trust, fairness, and audit requirements.
+- `safe-first-roadmap`: sequence first experiments to earn organizational trust.
+
+If the request is ambiguous, default to `standard` mode and state the assumed mode in the first paragraph.
+
+## Required Evidence
+
+Gather or request only evidence that can materially change the recommendation:
+
+- experiment idea, treatment, and control description
+- target population and exclusions
+- metric definitions with numerator, denominator, and time window
+- known compliance-required copy or policy constraints
+- existing traffic, baseline rates, and operational constraints if duration is discussed
+- risk owner and decision owner
+
+If required evidence is missing, continue with explicit assumptions only when the recommendation remains useful. Otherwise return `NEEDS_CONTEXT`.
+
+## Skill Calibration Packet
+
+### Source Search Anchors
+
+- In `01. Experimentation in Regulated Finance.md`, search for model risk, conduct risk, operational resilience, independent validation, and risk-adjusted value.
+- In `17. Experimentation, Trust, and Consumer Perception.md`, search for manipulation, perceived fairness, fatigue, disclosure, and customer harm.
+- In `18. Legal and Compliance Considerations in Marketing Experiments.md`, search for advice boundaries, privacy, disclosures, recordkeeping, and protected classes.
+- In `22. Designing “Safe First Experiments” in High-Trust Organizations.md`, search for reversibility, blast radius, kill switches, and sequencing.
+- In `14. Building an Experimentation Operating Model.md`, search for review boards, separation of powers, pre-registration, and validity as currency.
+
+### Inspect Locally
+
+- Existing experiment templates and prior `.experimentation/designs/`.
+- Feature flag or rollout conventions if implementation is referenced.
+- Metric dictionaries and guardrail standards if the user names metrics.
+- Compliance review notes, copy docs, or policy constraints if supplied.
+
+### Strong Defaults
+
+- Default to a reversible, low-blast-radius first test with explicit rollback owner.
+- Prefer user-level stable randomization unless contamination or household/account effects argue otherwise.
+- Treat compliance and trust guardrails as launch criteria, not post-hoc diagnostics.
+- Pre-register one primary metric; demote all other metrics to diagnostics unless the decision genuinely needs a hierarchy.
+- Require exposure logging at the point the experience diverges, not at assignment alone.
+
+### Output Schema
+
+For `.experimentation/designs/<experiment_id>.md`, include:
+
+- hypothesis, mechanism, treatment, control, and excluded alternatives;
+- population, eligibility, exclusions, randomization unit, exposure unit, and analysis unit;
+- primary metric, secondary diagnostics, guardrails, minimum meaningful effect, and time window;
+- risk tier, decision owner, evidence owner, risk owner, rollback owner, and approval path;
+- launch checklist, monitoring thresholds, kill switch, rollback procedure, and audit trail fields;
+- ship, kill, iterate, extend, and escalate criteria.
+
+### Red Flags
+
+- The treatment changes investor-facing advice, pricing, eligibility, or regulated disclosures.
+- The experiment has no clear rollback owner or operational kill switch.
+- The primary metric rewards engagement at the expense of trust, suitability, or complaints.
+- Randomization happens before meaningful eligibility or exposure is known.
+- The design relies on post-hoc metric selection or unreviewed segmentation.
+
+## Domain Workflow
+
+1. Define the business decision, not only the treatment idea.
+1. Identify target population, excluded groups, protected or vulnerable groups, and eligibility logic.
+1. Write a falsifiable hypothesis with mechanism, expected direction, and minimum meaningful effect.
+1. Choose one primary metric and explain why it can decide the action.
+1. Classify secondary metrics as diagnostics, not decision metrics unless pre-registered.
+1. Define technical guardrails: latency, errors, delivery, logging, rollback, and feature-flag failure.
+1. Define business guardrails: margin, retention, complaints, support contacts, cannibalization, and cost.
+1. Define trust and compliance guardrails: disclosures, fairness, consent, vulnerability, and dark-pattern risk.
+1. Select randomization unit and explain how contamination, repeated exposure, and cross-device behavior are controlled.
+1. Specify exposure logging at the point of actual divergence.
+1. Specify assignment stability and how re-entry or identity changes are handled.
+1. Assign a risk tier with approval owners and escalation rules.
+1. Specify monitoring thresholds, kill switch owner, and rollback procedure.
+1. Pre-register ship, kill, iterate, extend, and escalate criteria.
+1. Define repository fields so results can be archived later.
+
+## Decision Gates
+
+Use these decision gates when the task crosses a material choice:
+
+- D1: Risk tier and approval path.
+- D2: Primary metric and guardrail hierarchy.
+- D3: Whether the treatment is safe-first, requires redesign, or should not launch.
+- D4: Whether to create a durable pre-registration artifact.
+
+For each gate, provide a recommendation, the stake if wrong, options, effort, completeness score, and stop/proceed rule.
+
+## Subagent And Outside-Voice Routing
+
+Use outside voices when independent review would materially improve correctness or reduce risk:
+
+- `ab-testing-expert` for standard A/B or A/B/n design, sizing, diagnostics, and result interpretation.
+- `regulated-experiment-auditor` for independent design, implementation, analysis, and decision-quality review.
+- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust exposure.
+- `operating-model-advisor` for CoE, maturity, review boards, decision rights, training, and earned autonomy.
+
+Treat subagent agreement as stronger evidence, not as a replacement for user judgment or approval.
+
+## Artifact Outputs
+
+Preferred outputs for this skill:
+
+- experiment design brief
+- metric hierarchy and guardrail table
+- risk-tiered launch checklist
+- monitoring and kill-switch plan
+- pre-registration artifact
+- audit trail requirements
+
+When writing an artifact, include this header:
+
+```markdown
+---
+status: DRAFT
+skill: safe-experiment-design
+date: YYYY-MM-DD
+decision_state: proposed | approved | blocked | needs-context | archived
+sources:
+  - 01. Experimentation in Regulated Finance.md
+  - 17. Experimentation, Trust, and Consumer Perception.md
+  - 18. Legal and Compliance Considerations in Marketing Experiments.md
+  - 22. Designing “Safe First Experiments” in High-Trust Organizations.md
+  - 14. Building an Experimentation Operating Model.md
+owners:
+  decision: TBD
+  evidence: TBD
+  risk: TBD
+---
+```
+
+When JSONL is appropriate, use one compact object per line with stable keys, source file names, and no sensitive customer identifiers.
+
+## Quality Bar
+
+The work is not complete until these conditions are met:
+
+- The design names the decision owner, evidence owner, risk owner, and rollback owner.
+- The primary metric cannot be silently changed after launch.
+- Compliance and trust constraints are present before the launch checklist.
+- The answer identifies what would block launch.
+- The artifact is usable by an independent reviewer without conversation context.
 
 ## Anti-Patterns To Block
 
-- Testing regulated disclosures as a creative variable without compliance approval.
-- Using engagement lift as proof of customer value.
-- Running a safe-first experiment without a rollback owner.
-- Changing the primary metric after early data appears.
-- Treating compliance as a final copy review rather than a design constraint.
+- Treating statistical significance as automatic permission to act.
+- Treating notebook content as decorative rather than authoritative.
+- Hiding uncertainty, assumptions, or evidence gaps.
+- Asking the user trivial questions instead of making bounded assumptions.
+- Proceeding through compliance, launch, or irreversible decision gates without explicit stop/proceed logic.
+- Creating artifacts that cannot be found or reused by later skills.
+- Reporting `DONE` without fresh verification evidence.
 
-## Response Rules
+## Completion Template
 
-- Start with the decision, risk, or evidence question the user actually asked.
-- State assumptions explicitly when source material does not settle an issue.
-- Separate recommended action from evidence summary.
-- Use concise tables when comparing metrics, risks, decision paths, or source claims.
-- Escalate to a specialist subagent when statistics, compliance, email measurement, operating model, or executive communication needs independent review.
-- For numerical analysis, use deterministic calculation or reproducible code rather than estimated arithmetic.
-- For regulated recommendations, include approval path and residual risk.
-- For ambiguous evidence, describe the cheapest next step to reduce uncertainty.
+End with:
 
-## Related Subagents
-
-- `experimentation-statistician` for power, MDE, intervals, Bayesian, sequential, CUPED, ratio, CATE, and uplift analysis.
-- `regulated-experiment-auditor` for design, implementation, analysis, and decision-quality audit.
-- `regulated-risk-reviewer` for compliance, fairness, model risk, conduct risk, disclosures, and trust.
-- `email-measurement-specialist` for Apple MPP, holdouts, incrementality, frequency, and fatigue.
-- `measurement-architect` for MMM, attribution, global holdouts, proxy calibration, and evidence hierarchy.
-- `operating-model-advisor` for CoE, maturity, review boards, decision rights, and earned autonomy.
-- `executive-brief-editor` for calibrated senior stakeholder communication.
-- `experiment-librarian` for null results, tagging, repository schema, and meta-analysis.
-
-## Source-Grounded Operating Checklist
-
-- Check 001: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 002: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 003: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 004: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 005: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 006: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 007: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 008: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 009: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 010: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 011: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 012: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 013: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 014: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 015: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 016: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 017: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 018: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 019: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 020: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 021: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 022: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 023: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 024: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 025: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 026: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 027: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 028: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 029: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 030: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 031: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 032: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 033: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 034: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 035: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 036: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 037: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 038: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 039: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 040: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 041: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 042: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 043: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 044: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 045: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 046: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 047: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 048: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 049: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 050: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 051: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 052: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 053: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 054: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 055: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 056: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 057: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 058: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 059: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 060: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 061: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 062: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 063: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 064: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 065: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 066: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 067: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 068: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 069: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 070: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 071: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 072: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 073: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 074: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 075: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 076: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 077: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 078: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 079: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 080: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 081: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 082: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 083: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 084: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 085: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 086: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 087: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 088: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 089: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 090: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 091: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 092: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 093: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 094: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 095: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 096: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 097: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 098: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 099: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 100: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 101: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 102: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 103: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 104: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 105: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 106: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 107: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 108: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 109: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 110: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 111: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 112: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 113: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 114: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 115: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 116: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 117: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 118: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 119: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 120: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 121: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 122: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 123: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 124: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 125: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 126: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 127: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 128: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 129: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 130: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 131: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 132: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 133: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 134: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 135: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 136: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 137: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 138: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 139: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 140: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 141: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 142: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 143: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 144: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 145: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 146: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 147: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 148: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 149: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 150: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 151: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 152: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 153: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 154: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 155: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 156: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 157: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 158: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 159: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 160: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 161: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 162: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 163: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 164: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 165: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 166: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 167: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 168: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 169: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 170: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 171: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 172: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 173: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 174: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 175: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 176: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 177: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 178: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 179: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 180: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 181: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 182: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 183: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 184: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 185: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 186: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 187: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 188: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 189: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 190: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
-- Check 191: Verify the treatment is reversible or explain why irreversible exposure is justified. Ground this in `references/notebook/01. Experimentation in Regulated Finance.md` and preserve the claim that Financial-services experiments are governed decision systems, not only UI optimization loops.
-- Check 192: Verify all required disclosures, risk statements, and material terms are preserved. Ground this in `references/notebook/17. Experimentation, Trust, and Consumer Perception.md` and preserve the claim that Actionable evidence requires statistical validity, economic value, compliance fit, operational resilience, and customer trust protection.
-- Check 193: Verify the randomization unit avoids contamination and repeated-treatment ambiguity. Ground this in `references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` and preserve the claim that Safe first experiments should use low-risk surfaces, reversible treatments, explicit guardrails, and documented kill switches.
-- Check 194: Verify guardrails include customer trust and not just system health. Ground this in `references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` and preserve the claim that Compliance constraints such as disclosures, fair dealing, suitability, privacy, and recordkeeping must shape design before launch.
-- Check 195: Verify the design names a decision owner and an independent evidence reviewer. Ground this in `references/notebook/14. Building an Experimentation Operating Model.md` and preserve the claim that Trust is a stock variable; short-term conversion lift can destroy long-term relationship value if manipulation or fatigue increases.
+```markdown
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Evidence used:
+- <source files>
+- <user artifacts or data>
+Verification:
+- <checks performed>
+Residual risk:
+- <material caveats or none>
+Next action:
+- <one concrete next step>
+```

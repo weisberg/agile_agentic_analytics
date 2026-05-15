@@ -16,8 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import asdict, dataclass, field
-from decimal import Decimal
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -30,11 +29,11 @@ logger = logging.getLogger(__name__)
 class GapType(Enum):
     """Classification of keyword gap between you and a competitor."""
 
-    MISSING = "missing"        # Competitor ranks, you do not
-    WEAK = "weak"              # Both rank, competitor significantly higher
-    STRONG = "strong"          # Both rank, you significantly higher
-    SHARED = "shared"          # Both rank in similar positions
-    UNIQUE = "unique"          # You rank, competitor does not
+    MISSING = "missing"  # Competitor ranks, you do not
+    WEAK = "weak"  # Both rank, competitor significantly higher
+    STRONG = "strong"  # Both rank, you significantly higher
+    SHARED = "shared"  # Both rank in similar positions
+    UNIQUE = "unique"  # You rank, competitor does not
 
 
 @dataclass
@@ -225,7 +224,9 @@ def load_competitor_keywords(
 
     logger.info(
         "Loaded %d keyword records for competitor '%s' from %s",
-        len(records), competitor_name, filepath,
+        len(records),
+        competitor_name,
+        filepath,
     )
     return records
 
@@ -455,8 +456,7 @@ def analyze_keyword_gaps(
     )
 
     logger.info(
-        "Gap analysis for '%s': %d total, %d missing, %d weak, %d strong, "
-        "%d shared, %d unique",
+        "Gap analysis for '%s': %d total, %d missing, %d weak, %d strong, %d shared, %d unique",
         competitor_name,
         summary.total_keywords_analyzed,
         summary.missing_count,
@@ -491,7 +491,8 @@ def detect_new_competitor_keywords(
 
     logger.info(
         "Detected %d new keywords for competitor '%s'",
-        len(new_keywords), competitor_name,
+        len(new_keywords),
+        competitor_name,
     )
     return new_keywords
 
@@ -522,14 +523,12 @@ def run_gap_analysis(
     summaries: list[GapAnalysisSummary] = []
     for competitor_name in competitors:
         try:
-            comp_keywords = load_competitor_keywords(
-                competitor_data_path, competitor_name
-            )
+            comp_keywords = load_competitor_keywords(competitor_data_path, competitor_name)
         except Exception as exc:
             logger.warning(
-                "Failed to load keywords for competitor '%s': %s. "
-                "Skipping (graceful degradation).",
-                competitor_name, exc,
+                "Failed to load keywords for competitor '%s': %s. Skipping (graceful degradation).",
+                competitor_name,
+                exc,
             )
             continue
 
@@ -560,28 +559,32 @@ def export_results(
     for summary in summaries:
         opportunities = []
         for opp in summary.top_opportunities:
-            opportunities.append({
-                "keyword": opp.keyword,
-                "search_volume": opp.search_volume,
-                "keyword_difficulty": opp.keyword_difficulty,
-                "your_position": opp.your_position,
-                "competitor": opp.competitor,
-                "competitor_position": opp.competitor_position,
-                "gap_type": opp.gap_type.value,
-                "opportunity_score": round(opp.opportunity_score, 2),
-                "business_relevance": opp.business_relevance,
-            })
+            opportunities.append(
+                {
+                    "keyword": opp.keyword,
+                    "search_volume": opp.search_volume,
+                    "keyword_difficulty": opp.keyword_difficulty,
+                    "your_position": opp.your_position,
+                    "competitor": opp.competitor,
+                    "competitor_position": opp.competitor_position,
+                    "gap_type": opp.gap_type.value,
+                    "opportunity_score": round(opp.opportunity_score, 2),
+                    "business_relevance": opp.business_relevance,
+                }
+            )
 
-        output_data.append({
-            "competitor": summary.competitor,
-            "total_keywords_analyzed": summary.total_keywords_analyzed,
-            "missing_count": summary.missing_count,
-            "weak_count": summary.weak_count,
-            "strong_count": summary.strong_count,
-            "shared_count": summary.shared_count,
-            "unique_count": summary.unique_count,
-            "top_opportunities": opportunities,
-        })
+        output_data.append(
+            {
+                "competitor": summary.competitor,
+                "total_keywords_analyzed": summary.total_keywords_analyzed,
+                "missing_count": summary.missing_count,
+                "weak_count": summary.weak_count,
+                "strong_count": summary.strong_count,
+                "shared_count": summary.shared_count,
+                "unique_count": summary.unique_count,
+                "top_opportunities": opportunities,
+            }
+        )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
@@ -593,9 +596,7 @@ def export_results(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Competitor keyword gap analysis with opportunity scoring"
-    )
+    parser = argparse.ArgumentParser(description="Competitor keyword gap analysis with opportunity scoring")
     parser.add_argument(
         "--your-keywords",
         type=Path,

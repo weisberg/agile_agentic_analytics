@@ -15,7 +15,6 @@ from typing import Any, Literal, Optional
 
 import numpy as np
 import pandas as pd
-from scipy.special import beta as beta_func
 
 logger = logging.getLogger(__name__)
 
@@ -211,9 +210,7 @@ def fit_gamma_gamma_mle(
     customers_excluded = int(total_customers - len(rfm_repeat))
 
     if len(rfm_repeat) == 0:
-        raise ValueError(
-            "No customers with frequency > 0. Gamma-Gamma requires repeat purchasers."
-        )
+        raise ValueError("No customers with frequency > 0. Gamma-Gamma requires repeat purchasers.")
 
     # Drop rows with missing monetary value
     rfm_repeat = rfm_repeat.dropna(subset=[monetary_col])
@@ -295,9 +292,7 @@ def fit_gamma_gamma_bayesian(
     rfm_repeat = rfm_repeat.dropna(subset=["monetary_value"])
 
     if len(rfm_repeat) == 0:
-        raise ValueError(
-            "No customers with frequency > 0 and non-null monetary_value."
-        )
+        raise ValueError("No customers with frequency > 0 and non-null monetary_value.")
 
     model_data = rfm_repeat[["customer_id", "frequency", "monetary_value"]].copy()
     model_data["customer_id"] = model_data["customer_id"].astype(str)
@@ -396,14 +391,12 @@ def fit_beta_geometric(
 
     # Compute tenure in periods
     if period == "M":
-        subs["_periods"] = (
-            (subs["_end"].dt.year - subs[start_col].dt.year) * 12
-            + (subs["_end"].dt.month - subs[start_col].dt.month)
+        subs["_periods"] = (subs["_end"].dt.year - subs[start_col].dt.year) * 12 + (
+            subs["_end"].dt.month - subs[start_col].dt.month
         )
     elif period == "Q":
-        subs["_periods"] = (
-            (subs["_end"].dt.year - subs[start_col].dt.year) * 4
-            + (subs["_end"].dt.to_period("Q").astype(int) - subs[start_col].dt.to_period("Q").astype(int))
+        subs["_periods"] = (subs["_end"].dt.year - subs[start_col].dt.year) * 4 + (
+            subs["_end"].dt.to_period("Q").astype(int) - subs[start_col].dt.to_period("Q").astype(int)
         )
     elif period == "Y":
         subs["_periods"] = subs["_end"].dt.year - subs[start_col].dt.year
@@ -439,10 +432,12 @@ def fit_beta_geometric(
                 if churned[i]:
                     # Churned at period n: P = B(alpha+1, beta+n-1)/B(alpha, beta)
                     from scipy.special import betaln
+
                     ll += betaln(alpha + 1, beta_param + n - 1) - betaln(alpha, beta_param)
                 else:
                     # Survived n periods: P = B(alpha, beta+n)/B(alpha, beta)
                     from scipy.special import betaln
+
                     ll += betaln(alpha, beta_param + n) - betaln(alpha, beta_param)
         return -ll
 
@@ -457,9 +452,7 @@ def fit_beta_geometric(
 
     retention_curve = []
     for n in range(max_period + 1):
-        survival_prob = np.exp(
-            betaln(alpha_hat, beta_hat + n) - betaln(alpha_hat, beta_hat)
-        )
+        survival_prob = np.exp(betaln(alpha_hat, beta_hat + n) - betaln(alpha_hat, beta_hat))
         retention_curve.append(float(survival_prob))
 
     # Expected remaining lifetime per customer
@@ -474,10 +467,7 @@ def fit_beta_geometric(
             if s_n > 0:
                 remaining = 0.0
                 for j in range(1, 200):
-                    s_nj = np.exp(
-                        betaln(alpha_hat, beta_hat + n + j)
-                        - betaln(alpha_hat, beta_hat)
-                    )
+                    s_nj = np.exp(betaln(alpha_hat, beta_hat + n + j) - betaln(alpha_hat, beta_hat))
                     increment = s_nj / s_n
                     if increment < 1e-8:
                         break

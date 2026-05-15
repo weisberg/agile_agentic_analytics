@@ -57,7 +57,9 @@ def validate_and_load(
                 "skill_id": skill_name,
                 "records": records,
                 "metrics": metrics,
-                "warnings": [] if any("date" in record for record in records) else ["No date field found; records will not align temporally."],
+                "warnings": []
+                if any("date" in record for record in records)
+                else ["No date field found; records will not align temporally."],
             }
         )
     return datasets
@@ -74,12 +76,7 @@ def align_date_dimensions(
         raise ValueError("Unsupported fill_method")
 
     all_dates = sorted(
-        {
-            str(record["date"])[:10]
-            for dataset in datasets
-            for record in dataset["records"]
-            if "date" in record
-        }
+        {str(record["date"])[:10] for dataset in datasets for record in dataset["records"] if "date" in record}
     )
     aligned: list[dict[str, Any]] = []
     for dataset in datasets:
@@ -147,7 +144,10 @@ def merge_into_unified_dataset(
     return {
         "data": ordered_rows,
         "metrics": metric_metadata,
-        "date_range": {"start": min(date_values) if date_values else None, "end": max(date_values) if date_values else None},
+        "date_range": {
+            "start": min(date_values) if date_values else None,
+            "end": max(date_values) if date_values else None,
+        },
         "skills_included": sorted(set(skills_included)),
         "skills_missing": [],
         "sources": sources,
@@ -172,9 +172,17 @@ def compute_derived_metrics(
         row["marketing_efficiency_ratio"] = revenue / spend if spend else None
         row["cost_per_qualified_lead"] = spend / conversions if conversions else None
     existing = {metric["name"] for metric in unified_dataset["metrics"]}
-    for name in ("blended_roas", "portfolio_conversion_rate", "weighted_clv", "marketing_efficiency_ratio", "cost_per_qualified_lead"):
+    for name in (
+        "blended_roas",
+        "portfolio_conversion_rate",
+        "weighted_clv",
+        "marketing_efficiency_ratio",
+        "cost_per_qualified_lead",
+    ):
         if name not in existing:
-            unified_dataset["metrics"].append({"name": name, "source_skill": "derived", "data_type": "numeric", "business_weight": 1.2})
+            unified_dataset["metrics"].append(
+                {"name": name, "source_skill": "derived", "data_type": "numeric", "business_weight": 1.2}
+            )
     return unified_dataset
 
 

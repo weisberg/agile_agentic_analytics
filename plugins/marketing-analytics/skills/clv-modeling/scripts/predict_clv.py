@@ -10,9 +10,8 @@ from __future__ import annotations
 import json
 import logging
 import pickle
-from decimal import Decimal
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -43,6 +42,7 @@ def _is_bayesian(model: Any) -> bool:
 # ===================================================================
 # Transaction prediction
 # ===================================================================
+
 
 def predict_expected_transactions(
     rfm: pd.DataFrame,
@@ -95,9 +95,7 @@ def predict_expected_transactions(
         ).values
 
         # Bootstrap CIs by perturbing parameters
-        ci_lower, ci_upper = _bootstrap_transaction_ci(
-            bgnbd_model, rfm, t, n_boot=200
-        )
+        ci_lower, ci_upper = _bootstrap_transaction_ci(bgnbd_model, rfm, t, n_boot=200)
 
     return pd.DataFrame(
         {
@@ -152,7 +150,8 @@ def _bootstrap_transaction_ci(
         # Not enough successful bootstraps; return conservative bounds
         logger.warning(
             "Only %d/%d bootstrap iterations succeeded; CIs may be unreliable.",
-            len(preds), n_boot,
+            len(preds),
+            n_boot,
         )
         base = model.conditional_expected_number_of_purchases_up_to_time(
             t, rfm["frequency"], rfm["recency"], rfm["T"]
@@ -169,6 +168,7 @@ def _bootstrap_transaction_ci(
 # ===================================================================
 # Probability alive
 # ===================================================================
+
 
 def predict_probability_alive(
     rfm: pd.DataFrame,
@@ -254,9 +254,7 @@ def _bootstrap_prob_alive_ci(
             continue
 
     if len(preds) < 10:
-        base = model.conditional_probability_alive(
-            rfm["frequency"], rfm["recency"], rfm["T"]
-        ).values
+        base = model.conditional_probability_alive(rfm["frequency"], rfm["recency"], rfm["T"]).values
         return np.clip(base - 0.1, 0, 1), np.clip(base + 0.1, 0, 1)
 
     preds = np.stack(preds, axis=0)
@@ -269,6 +267,7 @@ def _bootstrap_prob_alive_ci(
 # ===================================================================
 # Monetary value prediction
 # ===================================================================
+
 
 def predict_monetary_value(
     rfm: pd.DataFrame,
@@ -325,6 +324,7 @@ def predict_monetary_value(
 # Combined CLV
 # ===================================================================
 
+
 def compute_clv(
     expected_transactions: pd.DataFrame,
     expected_monetary: pd.DataFrame,
@@ -364,9 +364,7 @@ def compute_clv(
     monthly_rate = discount_rate / 12.0
 
     # Discount factor: sum of present-value factors for each month
-    discount_factor = sum(
-        1.0 / (1.0 + monthly_rate) ** m for m in range(1, horizon_months + 1)
-    )
+    discount_factor = sum(1.0 / (1.0 + monthly_rate) ** m for m in range(1, horizon_months + 1))
     # Normalize: divide by horizon so CLV = E[txns] * E[mv] * margin * adj_factor
     # Actually the standard approach: CLV = E[txns] * E[mv] * margin
     # The discount factor adjusts the time-value. Since E[txns] already
@@ -375,27 +373,23 @@ def compute_clv(
     discount_adj = discount_factor / horizon_months if horizon_months > 0 else 1.0
 
     # Merge all component predictions on customer_id
-    merged = expected_transactions[["customer_id", "expected_transactions",
-                                     "expected_transactions_ci_lower",
-                                     "expected_transactions_ci_upper"]].copy()
+    merged = expected_transactions[
+        ["customer_id", "expected_transactions", "expected_transactions_ci_lower", "expected_transactions_ci_upper"]
+    ].copy()
     merged = merged.merge(
         expected_monetary[["customer_id", "expected_monetary_value"]],
         on="customer_id",
         how="left",
     )
     merged = merged.merge(
-        prob_alive[["customer_id", "prob_alive", "prob_alive_ci_lower",
-                     "prob_alive_ci_upper"]],
+        prob_alive[["customer_id", "prob_alive", "prob_alive_ci_lower", "prob_alive_ci_upper"]],
         on="customer_id",
         how="left",
     )
 
     # CLV = E[transactions] * E[monetary_value] * margin * discount_adj
     merged["predicted_clv"] = (
-        merged["expected_transactions"]
-        * merged["expected_monetary_value"]
-        * margin
-        * discount_adj
+        merged["expected_transactions"] * merged["expected_monetary_value"] * margin * discount_adj
     )
 
     # CI bounds: use component CIs for lower/upper
@@ -406,10 +400,7 @@ def compute_clv(
         * discount_adj
     )
     merged["clv_ci_upper"] = (
-        merged["expected_transactions_ci_upper"]
-        * merged["expected_monetary_value"]
-        * margin
-        * discount_adj
+        merged["expected_transactions_ci_upper"] * merged["expected_monetary_value"] * margin * discount_adj
     )
 
     # Add metadata columns
@@ -419,9 +410,16 @@ def compute_clv(
 
     # Select and reorder output columns
     out_cols = [
-        "customer_id", "predicted_clv", "clv_ci_lower", "clv_ci_upper",
-        "prob_alive", "expected_transactions", "expected_monetary_value",
-        "horizon_months", "discount_rate", "margin",
+        "customer_id",
+        "predicted_clv",
+        "clv_ci_lower",
+        "clv_ci_upper",
+        "prob_alive",
+        "expected_transactions",
+        "expected_monetary_value",
+        "horizon_months",
+        "discount_rate",
+        "margin",
     ]
     return merged[out_cols]
 
@@ -429,6 +427,7 @@ def compute_clv(
 # ===================================================================
 # CLV:CAC ratio
 # ===================================================================
+
 
 def compute_clv_cac_ratio(
     clv_predictions: pd.DataFrame,
@@ -517,6 +516,7 @@ def compute_clv_cac_ratio(
 # At-risk identification
 # ===================================================================
 
+
 def identify_at_risk_customers(
     clv_predictions: pd.DataFrame,
     clv_percentile_threshold: float = 0.90,
@@ -558,8 +558,11 @@ def identify_at_risk_customers(
         # Return empty DataFrame with expected columns
         return pd.DataFrame(
             columns=[
-                "customer_id", "predicted_clv", "prob_alive",
-                "expected_transactions", "days_since_last_purchase",
+                "customer_id",
+                "predicted_clv",
+                "prob_alive",
+                "expected_transactions",
+                "days_since_last_purchase",
                 "risk_priority",
             ]
         )
@@ -575,8 +578,12 @@ def identify_at_risk_customers(
         at_risk["days_since_last_purchase"] = np.nan
 
     out_cols = [
-        "customer_id", "predicted_clv", "prob_alive",
-        "expected_transactions", "days_since_last_purchase", "risk_priority",
+        "customer_id",
+        "predicted_clv",
+        "prob_alive",
+        "expected_transactions",
+        "days_since_last_purchase",
+        "risk_priority",
     ]
     # Only include columns that exist
     out_cols = [c for c in out_cols if c in at_risk.columns]
@@ -586,6 +593,7 @@ def identify_at_risk_customers(
 # ===================================================================
 # CLV segmentation
 # ===================================================================
+
 
 def assign_clv_segments(
     clv_predictions: pd.DataFrame,
@@ -627,6 +635,7 @@ def assign_clv_segments(
 # ===================================================================
 # Save outputs
 # ===================================================================
+
 
 def save_predictions(
     clv_predictions: pd.DataFrame,
@@ -681,6 +690,7 @@ def save_predictions(
 # Full pipeline
 # ===================================================================
 
+
 def run_prediction_pipeline(
     rfm_path: str | Path,
     bgnbd_model_path: str | Path,
@@ -733,9 +743,7 @@ def run_prediction_pipeline(
 
     # Step 1: Predict expected transactions
     print(f"Predicting expected transactions (horizon={horizon_months}mo)...")
-    exp_txns = predict_expected_transactions(
-        rfm, bgnbd_model, horizon_months=horizon_months, time_unit=time_unit
-    )
+    exp_txns = predict_expected_transactions(rfm, bgnbd_model, horizon_months=horizon_months, time_unit=time_unit)
 
     # Step 2: Predict probability alive
     print("Computing probability-alive scores...")
@@ -748,7 +756,9 @@ def run_prediction_pipeline(
     # Step 4: Compute CLV
     print("Computing combined CLV...")
     clv = compute_clv(
-        exp_txns, exp_mv, p_alive,
+        exp_txns,
+        exp_mv,
+        p_alive,
         horizon_months=horizon_months,
         discount_rate=discount_rate,
         margin=margin,

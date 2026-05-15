@@ -14,10 +14,10 @@ Typical usage:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -25,14 +25,14 @@ import pandas as pd
 class MatchingMode(Enum):
     """How funnel steps are matched against event sequences."""
 
-    STRICT = "strict"    # Events must occur in defined order
+    STRICT = "strict"  # Events must occur in defined order
     RELAXED = "relaxed"  # All events must occur, order does not matter
 
 
 class AggregationMode(Enum):
     """How users/sessions are aggregated into funnel counts."""
 
-    USER = "user"        # Each user counted once, furthest stage reached
+    USER = "user"  # Each user counted once, furthest stage reached
     SESSION = "session"  # Each session is an independent funnel attempt
 
 
@@ -209,11 +209,13 @@ def load_funnel_definition(filepath: str | Path) -> FunnelDefinition:
     for step_raw in raw["steps"]:
         if "event_name" not in step_raw:
             raise ValueError(f"Each step must have an 'event_name': {step_raw}")
-        steps.append(FunnelStep(
-            name=step_raw.get("name", step_raw["event_name"]),
-            event_name=step_raw["event_name"],
-            max_time_window_seconds=step_raw.get("max_time_window_seconds"),
-        ))
+        steps.append(
+            FunnelStep(
+                name=step_raw.get("name", step_raw["event_name"]),
+                event_name=step_raw["event_name"],
+                max_time_window_seconds=step_raw.get("max_time_window_seconds"),
+            )
+        )
 
     matching_mode = MatchingMode(raw.get("matching_mode", "strict"))
     aggregation_mode = AggregationMode(raw.get("aggregation_mode", "user"))
@@ -254,16 +256,10 @@ def infer_funnel_definition(
     total_users = events[user_id_column].nunique()
 
     # Count event frequency across users (unique users per event)
-    event_user_counts = (
-        events.groupby(event_name_column)[user_id_column]
-        .nunique()
-        .sort_values(ascending=False)
-    )
+    event_user_counts = events.groupby(event_name_column)[user_id_column].nunique().sort_values(ascending=False)
 
     # Filter events that meet the minimum frequency threshold
-    qualifying_events = event_user_counts[
-        event_user_counts / total_users >= min_frequency
-    ]
+    qualifying_events = event_user_counts[event_user_counts / total_users >= min_frequency]
 
     # For each user, get the ordered sequence of first occurrence of each event
     def first_occurrence_order(group: pd.DataFrame) -> list[str]:
@@ -275,9 +271,7 @@ def infer_funnel_definition(
                 order.append(event)
         return order
 
-    user_sequences = events.groupby(user_id_column).apply(
-        first_occurrence_order, include_groups=False
-    )
+    user_sequences = events.groupby(user_id_column).apply(first_occurrence_order, include_groups=False)
 
     # Build a positional ranking: for each event, compute its median position
     # across all user sequences
@@ -287,19 +281,13 @@ def infer_funnel_definition(
             event_positions.setdefault(event, []).append(pos)
 
     # Compute median position for ordering
-    event_median_pos = {
-        event: pd.Series(positions).median()
-        for event, positions in event_positions.items()
-    }
+    event_median_pos = {event: pd.Series(positions).median() for event, positions in event_positions.items()}
 
     # Sort events by median position and take up to max_steps
     ordered_events = sorted(event_median_pos.keys(), key=lambda e: event_median_pos[e])
     ordered_events = ordered_events[:max_steps]
 
-    steps = [
-        FunnelStep(name=event, event_name=event)
-        for event in ordered_events
-    ]
+    steps = [FunnelStep(name=event, event_name=event) for event in ordered_events]
 
     return FunnelDefinition(
         funnel_name="inferred_funnel",
@@ -466,13 +454,9 @@ def build_funnel(
     """
     if definition.aggregation_mode == AggregationMode.SESSION:
         if session_id_column is None:
-            raise ValueError(
-                "session_id_column must be provided for SESSION aggregation mode"
-            )
+            raise ValueError("session_id_column must be provided for SESSION aggregation mode")
         if session_id_column not in events.columns:
-            raise ValueError(
-                f"Session column '{session_id_column}' not found in event data"
-            )
+            raise ValueError(f"Session column '{session_id_column}' not found in event data")
         group_column = session_id_column
     else:
         group_column = user_id_column
@@ -483,7 +467,8 @@ def build_funnel(
     for entity_id, group_df in events.groupby(group_column):
         group_df = group_df.sort_values(timestamp_column)
         result = assign_user_to_funnel(
-            group_df, definition,
+            group_df,
+            definition,
             timestamp_column=timestamp_column,
             event_name_column=event_name_column,
         )
@@ -506,18 +491,12 @@ def build_funnel(
         if i == 0:
             rate = stage_counts[0] / total_entered if total_entered > 0 else 0.0
         else:
-            rate = (
-                stage_counts[i] / stage_counts[i - 1]
-                if stage_counts[i - 1] > 0
-                else 0.0
-            )
+            rate = stage_counts[i] / stage_counts[i - 1] if stage_counts[i - 1] > 0 else 0.0
         stage_conversion_rates.append(rate)
         stage_drop_off_rates.append(1.0 - rate)
 
     total_completed = stage_counts[-1] if stage_counts else 0
-    overall_conversion_rate = (
-        total_completed / total_entered if total_entered > 0 else 0.0
-    )
+    overall_conversion_rate = total_completed / total_entered if total_entered > 0 else 0.0
 
     return FunnelResult(
         funnel_name=definition.funnel_name,
@@ -614,9 +593,7 @@ def save_funnel(funnel: FunnelResult, filepath: str | Path) -> None:
             {
                 "entity_id": ur.entity_id,
                 "furthest_stage": ur.furthest_stage,
-                "stage_timestamps": {
-                    str(k): v for k, v in ur.stage_timestamps.items()
-                },
+                "stage_timestamps": {str(k): v for k, v in ur.stage_timestamps.items()},
                 "completed": ur.completed,
             }
             for ur in funnel.user_results
@@ -631,12 +608,8 @@ if __name__ == "__main__":
     import sys
 
     events_path = sys.argv[1] if len(sys.argv) > 1 else "workspace/raw/events.csv"
-    definition_path = (
-        sys.argv[2] if len(sys.argv) > 2 else "workspace/config/funnel_definition.json"
-    )
-    output_path = (
-        sys.argv[3] if len(sys.argv) > 3 else "workspace/analysis/funnel_results.json"
-    )
+    definition_path = sys.argv[2] if len(sys.argv) > 2 else "workspace/config/funnel_definition.json"
+    output_path = sys.argv[3] if len(sys.argv) > 3 else "workspace/analysis/funnel_results.json"
 
     events_df = load_events(events_path)
 
@@ -649,5 +622,7 @@ if __name__ == "__main__":
     result = build_funnel(events_df, funnel_def)
     save_funnel(result, output_path)
 
-    print(f"Funnel '{result.funnel_name}' built: {result.total_entered} entered, "
-          f"{result.total_completed} completed ({result.overall_conversion_rate:.2%})")
+    print(
+        f"Funnel '{result.funnel_name}' built: {result.total_entered} entered, "
+        f"{result.total_completed} completed ({result.overall_conversion_rate:.2%})"
+    )

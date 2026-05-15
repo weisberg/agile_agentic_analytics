@@ -169,8 +169,7 @@ def execute_report(config: GA4ReportConfig) -> GA4ReportResult:
         )
     except ImportError as exc:
         raise RuntimeError(
-            "google-analytics-data package is required. "
-            "Install with: pip install google-analytics-data"
+            "google-analytics-data package is required. Install with: pip install google-analytics-data"
         ) from exc
 
     try:
@@ -229,12 +228,8 @@ def execute_report(config: GA4ReportConfig) -> GA4ReportResult:
         # Capture quota metadata from the first page.
         if not metadata and hasattr(response, "property_quota") and response.property_quota:
             pq = response.property_quota
-            metadata["tokens_per_day_remaining"] = (
-                pq.tokens_per_day.remaining if pq.tokens_per_day else None
-            )
-            metadata["tokens_per_hour_remaining"] = (
-                pq.tokens_per_hour.remaining if pq.tokens_per_hour else None
-            )
+            metadata["tokens_per_day_remaining"] = pq.tokens_per_day.remaining if pq.tokens_per_day else None
+            metadata["tokens_per_hour_remaining"] = pq.tokens_per_hour.remaining if pq.tokens_per_hour else None
 
         # Pagination: if we got a full page, there may be more rows.
         if len(response.rows) < config.limit:

@@ -15,9 +15,7 @@ from __future__ import annotations
 
 import argparse
 import logging
-from decimal import Decimal
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -148,10 +146,7 @@ def map_columns(df: pd.DataFrame, platform: str) -> pd.DataFrame:
     """
     platform = platform.lower().strip()
     if platform not in PLATFORM_METRIC_MAP:
-        raise ValueError(
-            f"Unsupported platform '{platform}'. "
-            f"Supported: {SUPPORTED_PLATFORMS}"
-        )
+        raise ValueError(f"Unsupported platform '{platform}'. Supported: {SUPPORTED_PLATFORMS}")
 
     mapping = PLATFORM_METRIC_MAP[platform]
     df = df.copy()
@@ -170,9 +165,7 @@ def map_columns(df: pd.DataFrame, platform: str) -> pd.DataFrame:
     # Add platform column for downstream identification
     df["platform"] = platform
 
-    logger.info(
-        "Mapped %d columns for platform '%s'", len(rename_map), platform
-    )
+    logger.info("Mapped %d columns for platform '%s'", len(rename_map), platform)
     return df
 
 
@@ -195,10 +188,7 @@ def derive_engagements(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     # If engagements column is missing or has all NaN values, derive it
-    needs_derivation = (
-        "engagements" not in df.columns
-        or df["engagements"].isna().all()
-    )
+    needs_derivation = "engagements" not in df.columns or df["engagements"].isna().all()
 
     if needs_derivation:
         likes = df.get("likes", pd.Series(0, index=df.index)).fillna(0)
@@ -213,12 +203,8 @@ def derive_engagements(df: pd.DataFrame) -> pd.DataFrame:
             likes = df.get("likes", pd.Series(0, index=df.index)).fillna(0)
             comments = df.get("comments", pd.Series(0, index=df.index)).fillna(0)
             shares = df.get("shares", pd.Series(0, index=df.index)).fillna(0)
-            df.loc[mask, "engagements"] = (
-                likes[mask] + comments[mask] + shares[mask]
-            )
-            logger.info(
-                "Filled %d missing engagement rows from components", mask.sum()
-            )
+            df.loc[mask, "engagements"] = likes[mask] + comments[mask] + shares[mask]
+            logger.info("Filled %d missing engagement rows from components", mask.sum())
 
     return df
 
@@ -262,9 +248,7 @@ def compute_engagement_rate(
         impressions = df["impressions"]
         denom_values[fallback_mask] = impressions[fallback_mask]
         rate_basis[fallback_mask] = "impressions"
-        logger.info(
-            "Fell back to impressions for %d rows", fallback_mask.sum()
-        )
+        logger.info("Fell back to impressions for %d rows", fallback_mask.sum())
 
     # Compute rate, avoiding division by zero
     safe_denom = denom_values.replace(0, np.nan)
@@ -376,9 +360,7 @@ def normalize_all_platforms(
         df = split_organic_paid(df)
 
         frames.append(df)
-        logger.info(
-            "Processed %d rows for platform '%s'", len(df), platform
-        )
+        logger.info("Processed %d rows for platform '%s'", len(df), platform)
 
     if not frames:
         logger.warning("No platform data files found in %s", input_dir)

@@ -97,10 +97,7 @@ class LightweightMMM:
             column: statistics.fmean([row[column] for row in transformed_rows]) if transformed_rows else 0.0
             for column in self.feature_columns
         }
-        self.feature_stds = {
-            column: _std([row[column] for row in transformed_rows])
-            for column in self.feature_columns
-        }
+        self.feature_stds = {column: _std([row[column] for row in transformed_rows]) for column in self.feature_columns}
         standardized_rows: list[dict[str, float]] = []
         for row in transformed_rows:
             standardized_rows.append(
@@ -109,7 +106,11 @@ class LightweightMMM:
                     for column in self.feature_columns
                 }
             )
-        return transformed_rows, [self.feature_means[c] for c in self.feature_columns], [self.feature_stds[c] for c in self.feature_columns]
+        return (
+            transformed_rows,
+            [self.feature_means[c] for c in self.feature_columns],
+            [self.feature_stds[c] for c in self.feature_columns],
+        )
 
     def fit(self, X: Any, y: Any) -> dict[str, Any]:
         rows = X.to_dict("records") if hasattr(X, "to_dict") else list(X)
@@ -162,13 +163,9 @@ class LightweightMMM:
                     prior_mu = _safe_float(self.calibration_priors[column].get("mu"))
                 weights[column] -= learning_rate * (grad - 0.01 * prior_mu)
 
-        self.coefficients = {
-            column: weights[column] / self.feature_stds[column]
-            for column in self.feature_columns
-        }
+        self.coefficients = {column: weights[column] / self.feature_stds[column] for column in self.feature_columns}
         self.intercept = bias - sum(
-            self.coefficients[column] * self.feature_means[column]
-            for column in self.feature_columns
+            self.coefficients[column] * self.feature_means[column] for column in self.feature_columns
         )
         self.training_features = transformed_rows
 
@@ -182,22 +179,22 @@ class LightweightMMM:
         for column in self.feature_columns:
             stderr = self.residual_sigma / math.sqrt(n_obs)
             self.posterior_samples[column] = [
-                random.gauss(self.coefficients[column], stderr or 0.01)
-                for _ in range(sample_count)
+                random.gauss(self.coefficients[column], stderr or 0.01) for _ in range(sample_count)
             ]
         self.posterior_samples["intercept"] = [
-            random.gauss(self.intercept, (self.residual_sigma / math.sqrt(n_obs)) or 0.01)
-            for _ in range(sample_count)
+            random.gauss(self.intercept, (self.residual_sigma / math.sqrt(n_obs)) or 0.01) for _ in range(sample_count)
         ]
 
         mae = statistics.fmean([abs(residual) for residual in residuals]) if residuals else 0.0
         mape_base = [abs(actual) for actual in y_values if abs(actual) > 1e-9]
         mape = (
-            statistics.fmean([
-                abs(actual - predicted) / abs(actual)
-                for actual, predicted in zip(y_values, predictions)
-                if abs(actual) > 1e-9
-            ])
+            statistics.fmean(
+                [
+                    abs(actual - predicted) / abs(actual)
+                    for actual, predicted in zip(y_values, predictions)
+                    if abs(actual) > 1e-9
+                ]
+            )
             if mape_base
             else 0.0
         )
@@ -255,17 +252,14 @@ class LightweightMMM:
         samples = self.posterior_samples.get(channel, [self.coefficients.get(channel, 0.0)])
         selected = samples[: max(1, min(n_samples, len(samples)))]
         return [
-            [self.response_value(channel, spend, coefficient=sample) for spend in spend_values]
-            for sample in selected
+            [self.response_value(channel, spend, coefficient=sample) for spend in spend_values] for sample in selected
         ]
 
     def compute_channel_contributions(self) -> dict[str, list[float]]:
         contributions = {channel: [] for channel in self.channel_columns}
         for row in self.training_features:
             for channel in self.channel_columns:
-                contributions[channel].append(
-                    self.coefficients.get(channel, 0.0) * row.get(channel, 0.0)
-                )
+                contributions[channel].append(self.coefficients.get(channel, 0.0) * row.get(channel, 0.0))
         return contributions
 
     def compute_baseline(self) -> list[float]:

@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PeriodMetric:
     """A satisfaction metric value for a single time period."""
@@ -92,6 +93,7 @@ class TrendReport:
 # Metric computation helpers
 # ---------------------------------------------------------------------------
 
+
 def _compute_nps_from_scores(scores: np.ndarray) -> float:
     """Compute NPS from an array of 0-10 scores."""
     n = len(scores)
@@ -103,7 +105,9 @@ def _compute_nps_from_scores(scores: np.ndarray) -> float:
 
 
 def _compute_csat_from_scores(
-    scores: np.ndarray, scale_max: int = 5, top_box: int = 2,
+    scores: np.ndarray,
+    scale_max: int = 5,
+    top_box: int = 2,
 ) -> float:
     """Compute CSAT percentage from scores."""
     n = len(scores)
@@ -144,6 +148,7 @@ def _bootstrap_ci(
 # Period aggregation
 # ---------------------------------------------------------------------------
 
+
 def aggregate_by_period(
     df: pd.DataFrame,
     period: Literal["weekly", "monthly", "quarterly"] = "monthly",
@@ -175,14 +180,10 @@ def aggregate_by_period(
     """
     valid_periods = ("weekly", "monthly", "quarterly")
     if period not in valid_periods:
-        raise ValueError(
-            f"Invalid period '{period}'. Must be one of {valid_periods}."
-        )
+        raise ValueError(f"Invalid period '{period}'. Must be one of {valid_periods}.")
     valid_metrics = ("NPS", "CSAT", "CES")
     if metric_type not in valid_metrics:
-        raise ValueError(
-            f"Invalid metric_type '{metric_type}'. Must be one of {valid_metrics}."
-        )
+        raise ValueError(f"Invalid metric_type '{metric_type}'. Must be one of {valid_metrics}.")
 
     required_cols = {"score", "timestamp"}
     missing = required_cols - set(df.columns)
@@ -226,7 +227,8 @@ def aggregate_by_period(
 
         if n >= 3:
             ci_lower, ci_upper = _bootstrap_ci(
-                scores, stat_func,
+                scores,
+                stat_func,
                 n_bootstrap=n_bootstrap,
                 confidence_level=confidence_level,
                 random_seed=random_seed,
@@ -235,15 +237,17 @@ def aggregate_by_period(
             ci_lower = value
             ci_upper = value
 
-        results.append(PeriodMetric(
-            period_label=str(label),
-            metric_name=metric_type,
-            value=round(value, 2),
-            ci_lower=round(ci_lower, 2),
-            ci_upper=round(ci_upper, 2),
-            n_responses=n,
-            low_confidence=n < 30,
-        ))
+        results.append(
+            PeriodMetric(
+                period_label=str(label),
+                metric_name=metric_type,
+                value=round(value, 2),
+                ci_lower=round(ci_lower, 2),
+                ci_upper=round(ci_upper, 2),
+                n_responses=n,
+                low_confidence=n < 30,
+            )
+        )
 
     return results
 
@@ -251,6 +255,7 @@ def aggregate_by_period(
 # ---------------------------------------------------------------------------
 # Change detection
 # ---------------------------------------------------------------------------
+
 
 def detect_period_over_period_change(
     metrics: list[PeriodMetric],
@@ -290,11 +295,7 @@ def detect_period_over_period_change(
         m_after = metrics[i]
 
         observed_diff = m_after.value - m_before.value
-        pct_change = (
-            (observed_diff / abs(m_before.value) * 100)
-            if m_before.value != 0
-            else 0.0
-        )
+        pct_change = (observed_diff / abs(m_before.value) * 100) if m_before.value != 0 else 0.0
 
         # Statistical test via bootstrap or permutation
         # Under the null hypothesis, the two periods come from the same
@@ -332,19 +333,21 @@ def detect_period_over_period_change(
 
         p_value = max(p_value, 1.0 / n_bootstrap)  # floor
 
-        change_points.append(ChangePoint(
-            metric_name=m_after.metric_name,
-            period_before=m_before.period_label,
-            period_after=m_after.period_label,
-            value_before=m_before.value,
-            value_after=m_after.value,
-            absolute_change=round(observed_diff, 2),
-            pct_change=round(pct_change, 2),
-            p_value=round(p_value, 4),
-            test_method=test_method,
-            is_significant=p_value < alpha,
-            exceeds_threshold=abs(observed_diff) > shift_threshold,
-        ))
+        change_points.append(
+            ChangePoint(
+                metric_name=m_after.metric_name,
+                period_before=m_before.period_label,
+                period_after=m_after.period_label,
+                value_before=m_before.value,
+                value_after=m_after.value,
+                absolute_change=round(observed_diff, 2),
+                pct_change=round(pct_change, 2),
+                p_value=round(p_value, 4),
+                test_method=test_method,
+                is_significant=p_value < alpha,
+                exceeds_threshold=abs(observed_diff) > shift_threshold,
+            )
+        )
 
     return change_points
 
@@ -382,25 +385,23 @@ def detect_change_vs_baseline(
 
     for i in range(baseline_periods, len(metrics)):
         current = metrics[i]
-        baseline = metrics[i - baseline_periods:i]
+        baseline = metrics[i - baseline_periods : i]
 
         baseline_values = np.array([m.value for m in baseline])
         baseline_mean = float(np.mean(baseline_values))
         baseline_std = float(np.std(baseline_values, ddof=1)) if len(baseline) > 1 else 1.0
 
         observed_diff = current.value - baseline_mean
-        pct_change = (
-            (observed_diff / abs(baseline_mean) * 100)
-            if baseline_mean != 0
-            else 0.0
-        )
+        pct_change = (observed_diff / abs(baseline_mean) * 100) if baseline_mean != 0 else 0.0
 
         # Bootstrap test: resample baseline values and compute mean
         se_current = (current.ci_upper - current.ci_lower) / (2 * 1.96)
         se_current = max(se_current, 0.01)
 
         boot_baselines = rng.choice(
-            baseline_values, size=(n_bootstrap, len(baseline)), replace=True,
+            baseline_values,
+            size=(n_bootstrap, len(baseline)),
+            replace=True,
         )
         boot_baseline_means = boot_baselines.mean(axis=1)
         boot_current = rng.normal(current.value, se_current, size=n_bootstrap)
@@ -418,19 +419,21 @@ def detect_change_vs_baseline(
 
         baseline_label = f"{baseline[0].period_label}..{baseline[-1].period_label}"
 
-        change_points.append(ChangePoint(
-            metric_name=current.metric_name,
-            period_before=baseline_label,
-            period_after=current.period_label,
-            value_before=round(baseline_mean, 2),
-            value_after=current.value,
-            absolute_change=round(observed_diff, 2),
-            pct_change=round(pct_change, 2),
-            p_value=round(p_value, 4),
-            test_method="bootstrap_vs_baseline",
-            is_significant=p_value < alpha,
-            exceeds_threshold=abs(observed_diff) > shift_threshold,
-        ))
+        change_points.append(
+            ChangePoint(
+                metric_name=current.metric_name,
+                period_before=baseline_label,
+                period_after=current.period_label,
+                value_before=round(baseline_mean, 2),
+                value_after=current.value,
+                absolute_change=round(observed_diff, 2),
+                pct_change=round(pct_change, 2),
+                p_value=round(p_value, 4),
+                test_method="bootstrap_vs_baseline",
+                is_significant=p_value < alpha,
+                exceeds_threshold=abs(observed_diff) > shift_threshold,
+            )
+        )
 
     return change_points
 
@@ -493,6 +496,7 @@ def cusum_change_detection(
 # Seasonality and trend decomposition
 # ---------------------------------------------------------------------------
 
+
 def estimate_seasonality(
     metrics: list[PeriodMetric],
     period: Literal["weekly", "monthly", "quarterly"] = "monthly",
@@ -531,8 +535,7 @@ def estimate_seasonality(
     min_periods = cycle_len * 2
     if len(metrics) < min_periods:
         raise ValueError(
-            f"Need at least {min_periods} periods for seasonality estimation "
-            f"with {period} data, got {len(metrics)}."
+            f"Need at least {min_periods} periods for seasonality estimation with {period} data, got {len(metrics)}."
         )
 
     values = np.array([m.value for m in metrics])
@@ -542,9 +545,16 @@ def estimate_seasonality(
     # then averaging residuals by season position
     if cycle_len <= n:
         # Moving average trend (centered)
-        trend = pd.Series(values).rolling(
-            window=cycle_len, center=True, min_periods=1,
-        ).mean().values
+        trend = (
+            pd.Series(values)
+            .rolling(
+                window=cycle_len,
+                center=True,
+                min_periods=1,
+            )
+            .mean()
+            .values
+        )
 
         # Detrended values
         detrended = values - trend
@@ -614,6 +624,7 @@ def compute_linear_trend(
 # Response-mix adjustment
 # ---------------------------------------------------------------------------
 
+
 def adjust_for_response_mix(
     df: pd.DataFrame,
     segment_col: str,
@@ -672,9 +683,7 @@ def adjust_for_response_mix(
         # Actual segment proportion in this period
         period_mask = df["period"] == period
         period_total = period_mask.sum()
-        segment_period_count = (
-            (df["period"] == period) & (df[segment_col] == segment)
-        ).sum()
+        segment_period_count = ((df["period"] == period) & (df[segment_col] == segment)).sum()
         actual_weight = segment_period_count / period_total if period_total > 0 else 0
 
         ref_w = ref_weights.get(segment, 0)
@@ -697,6 +706,7 @@ def adjust_for_response_mix(
 # ---------------------------------------------------------------------------
 # Alert generation
 # ---------------------------------------------------------------------------
+
 
 def generate_alerts(
     change_points: list[ChangePoint],
@@ -726,18 +736,12 @@ def generate_alerts(
     for cp in change_points:
         # Track consecutive declines
         if cp.absolute_change < 0:
-            consecutive_declines[cp.metric_name] = (
-                consecutive_declines.get(cp.metric_name, 0) + 1
-            )
+            consecutive_declines[cp.metric_name] = consecutive_declines.get(cp.metric_name, 0) + 1
         else:
             consecutive_declines[cp.metric_name] = 0
 
         # Priority: NPS exceeds threshold
-        if (
-            cp.metric_name == "NPS"
-            and cp.exceeds_threshold
-            and cp.is_significant
-        ):
+        if cp.metric_name == "NPS" and cp.exceeds_threshold and cp.is_significant:
             direction = "declined" if cp.absolute_change < 0 else "improved"
             priority_alerts.append(
                 f"PRIORITY: NPS {direction} by {abs(cp.absolute_change):.1f} "
@@ -768,8 +772,7 @@ def generate_alerts(
     for metric, count in consecutive_declines.items():
         if count >= 3:
             priority_alerts.append(
-                f"WARNING: {metric} has declined for {count} consecutive "
-                f"periods. Investigate for systemic issues."
+                f"WARNING: {metric} has declined for {count} consecutive periods. Investigate for systemic issues."
             )
 
     return priority_alerts + standard_alerts + info_alerts
@@ -778,6 +781,7 @@ def generate_alerts(
 # ---------------------------------------------------------------------------
 # Orchestration and I/O
 # ---------------------------------------------------------------------------
+
 
 def run_trend_analysis(
     survey_path: Path,
@@ -837,7 +841,9 @@ def run_trend_analysis(
 
     for metric_type in metric_types:
         period_metrics = aggregate_by_period(
-            df, period=period, metric_type=metric_type,
+            df,
+            period=period,
+            metric_type=metric_type,
             n_bootstrap=n_bootstrap,
             confidence_level=1 - alpha,
             random_seed=random_seed,
@@ -850,7 +856,8 @@ def run_trend_analysis(
         # Step 3: Change detection
         # Period-over-period
         pop_changes = detect_period_over_period_change(
-            period_metrics, alpha=alpha,
+            period_metrics,
+            alpha=alpha,
             shift_threshold=nps_shift_threshold,
             n_bootstrap=n_bootstrap,
             random_seed=random_seed,
@@ -875,45 +882,46 @@ def run_trend_analysis(
                 m_before = period_metrics[cp_idx - 1]
                 m_after = period_metrics[cp_idx]
                 diff = m_after.value - m_before.value
-                pct = (
-                    diff / abs(m_before.value) * 100
-                    if m_before.value != 0 else 0.0
+                pct = diff / abs(m_before.value) * 100 if m_before.value != 0 else 0.0
+                all_change_points.append(
+                    ChangePoint(
+                        metric_name=metric_type,
+                        period_before=m_before.period_label,
+                        period_after=m_after.period_label,
+                        value_before=m_before.value,
+                        value_after=m_after.value,
+                        absolute_change=round(diff, 2),
+                        pct_change=round(pct, 2),
+                        p_value=0.01,  # CUSUM signals are treated as significant
+                        test_method="cusum",
+                        is_significant=True,
+                        exceeds_threshold=abs(diff) > nps_shift_threshold,
+                    )
                 )
-                all_change_points.append(ChangePoint(
-                    metric_name=metric_type,
-                    period_before=m_before.period_label,
-                    period_after=m_after.period_label,
-                    value_before=m_before.value,
-                    value_after=m_after.value,
-                    absolute_change=round(diff, 2),
-                    pct_change=round(pct, 2),
-                    p_value=0.01,  # CUSUM signals are treated as significant
-                    test_method="cusum",
-                    is_significant=True,
-                    exceeds_threshold=abs(diff) > nps_shift_threshold,
-                ))
 
         # Step 4: Seasonality
         try:
             seasonal = estimate_seasonality(
-                period_metrics, period=period,
+                period_metrics,
+                period=period,
             )
             seasonality_estimates.append(seasonal)
         except ValueError as exc:
             logger.info(
-                "Skipping seasonality for %s: %s", metric_type, exc,
+                "Skipping seasonality for %s: %s",
+                metric_type,
+                exc,
             )
 
     # Step 5: Overall trend (use NPS if available, else first metric)
-    nps_metrics = [
-        m for m in all_period_metrics if m.metric_name == "NPS"
-    ]
+    nps_metrics = [m for m in all_period_metrics if m.metric_name == "NPS"]
     trend_metrics = nps_metrics if nps_metrics else all_period_metrics
     slope, p_val, direction = compute_linear_trend(trend_metrics)
 
     # Step 6: Generate alerts
     alerts = generate_alerts(
-        all_change_points, nps_shift_threshold=nps_shift_threshold,
+        all_change_points,
+        nps_shift_threshold=nps_shift_threshold,
     )
 
     return TrendReport(
@@ -955,6 +963,7 @@ def write_results(report: TrendReport, output_path: Path) -> None:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     """Parse command-line arguments.
 
@@ -964,9 +973,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     Returns:
         Parsed arguments namespace.
     """
-    parser = argparse.ArgumentParser(
-        description="Satisfaction trend analysis with change detection."
-    )
+    parser = argparse.ArgumentParser(description="Satisfaction trend analysis with change detection.")
     parser.add_argument(
         "--input",
         type=Path,

@@ -19,7 +19,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -85,9 +84,7 @@ def classify_topics(
 
     # Handle missing text column gracefully
     if text_column not in df.columns:
-        logger.warning(
-            "Text column '%s' not found. Assigning default topic.", text_column
-        )
+        logger.warning("Text column '%s' not found. Assigning default topic.", text_column)
         df["topic_id"] = 0
         df["topic_label"] = "unknown"
         df["topic_keywords"] = ""
@@ -99,8 +96,7 @@ def classify_topics(
 
     if sum(non_empty_mask) < n_topics:
         logger.warning(
-            "Fewer non-empty texts (%d) than requested topics (%d). "
-            "Reducing n_topics.",
+            "Fewer non-empty texts (%d) than requested topics (%d). Reducing n_topics.",
             sum(non_empty_mask),
             n_topics,
         )
@@ -133,30 +129,22 @@ def classify_topics(
             order_centroids = km.cluster_centers_.argsort()[:, ::-1]
             topic_keywords_map: dict[int, str] = {}
             for i in range(n_topics):
-                top_words = [
-                    feature_names[idx] for idx in order_centroids[i, :5]
-                ]
+                top_words = [feature_names[idx] for idx in order_centroids[i, :5]]
                 topic_keywords_map[i] = ", ".join(top_words)
 
             # Assign labels to all rows
             topic_ids = pd.Series(-1, index=df.index, dtype=int)
             topic_kw = pd.Series("", index=df.index)
 
-            non_empty_idx = [
-                i for i, m in enumerate(non_empty_mask) if m
-            ]
+            non_empty_idx = [i for i, m in enumerate(non_empty_mask) if m]
             for j, idx in enumerate(non_empty_idx):
                 topic_ids.iloc[idx] = int(cluster_labels[j])
-                topic_kw.iloc[idx] = topic_keywords_map.get(
-                    int(cluster_labels[j]), ""
-                )
+                topic_kw.iloc[idx] = topic_keywords_map.get(int(cluster_labels[j]), "")
 
             # Assign empty texts to topic -1
             df["topic_id"] = topic_ids.values
             df["topic_keywords"] = topic_kw.values
-            df["topic_label"] = df["topic_id"].apply(
-                lambda x: f"topic_{x}" if x >= 0 else "uncategorized"
-            )
+            df["topic_label"] = df["topic_id"].apply(lambda x: f"topic_{x}" if x >= 0 else "uncategorized")
 
         elif method == "lda":
             vectorizer = TfidfVectorizer(
@@ -172,9 +160,7 @@ def classify_topics(
             tfidf_matrix = vectorizer.fit_transform(non_empty_texts)
             feature_names = vectorizer.get_feature_names_out()
 
-            lda = LatentDirichletAllocation(
-                n_components=n_topics, random_state=42
-            )
+            lda = LatentDirichletAllocation(n_components=n_topics, random_state=42)
             lda_output = lda.fit_transform(tfidf_matrix)
             cluster_labels = lda_output.argmax(axis=1)
 
@@ -190,37 +176,26 @@ def classify_topics(
             non_empty_idx = [i for i, m in enumerate(non_empty_mask) if m]
             for j, idx in enumerate(non_empty_idx):
                 topic_ids.iloc[idx] = int(cluster_labels[j])
-                topic_kw.iloc[idx] = topic_keywords_map.get(
-                    int(cluster_labels[j]), ""
-                )
+                topic_kw.iloc[idx] = topic_keywords_map.get(int(cluster_labels[j]), "")
 
             df["topic_id"] = topic_ids.values
             df["topic_keywords"] = topic_kw.values
-            df["topic_label"] = df["topic_id"].apply(
-                lambda x: f"topic_{x}" if x >= 0 else "uncategorized"
-            )
+            df["topic_label"] = df["topic_id"].apply(lambda x: f"topic_{x}" if x >= 0 else "uncategorized")
         else:
             raise ValueError(f"Unsupported method: {method}")
 
     except ImportError:
-        logger.warning(
-            "scikit-learn not available. Using simple keyword-based "
-            "topic assignment."
-        )
+        logger.warning("scikit-learn not available. Using simple keyword-based topic assignment.")
         # Fallback: assign topics based on most frequent words
         all_words: list[str] = []
         for t in texts:
             all_words.extend(t.lower().split())
         word_counts = Counter(all_words)
         # Remove very common short words
-        common_words = {
-            w for w, _ in word_counts.most_common(20) if len(w) <= 3
-        }
-        top_keywords = [
-            w
-            for w, _ in word_counts.most_common(n_topics * 5)
-            if w not in common_words and len(w) > 3
-        ][:n_topics]
+        common_words = {w for w, _ in word_counts.most_common(20) if len(w) <= 3}
+        top_keywords = [w for w, _ in word_counts.most_common(n_topics * 5) if w not in common_words and len(w) > 3][
+            :n_topics
+        ]
 
         def assign_topic(text: str) -> int:
             text_lower = text.lower()
@@ -230,12 +205,8 @@ def classify_topics(
             return -1
 
         df["topic_id"] = df[text_column].fillna("").apply(assign_topic)
-        df["topic_label"] = df["topic_id"].apply(
-            lambda x: f"topic_{x}" if x >= 0 else "uncategorized"
-        )
-        df["topic_keywords"] = df["topic_id"].apply(
-            lambda x: top_keywords[x] if 0 <= x < len(top_keywords) else ""
-        )
+        df["topic_label"] = df["topic_id"].apply(lambda x: f"topic_{x}" if x >= 0 else "uncategorized")
+        df["topic_keywords"] = df["topic_id"].apply(lambda x: top_keywords[x] if 0 <= x < len(top_keywords) else "")
 
     logger.info("Classified %d posts into %d topics", len(df), n_topics)
     return df
@@ -370,11 +341,13 @@ def analyze_posting_cadence(
         for freq in freq_values:
             bucket_data = weekly_counts[weekly_counts["post_count"] == freq]
             avg_er = float(bucket_data["avg_engagement_rate"].mean())
-            buckets.append({
-                "posts_per_week": int(freq),
-                "weeks_observed": int(len(bucket_data)),
-                "avg_engagement_rate": avg_er,
-            })
+            buckets.append(
+                {
+                    "posts_per_week": int(freq),
+                    "weeks_observed": int(len(bucket_data)),
+                    "avg_engagement_rate": avg_er,
+                }
+            )
 
         # Find optimal frequency (highest avg engagement rate)
         if buckets:
@@ -466,8 +439,13 @@ def compute_best_posting_times(
 
     results: dict[str, Any] = {}
     day_order = [
-        "Monday", "Tuesday", "Wednesday", "Thursday",
-        "Friday", "Saturday", "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
     ]
 
     for platform, plat_df in df.groupby("platform"):
@@ -492,10 +470,7 @@ def compute_best_posting_times(
 
         # Find top 3 windows
         all_windows.sort(key=lambda x: x[2], reverse=True)
-        top_3 = [
-            {"day": w[0], "hour": w[1], f"avg_{metric}": w[2]}
-            for w in all_windows[:3]
-        ]
+        top_3 = [{"day": w[0], "hour": w[1], f"avg_{metric}": w[2]} for w in all_windows[:3]]
 
         results[plat_str] = {
             "heatmap": heatmap,
@@ -612,11 +587,13 @@ def generate_content_report(
     top_topics: list[dict[str, Any]] = []
     for topic, data in topic_performance.items():
         overall = data.get("overall", {})
-        top_topics.append({
-            "topic": topic,
-            "mean_engagement_rate": overall.get("mean", 0),
-            "post_count": overall.get("count", 0),
-        })
+        top_topics.append(
+            {
+                "topic": topic,
+                "mean_engagement_rate": overall.get("mean", 0),
+                "post_count": overall.get("count", 0),
+            }
+        )
     top_topics.sort(key=lambda x: x["mean_engagement_rate"], reverse=True)
 
     report: dict[str, Any] = {
@@ -628,10 +605,7 @@ def generate_content_report(
             "top_content_type_per_platform": top_content_types,
             "optimal_posting_windows": optimal_times,
             "top_topics_by_engagement": top_topics[:10],
-            "optimal_cadence_per_platform": {
-                plat: data.get("optimal_frequency")
-                for plat, data in cadence.items()
-            },
+            "optimal_cadence_per_platform": {plat: data.get("optimal_frequency") for plat, data in cadence.items()},
         },
     }
 

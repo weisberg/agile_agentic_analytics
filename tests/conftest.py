@@ -17,6 +17,7 @@ import pytest
 # Helper utilities
 # ---------------------------------------------------------------------------
 
+
 def write_fixture_csv(tmp_path: Path, name: str, df: pd.DataFrame) -> Path:
     """Write a DataFrame to a CSV inside *tmp_path* and return the path.
 
@@ -45,6 +46,7 @@ def write_fixture_csv(tmp_path: Path, name: str, df: pd.DataFrame) -> Path:
 # Workspace fixture
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def tmp_workspace(tmp_path: Path) -> Path:
     """Create a temporary workspace with standard sub-directories.
@@ -69,6 +71,7 @@ def tmp_workspace(tmp_path: Path) -> Path:
 # Sample transaction data  (1 000 rows)
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def sample_transactions() -> pd.DataFrame:
     """Synthetic transaction data with 1 000 rows.
@@ -89,16 +92,19 @@ def sample_transactions() -> pd.DataFrame:
     dates = pd.date_range("2024-01-01", "2024-12-31", periods=n_rows)
     amounts = np.round(rng.lognormal(mean=3.5, sigma=1.0, size=n_rows), 2)
 
-    return pd.DataFrame({
-        "customer_id": customer_ids,
-        "date": dates,
-        "amount": amounts,
-    })
+    return pd.DataFrame(
+        {
+            "customer_id": customer_ids,
+            "date": dates,
+            "amount": amounts,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Campaign spend data  (3 platforms x 12 months)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def sample_campaign_spend() -> pd.DataFrame:
@@ -117,20 +123,23 @@ def sample_campaign_spend() -> pd.DataFrame:
             impressions = int(spend * rng.uniform(80, 150))
             clicks = int(impressions * rng.uniform(0.01, 0.05))
             conversions = int(clicks * rng.uniform(0.02, 0.10))
-            rows.append({
-                "platform": platform,
-                "month": month,
-                "spend": spend,
-                "impressions": impressions,
-                "clicks": clicks,
-                "conversions": conversions,
-            })
+            rows.append(
+                {
+                    "platform": platform,
+                    "month": month,
+                    "spend": spend,
+                    "impressions": impressions,
+                    "clicks": clicks,
+                    "conversions": conversions,
+                }
+            )
     return pd.DataFrame(rows)
 
 
 # ---------------------------------------------------------------------------
 # Web behavioural events  (5 000 rows)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def sample_events() -> pd.DataFrame:
@@ -152,25 +161,30 @@ def sample_events() -> pd.DataFrame:
         p=[0.50, 0.20, 0.15, 0.10, 0.05],
     )
     timestamps = pd.date_range(
-        "2024-06-01", "2024-06-30", periods=n_rows,
+        "2024-06-01",
+        "2024-06-30",
+        periods=n_rows,
     )
     pages = rng.choice(["/home", "/product", "/cart", "/checkout", "/thank-you"], size=n_rows)
     sources = rng.choice(["organic", "paid", "email", "social", "direct"], size=n_rows)
     devices = rng.choice(["desktop", "mobile", "tablet"], size=n_rows, p=[0.5, 0.4, 0.1])
 
-    return pd.DataFrame({
-        "user_id": user_ids,
-        "event_name": event_names,
-        "timestamp": timestamps,
-        "page": pages,
-        "source": sources,
-        "device": devices,
-    })
+    return pd.DataFrame(
+        {
+            "user_id": user_ids,
+            "event_name": event_names,
+            "timestamp": timestamps,
+            "page": pages,
+            "source": sources,
+            "device": devices,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Email sends  (2 000 rows)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def sample_email_sends() -> pd.DataFrame:
@@ -202,23 +216,26 @@ def sample_email_sends() -> pd.DataFrame:
     unsubscribed = (delivered & rng.choice([0, 1], size=n_rows, p=[0.995, 0.005])).astype(int)
     revenue = np.where(converted, np.round(rng.lognormal(3.0, 0.8, size=n_rows), 2), 0.0)
 
-    return pd.DataFrame({
-        "campaign_id": campaign_ids,
-        "send_time": send_times,
-        "recipient": recipients,
-        "delivered": delivered,
-        "bounced": bounced,
-        "opened": opened,
-        "clicked": clicked,
-        "converted": converted,
-        "unsubscribed": unsubscribed,
-        "revenue": revenue,
-    })
+    return pd.DataFrame(
+        {
+            "campaign_id": campaign_ids,
+            "send_time": send_times,
+            "recipient": recipients,
+            "delivered": delivered,
+            "bounced": bounced,
+            "opened": opened,
+            "clicked": clicked,
+            "converted": converted,
+            "unsubscribed": unsubscribed,
+            "revenue": revenue,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # NPS survey responses  (500 rows)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def sample_survey_responses() -> pd.DataFrame:
@@ -253,17 +270,20 @@ def sample_survey_responses() -> pd.DataFrame:
 
     timestamps = pd.date_range("2024-01-01", periods=n_rows, freq="4h")
 
-    return pd.DataFrame({
-        "respondent_id": respondent_ids,
-        "score": scores,
-        "open_text": open_texts,
-        "timestamp": timestamps,
-    })
+    return pd.DataFrame(
+        {
+            "respondent_id": respondent_ids,
+            "score": scores,
+            "open_text": open_texts,
+            "timestamp": timestamps,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Segment assignments  (200 customers)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def sample_segments() -> pd.DataFrame:
@@ -275,15 +295,24 @@ def sample_segments() -> pd.DataFrame:
     rng = np.random.default_rng(55)
     n_customers = 200
     segment_names = [
-        "Champions", "Loyal Customers", "Potential Loyalists",
-        "New Customers", "Promising", "Needs Attention",
-        "At-Risk", "About to Sleep", "Hibernating", "Lost",
+        "Champions",
+        "Loyal Customers",
+        "Potential Loyalists",
+        "New Customers",
+        "Promising",
+        "Needs Attention",
+        "At-Risk",
+        "About to Sleep",
+        "Hibernating",
+        "Lost",
     ]
     customer_ids = [f"CUST-{i:04d}" for i in range(1, n_customers + 1)]
     segments = rng.choice(segment_names, size=n_customers)
 
-    return pd.DataFrame({
-        "customer_id": customer_ids,
-        "segment_name": segments,
-        "segment_id": segments,  # identical for simplicity
-    })
+    return pd.DataFrame(
+        {
+            "customer_id": customer_ids,
+            "segment_name": segments,
+            "segment_id": segments,  # identical for simplicity
+        }
+    )

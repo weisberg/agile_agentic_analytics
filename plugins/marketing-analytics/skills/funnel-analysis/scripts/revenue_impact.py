@@ -13,11 +13,10 @@ Typical usage:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -131,9 +130,7 @@ def load_revenue_data(
         try:
             df[revenue_column] = pd.to_numeric(df[revenue_column])
         except (ValueError, TypeError):
-            raise ValueError(
-                f"Revenue column '{revenue_column}' contains non-numeric values"
-            )
+            raise ValueError(f"Revenue column '{revenue_column}' contains non-numeric values")
 
     df[timestamp_column] = pd.to_datetime(df[timestamp_column])
 
@@ -168,17 +165,13 @@ def compute_revenue_per_converter(
         ValueError: If no funnel completers have matching revenue data.
     """
     # Get user IDs of funnel completers
-    completer_ids = {
-        ur.entity_id for ur in funnel_result.user_results if ur.completed
-    }
+    completer_ids = {ur.entity_id for ur in funnel_result.user_results if ur.completed}
 
     if not completer_ids:
         raise ValueError("No funnel completers found")
 
     # Filter revenue data to completers
-    completer_revenue = revenue_data[
-        revenue_data[user_id_column].astype(str).isin(completer_ids)
-    ]
+    completer_revenue = revenue_data[revenue_data[user_id_column].astype(str).isin(completer_ids)]
 
     if completer_revenue.empty:
         raise ValueError("No matching revenue data for funnel completers")
@@ -219,16 +212,15 @@ def compute_stage_revenue_per_converter(
     """
     # Get users who reached at least the given stage AND completed the funnel
     qualified_ids = {
-        ur.entity_id
-        for ur in funnel_result.user_results
-        if ur.furthest_stage >= stage_index and ur.completed
+        ur.entity_id for ur in funnel_result.user_results if ur.furthest_stage >= stage_index and ur.completed
     }
 
     if not qualified_ids:
         # Fall back to overall completer revenue if no stage-specific data
         try:
             return compute_revenue_per_converter(
-                revenue_data, funnel_result,
+                revenue_data,
+                funnel_result,
                 user_id_column=user_id_column,
                 revenue_column=revenue_column,
                 use_median=use_median,
@@ -236,9 +228,7 @@ def compute_stage_revenue_per_converter(
         except ValueError:
             return 0.0
 
-    qualified_revenue = revenue_data[
-        revenue_data[user_id_column].astype(str).isin(qualified_ids)
-    ]
+    qualified_revenue = revenue_data[revenue_data[user_id_column].astype(str).isin(qualified_ids)]
 
     if qualified_revenue.empty:
         return 0.0
@@ -335,17 +325,11 @@ def estimate_revenue_impact(
         improvement_scenarios_ppts = [1.0, 5.0, 10.0]
 
     # Build bottleneck rank lookup
-    bottleneck_rank_map: dict[int, int] = {
-        b.stage_index: b.rank for b in bottlenecks
-    }
+    bottleneck_rank_map: dict[int, int] = {b.stage_index: b.rank for b in bottlenecks}
 
     # Compute total current revenue from funnel completers
-    completer_ids = {
-        ur.entity_id for ur in funnel_result.user_results if ur.completed
-    }
-    completer_revenue_df = revenue_data[
-        revenue_data[user_id_column].astype(str).isin(completer_ids)
-    ]
+    completer_ids = {ur.entity_id for ur in funnel_result.user_results if ur.completed}
+    completer_revenue_df = revenue_data[revenue_data[user_id_column].astype(str).isin(completer_ids)]
     total_current_revenue = float(completer_revenue_df[revenue_column].sum())
 
     # Compute downstream conversion rates for each stage
@@ -375,7 +359,9 @@ def estimate_revenue_impact(
 
         # Revenue per converter for this stage (median, conservative)
         rev_per_converter = compute_stage_revenue_per_converter(
-            revenue_data, funnel_result, i,
+            revenue_data,
+            funnel_result,
+            i,
             user_id_column=user_id_column,
             revenue_column=revenue_column,
             use_median=True,
@@ -393,15 +379,17 @@ def estimate_revenue_impact(
             )
             scenarios.append(scenario)
 
-        stage_impacts.append(StageRevenueImpact(
-            stage_index=i,
-            stage_name=stage.stage_name,
-            current_conversion_rate=current_rate,
-            current_volume=current_volume,
-            revenue_per_converter=rev_per_converter,
-            scenarios=scenarios,
-            bottleneck_rank=bottleneck_rank_map.get(i),
-        ))
+        stage_impacts.append(
+            StageRevenueImpact(
+                stage_index=i,
+                stage_name=stage.stage_name,
+                current_conversion_rate=current_rate,
+                current_volume=current_volume,
+                revenue_per_converter=rev_per_converter,
+                scenarios=scenarios,
+                bottleneck_rank=bottleneck_rank_map.get(i),
+            )
+        )
 
     return RevenueImpactReport(
         funnel_name=funnel_stats.funnel_name,
@@ -463,26 +451,15 @@ if __name__ == "__main__":
     import sys
     from build_funnel import FunnelResult, UserFunnelResult
     from funnel_stats import (
-        FunnelStats, BottleneckScore, StageStats, WilsonInterval,
-        compute_funnel_stats, rank_bottlenecks,
+        FunnelStats,
+        BottleneckScore,
+        compute_funnel_stats,
     )
 
-    funnel_results_path = (
-        sys.argv[1] if len(sys.argv) > 1
-        else "workspace/analysis/funnel_results.json"
-    )
-    bottleneck_path = (
-        sys.argv[2] if len(sys.argv) > 2
-        else "workspace/analysis/bottleneck_ranking.json"
-    )
-    revenue_data_path = (
-        sys.argv[3] if len(sys.argv) > 3
-        else "workspace/raw/revenue.csv"
-    )
-    output_path = (
-        sys.argv[4] if len(sys.argv) > 4
-        else "workspace/analysis/revenue_impact.json"
-    )
+    funnel_results_path = sys.argv[1] if len(sys.argv) > 1 else "workspace/analysis/funnel_results.json"
+    bottleneck_path = sys.argv[2] if len(sys.argv) > 2 else "workspace/analysis/bottleneck_ranking.json"
+    revenue_data_path = sys.argv[3] if len(sys.argv) > 3 else "workspace/raw/revenue.csv"
+    output_path = sys.argv[4] if len(sys.argv) > 4 else "workspace/analysis/revenue_impact.json"
 
     # Load funnel results
     with open(funnel_results_path, "r") as f:
@@ -548,7 +525,9 @@ if __name__ == "__main__":
     for stage in report.stages:
         if stage.scenarios:
             best = stage.scenarios[-1]  # largest improvement scenario
-            print(f"  Stage {stage.stage_index} ({stage.stage_name}): "
-                  f"+{best.improvement_ppts}pp -> "
-                  f"+{report.currency} {best.additional_revenue:,.2f} "
-                  f"({best.additional_revenue_pct:+.1f}%)")
+            print(
+                f"  Stage {stage.stage_index} ({stage.stage_name}): "
+                f"+{best.improvement_ppts}pp -> "
+                f"+{report.currency} {best.additional_revenue:,.2f} "
+                f"({best.additional_revenue_pct:+.1f}%)"
+            )

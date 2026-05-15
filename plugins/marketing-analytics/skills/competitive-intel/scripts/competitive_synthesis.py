@@ -20,7 +20,6 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import date
-from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -171,10 +170,7 @@ def _collect_raw_values(
     default: float = 0.0,
 ) -> dict[str, float]:
     """Collect raw values for a metric across all competitors."""
-    return {
-        comp: _get_competitor_metric(data, comp, metric, default)
-        for comp in all_competitors
-    }
+    return {comp: _get_competitor_metric(data, comp, metric, default) for comp in all_competitors}
 
 
 def score_search_strength(
@@ -531,21 +527,11 @@ def build_scorecard(
     )
 
     # Score each dimension
-    scorecard.search_strength = score_search_strength(
-        competitor, landscape_data, keyword_gap_data, all_competitors
-    )
-    scorecard.paid_intensity = score_paid_intensity(
-        competitor, landscape_data, all_competitors
-    )
-    scorecard.social_presence = score_social_presence(
-        competitor, landscape_data, all_competitors
-    )
-    scorecard.content_quality = score_content_quality(
-        competitor, landscape_data, all_competitors
-    )
-    scorecard.market_positioning = score_market_positioning(
-        competitor, landscape_data, all_competitors
-    )
+    scorecard.search_strength = score_search_strength(competitor, landscape_data, keyword_gap_data, all_competitors)
+    scorecard.paid_intensity = score_paid_intensity(competitor, landscape_data, all_competitors)
+    scorecard.social_presence = score_social_presence(competitor, landscape_data, all_competitors)
+    scorecard.content_quality = score_content_quality(competitor, landscape_data, all_competitors)
+    scorecard.market_positioning = score_market_positioning(competitor, landscape_data, all_competitors)
 
     # Calculate composite score
     scorecard.composite_score = calculate_composite_score(scorecard)
@@ -657,9 +643,7 @@ def generate_recommendations(
         if sc.trajectory == Trajectory.ACCELERATING:
             recommendations.append(
                 StrategicRecommendation(
-                    recommendation=(
-                        f"Monitor and counter {sc.competitor}'s accelerating investment"
-                    ),
+                    recommendation=(f"Monitor and counter {sc.competitor}'s accelerating investment"),
                     rationale=(
                         f"{sc.competitor} composite score is trending upward "
                         f"(slope: {sc.trajectory_slope:+.1f} pts/period). "
@@ -683,18 +667,13 @@ def generate_recommendations(
             vuln_details = sc.key_vulnerabilities[:2]
             recommendations.append(
                 StrategicRecommendation(
-                    recommendation=(
-                        f"Exploit {sc.competitor}'s weakness in "
-                        f"{vuln_details[0].split(':')[0].lower()}"
-                    ),
+                    recommendation=(f"Exploit {sc.competitor}'s weakness in {vuln_details[0].split(':')[0].lower()}"),
                     rationale=(
                         f"{sc.competitor} scores poorly on "
                         f"{', '.join(v.split(':')[0] for v in vuln_details)}. "
                         f"Investing here could widen our competitive advantage."
                     ),
-                    supporting_data_points=[
-                        f"Vulnerability: {v}" for v in vuln_details
-                    ],
+                    supporting_data_points=[f"Vulnerability: {v}" for v in vuln_details],
                     estimated_impact="medium",
                     implementation_effort="low",
                     priority_score=50.0 + (100.0 - sc.composite_score) * 0.3,
@@ -705,8 +684,7 @@ def generate_recommendations(
     # --- Recommendation 4: Respond to critical/high alerts ---
     alerts_list = alerts_data.get("alerts", []) if isinstance(alerts_data, dict) else []
     critical_high_alerts = [
-        a for a in alerts_list
-        if isinstance(a, dict) and a.get("alert_level") in ("critical", "high")
+        a for a in alerts_list if isinstance(a, dict) and a.get("alert_level") in ("critical", "high")
     ]
 
     if critical_high_alerts:
@@ -718,15 +696,11 @@ def generate_recommendations(
 
         for comp, comp_alert_list in comp_alerts.items():
             data_points = [
-                f"Alert: {a.get('description', 'N/A')} ({a.get('alert_level', 'N/A')})"
-                for a in comp_alert_list[:3]
+                f"Alert: {a.get('description', 'N/A')} ({a.get('alert_level', 'N/A')})" for a in comp_alert_list[:3]
             ]
             recommendations.append(
                 StrategicRecommendation(
-                    recommendation=(
-                        f"Respond to {len(comp_alert_list)} high-priority "
-                        f"competitive changes from {comp}"
-                    ),
+                    recommendation=(f"Respond to {len(comp_alert_list)} high-priority competitive changes from {comp}"),
                     rationale=(
                         f"{comp} has triggered {len(comp_alert_list)} critical/high alerts "
                         f"indicating significant strategy shifts."
@@ -747,16 +721,13 @@ def generate_recommendations(
                 dim_name = strength.split(":")[0].strip()
                 recommendations.append(
                     StrategicRecommendation(
-                        recommendation=(
-                            f"Defend our position as {sc.competitor} gains in {dim_name.lower()}"
-                        ),
+                        recommendation=(f"Defend our position as {sc.competitor} gains in {dim_name.lower()}"),
                         rationale=(
                             f"{sc.competitor} is accelerating and showing strength in "
                             f"{dim_name.lower()}. Proactive defense needed to maintain advantage."
                         ),
                         supporting_data_points=[
-                            f"{sc.competitor} trajectory: {sc.trajectory} "
-                            f"(slope: {sc.trajectory_slope:+.1f})",
+                            f"{sc.competitor} trajectory: {sc.trajectory} (slope: {sc.trajectory_slope:+.1f})",
                             f"Their {strength}",
                         ],
                         estimated_impact="high",
@@ -803,10 +774,7 @@ def compile_briefing(
     sorted_cards = sorted(scorecards, key=lambda s: s.composite_score, reverse=True)
 
     summary_parts: list[str] = []
-    summary_parts.append(
-        f"Competitive analysis as of {analysis_date} covering "
-        f"{len(scorecards)} competitors."
-    )
+    summary_parts.append(f"Competitive analysis as of {analysis_date} covering {len(scorecards)} competitors.")
 
     if sorted_cards:
         leader = sorted_cards[0]
@@ -824,14 +792,10 @@ def compile_briefing(
     if accelerating:
         names = ", ".join(sc.competitor for sc in accelerating)
         summary_parts.append(f"Accelerating competitors: {names}.")
-        market_trends.append(
-            f"{len(accelerating)} competitor(s) showing accelerating investment: {names}"
-        )
+        market_trends.append(f"{len(accelerating)} competitor(s) showing accelerating investment: {names}")
     if decelerating:
         names = ", ".join(sc.competitor for sc in decelerating)
-        market_trends.append(
-            f"{len(decelerating)} competitor(s) showing decelerating activity: {names}"
-        )
+        market_trends.append(f"{len(decelerating)} competitor(s) showing decelerating activity: {names}")
 
     if recommendations:
         summary_parts.append(
@@ -884,33 +848,37 @@ def export_briefing_json(
 
     scorecards_data = []
     for sc in briefing.scorecards:
-        scorecards_data.append({
-            "competitor": sc.competitor,
-            "competitor_domain": sc.competitor_domain,
-            "analysis_date": sc.analysis_date,
-            "search_strength": _dimension_to_dict(sc.search_strength),
-            "paid_intensity": _dimension_to_dict(sc.paid_intensity),
-            "social_presence": _dimension_to_dict(sc.social_presence),
-            "content_quality": _dimension_to_dict(sc.content_quality),
-            "market_positioning": _dimension_to_dict(sc.market_positioning),
-            "composite_score": round(sc.composite_score, 2),
-            "trajectory": sc.trajectory,
-            "trajectory_slope": round(sc.trajectory_slope, 2),
-            "key_strengths": sc.key_strengths,
-            "key_vulnerabilities": sc.key_vulnerabilities,
-        })
+        scorecards_data.append(
+            {
+                "competitor": sc.competitor,
+                "competitor_domain": sc.competitor_domain,
+                "analysis_date": sc.analysis_date,
+                "search_strength": _dimension_to_dict(sc.search_strength),
+                "paid_intensity": _dimension_to_dict(sc.paid_intensity),
+                "social_presence": _dimension_to_dict(sc.social_presence),
+                "content_quality": _dimension_to_dict(sc.content_quality),
+                "market_positioning": _dimension_to_dict(sc.market_positioning),
+                "composite_score": round(sc.composite_score, 2),
+                "trajectory": sc.trajectory,
+                "trajectory_slope": round(sc.trajectory_slope, 2),
+                "key_strengths": sc.key_strengths,
+                "key_vulnerabilities": sc.key_vulnerabilities,
+            }
+        )
 
     recommendations_data = []
     for rec in briefing.recommendations:
-        recommendations_data.append({
-            "recommendation": rec.recommendation,
-            "rationale": rec.rationale,
-            "supporting_data_points": rec.supporting_data_points,
-            "estimated_impact": rec.estimated_impact,
-            "implementation_effort": rec.implementation_effort,
-            "priority_score": round(rec.priority_score, 2),
-            "related_competitors": rec.related_competitors,
-        })
+        recommendations_data.append(
+            {
+                "recommendation": rec.recommendation,
+                "rationale": rec.rationale,
+                "supporting_data_points": rec.supporting_data_points,
+                "estimated_impact": rec.estimated_impact,
+                "implementation_effort": rec.implementation_effort,
+                "priority_score": round(rec.priority_score, 2),
+                "related_competitors": rec.related_competitors,
+            }
+        )
 
     output = {
         "analysis_date": briefing.analysis_date,
@@ -992,9 +960,7 @@ def export_briefing_html(
     for i, rec in enumerate(briefing.recommendations, 1):
         impact_color = badge_colors.get(rec.estimated_impact, "#6c757d")
         effort_color = badge_colors.get(rec.implementation_effort, "#6c757d")
-        data_points_html = "".join(
-            f"<li>{h(dp)}</li>" for dp in rec.supporting_data_points
-        )
+        data_points_html = "".join(f"<li>{h(dp)}</li>" for dp in rec.supporting_data_points)
         competitors_html = ", ".join(h(c) for c in rec.related_competitors)
 
         rec_cards += f"""
@@ -1024,9 +990,7 @@ def export_briefing_html(
         trends_html = "<p>No significant market trends detected.</p>"
 
     # Methodology
-    methodology_html = "".join(
-        f"<li>{h(n)}</li>" for n in briefing.methodology_notes
-    )
+    methodology_html = "".join(f"<li>{h(n)}</li>" for n in briefing.methodology_notes)
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1151,25 +1115,19 @@ def run_synthesis(
     try:
         landscape_data = load_json_data(landscape_path)
     except FileNotFoundError:
-        logger.warning(
-            "Landscape data not found at %s. Using empty data.", landscape_path
-        )
+        logger.warning("Landscape data not found at %s. Using empty data.", landscape_path)
         landscape_data = {}
 
     try:
         keyword_gap_data = load_json_data(keyword_gap_path)
     except FileNotFoundError:
-        logger.warning(
-            "Keyword gap data not found at %s. Using empty data.", keyword_gap_path
-        )
+        logger.warning("Keyword gap data not found at %s. Using empty data.", keyword_gap_path)
         keyword_gap_data = {}
 
     try:
         alerts_data = load_json_data(alerts_path)
     except FileNotFoundError:
-        logger.warning(
-            "Alerts data not found at %s. Using empty data.", alerts_path
-        )
+        logger.warning("Alerts data not found at %s. Using empty data.", alerts_path)
         alerts_data = {}
 
     analysis_date = date.today().isoformat()
@@ -1215,9 +1173,7 @@ def run_synthesis(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Competitive strategic scorecard and briefing synthesis"
-    )
+    parser = argparse.ArgumentParser(description="Competitive strategic scorecard and briefing synthesis")
     parser.add_argument(
         "--landscape",
         type=Path,

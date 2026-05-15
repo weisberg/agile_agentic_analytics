@@ -127,7 +127,9 @@ def compute_dow_factors(
     working["date"] = pd.to_datetime(working["date"])
     working["spend"] = working["spend"].apply(lambda value: Decimal(str(value)))
     overall_mean = sum(working["spend"], Decimal("0")) / Decimal(str(len(working) or 1))
-    grouped = working.groupby(working["date"].dt.dayofweek)["spend"].apply(lambda values: sum(values, Decimal("0")) / Decimal(str(len(values) or 1)))
+    grouped = working.groupby(working["date"].dt.dayofweek)["spend"].apply(
+        lambda values: sum(values, Decimal("0")) / Decimal(str(len(values) or 1))
+    )
     return {int(dow): (value / overall_mean if overall_mean else Decimal("1")) for dow, value in grouped.items()}
 
 
@@ -149,7 +151,9 @@ def run_pacing_report(
     for (campaign_id, platform), group in working.groupby(["campaign_id", "platform"]):
         if campaign_id not in budget_plans:
             continue
-        month_data = group[(group["date"].dt.date >= month_start) & (group["date"].dt.date <= current_date)].sort_values("date")
+        month_data = group[
+            (group["date"].dt.date >= month_start) & (group["date"].dt.date <= current_date)
+        ].sort_values("date")
         daily_spend = month_data.groupby(month_data["date"].dt.date)["spend"].sum().tolist()
         if not daily_spend:
             continue

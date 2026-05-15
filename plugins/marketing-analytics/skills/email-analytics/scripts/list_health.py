@@ -21,13 +21,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class InactiveSubscriber:
@@ -86,6 +86,7 @@ class ListHealthReport:
 # Inactive subscriber scoring
 # ---------------------------------------------------------------------------
 
+
 def identify_inactive_subscribers(
     sends_csv_path: Path,
     inactivity_threshold_days: int = 90,
@@ -122,10 +123,14 @@ def identify_inactive_subscribers(
         reference_date = df["send_time"].max()
 
     # Per-subscriber aggregation
-    subscriber_stats = df.groupby(recipient_col).agg(
-        total_sends=("delivered", "sum"),
-        total_clicks=("clicked", "sum"),
-    ).reset_index()
+    subscriber_stats = (
+        df.groupby(recipient_col)
+        .agg(
+            total_sends=("delivered", "sum"),
+            total_clicks=("clicked", "sum"),
+        )
+        .reset_index()
+    )
 
     # Last click date per subscriber
     clicked_df = df[df["clicked"] == 1]
@@ -167,16 +172,18 @@ def identify_inactive_subscribers(
             days_since_last_click=days_since,
         )
 
-        results.append(InactiveSubscriber(
-            subscriber_id=str(row[recipient_col]),
-            last_click_date=last_click,
-            days_since_last_click=days_since,
-            total_sends_received=total_sends,
-            total_clicks_lifetime=total_clicks,
-            lifetime_ctdr=round(lifetime_ctdr, 4),
-            inactivity_score=round(inactivity, 4),
-            recommended_action=action,
-        ))
+        results.append(
+            InactiveSubscriber(
+                subscriber_id=str(row[recipient_col]),
+                last_click_date=last_click,
+                days_since_last_click=days_since,
+                total_sends_received=total_sends,
+                total_clicks_lifetime=total_clicks,
+                lifetime_ctdr=round(lifetime_ctdr, 4),
+                inactivity_score=round(inactivity, 4),
+                recommended_action=action,
+            )
+        )
 
     # Sort by inactivity score descending (most inactive first)
     results.sort(key=lambda x: x.inactivity_score, reverse=True)
@@ -285,6 +292,7 @@ def recommend_action(
 # Re-engagement trigger identification
 # ---------------------------------------------------------------------------
 
+
 def identify_re_engagement_triggers(
     inactive_subscribers: list[InactiveSubscriber],
     decay_records: list[dict[str, Any]] | None = None,
@@ -313,77 +321,85 @@ def identify_re_engagement_triggers(
     # 1. Inactivity threshold trigger: group by recommended action
     re_engage_subs = [s for s in inactive_subscribers if s.recommended_action == "re-engage"]
     if re_engage_subs:
-        triggers.append(ReEngagementTrigger(
-            trigger_id="inactivity_re_engage",
-            trigger_type="inactivity_threshold",
-            description=f"{len(re_engage_subs)} subscribers inactive but have historical engagement. Candidates for re-engagement flow.",
-            subscriber_count=len(re_engage_subs),
-            subscriber_ids=[s.subscriber_id for s in re_engage_subs],
-            priority="high",
-            recommended_flow="re-engagement",
-        ))
+        triggers.append(
+            ReEngagementTrigger(
+                trigger_id="inactivity_re_engage",
+                trigger_type="inactivity_threshold",
+                description=f"{len(re_engage_subs)} subscribers inactive but have historical engagement. Candidates for re-engagement flow.",
+                subscriber_count=len(re_engage_subs),
+                subscriber_ids=[s.subscriber_id for s in re_engage_subs],
+                priority="high",
+                recommended_flow="re-engagement",
+            )
+        )
 
     suppress_subs = [s for s in inactive_subscribers if s.recommended_action == "suppress"]
     if suppress_subs:
-        triggers.append(ReEngagementTrigger(
-            trigger_id="inactivity_suppress",
-            trigger_type="inactivity_threshold",
-            description=f"{len(suppress_subs)} subscribers should be suppressed from regular sends to protect deliverability.",
-            subscriber_count=len(suppress_subs),
-            subscriber_ids=[s.subscriber_id for s in suppress_subs],
-            priority="medium",
-            recommended_flow="sunset",
-        ))
+        triggers.append(
+            ReEngagementTrigger(
+                trigger_id="inactivity_suppress",
+                trigger_type="inactivity_threshold",
+                description=f"{len(suppress_subs)} subscribers should be suppressed from regular sends to protect deliverability.",
+                subscriber_count=len(suppress_subs),
+                subscriber_ids=[s.subscriber_id for s in suppress_subs],
+                priority="medium",
+                recommended_flow="sunset",
+            )
+        )
 
     sunset_subs = [s for s in inactive_subscribers if s.recommended_action == "sunset"]
     if sunset_subs:
-        triggers.append(ReEngagementTrigger(
-            trigger_id="inactivity_sunset",
-            trigger_type="inactivity_threshold",
-            description=f"{len(sunset_subs)} subscribers have never engaged or are long-term inactive. Recommended for list removal.",
-            subscriber_count=len(sunset_subs),
-            subscriber_ids=[s.subscriber_id for s in sunset_subs],
-            priority="low",
-            recommended_flow="sunset",
-        ))
+        triggers.append(
+            ReEngagementTrigger(
+                trigger_id="inactivity_sunset",
+                trigger_type="inactivity_threshold",
+                description=f"{len(sunset_subs)} subscribers have never engaged or are long-term inactive. Recommended for list removal.",
+                subscriber_count=len(sunset_subs),
+                subscriber_ids=[s.subscriber_id for s in sunset_subs],
+                priority="low",
+                recommended_flow="sunset",
+            )
+        )
 
     # 2. Decay-based trigger: subscribers whose engagement is actively declining
     if decay_records:
-        high_risk_decay = [
-            r for r in decay_records
-            if r.get("risk_level") in ("high", "medium")
-        ]
+        high_risk_decay = [r for r in decay_records if r.get("risk_level") in ("high", "medium")]
         if high_risk_decay:
             decay_ids = [r.get("subscriber_id", "") for r in high_risk_decay]
-            triggers.append(ReEngagementTrigger(
-                trigger_id="decay_detected",
-                trigger_type="decay_detected",
-                description=f"{len(high_risk_decay)} subscribers showing engagement decay (medium/high risk). Early intervention recommended.",
-                subscriber_count=len(high_risk_decay),
-                subscriber_ids=decay_ids,
-                priority="high",
-                recommended_flow="re-engagement",
-            ))
+            triggers.append(
+                ReEngagementTrigger(
+                    trigger_id="decay_detected",
+                    trigger_type="decay_detected",
+                    description=f"{len(high_risk_decay)} subscribers showing engagement decay (medium/high risk). Early intervention recommended.",
+                    subscriber_count=len(high_risk_decay),
+                    subscriber_ids=decay_ids,
+                    priority="high",
+                    recommended_flow="re-engagement",
+                )
+            )
 
     # 3. CLV-at-risk trigger: high-value subscribers who are becoming inactive
     if clv_scores:
         inactive_ids = {s.subscriber_id for s in inactive_subscribers}
         at_risk_high_value = [
-            (sub_id, score) for sub_id, score in clv_scores.items()
+            (sub_id, score)
+            for sub_id, score in clv_scores.items()
             if sub_id in inactive_ids and score >= 0.3  # probability_alive >= 30%
         ]
         if at_risk_high_value:
             # Sort by CLV score descending (highest value first)
             at_risk_high_value.sort(key=lambda x: x[1], reverse=True)
-            triggers.append(ReEngagementTrigger(
-                trigger_id="clv_at_risk",
-                trigger_type="clv_at_risk",
-                description=f"{len(at_risk_high_value)} high-CLV subscribers are inactive. Priority re-engagement to protect revenue.",
-                subscriber_count=len(at_risk_high_value),
-                subscriber_ids=[sub_id for sub_id, _ in at_risk_high_value],
-                priority="high",
-                recommended_flow="win-back",
-            ))
+            triggers.append(
+                ReEngagementTrigger(
+                    trigger_id="clv_at_risk",
+                    trigger_type="clv_at_risk",
+                    description=f"{len(at_risk_high_value)} high-CLV subscribers are inactive. Priority re-engagement to protect revenue.",
+                    subscriber_count=len(at_risk_high_value),
+                    subscriber_ids=[sub_id for sub_id, _ in at_risk_high_value],
+                    priority="high",
+                    recommended_flow="win-back",
+                )
+            )
 
     # Sort by priority (high > medium > low)
     priority_order = {"high": 0, "medium": 1, "low": 2}
@@ -421,6 +437,7 @@ def prioritize_triggers(
 # ---------------------------------------------------------------------------
 # List hygiene scoring
 # ---------------------------------------------------------------------------
+
 
 def compute_list_hygiene_score(
     sends_csv_path: Path,
@@ -501,10 +518,7 @@ def compute_list_hygiene_score(
 
     # Weighted overall score
     overall = (
-        0.35 * bounce_component
-        + 0.30 * engagement_component
-        + 0.20 * inactive_component
-        + 0.15 * complaint_component
+        0.35 * bounce_component + 0.30 * engagement_component + 0.20 * inactive_component + 0.15 * complaint_component
     )
     overall = max(0.0, min(1.0, overall))
 
@@ -528,6 +542,7 @@ def compute_list_hygiene_score(
 # ---------------------------------------------------------------------------
 # Report generation
 # ---------------------------------------------------------------------------
+
 
 def generate_list_health_report(
     sends_csv_path: Path,
@@ -570,17 +585,11 @@ def generate_list_health_report(
         if isinstance(clv_data, dict):
             # Could be {customer_id: score} or {"predictions": [...]}
             if "predictions" in clv_data:
-                clv_scores = {
-                    p["customer_id"]: p.get("probability_alive", 0.0)
-                    for p in clv_data["predictions"]
-                }
+                clv_scores = {p["customer_id"]: p.get("probability_alive", 0.0) for p in clv_data["predictions"]}
             else:
                 clv_scores = {k: float(v) for k, v in clv_data.items()}
         elif isinstance(clv_data, list):
-            clv_scores = {
-                item.get("customer_id", ""): item.get("probability_alive", 0.0)
-                for item in clv_data
-            }
+            clv_scores = {item.get("customer_id", ""): item.get("probability_alive", 0.0) for item in clv_data}
 
     # 3. Identify re-engagement triggers
     triggers = identify_re_engagement_triggers(
@@ -600,9 +609,9 @@ def generate_list_health_report(
         "total_subscribers": hygiene_score.total_subscribers,
         "active_subscribers": hygiene_score.active_subscribers,
         "inactive_subscribers": hygiene_score.inactive_subscribers,
-        "inactive_rate": round(
-            hygiene_score.inactive_subscribers / hygiene_score.total_subscribers * 100, 2
-        ) if hygiene_score.total_subscribers > 0 else 0.0,
+        "inactive_rate": round(hygiene_score.inactive_subscribers / hygiene_score.total_subscribers * 100, 2)
+        if hygiene_score.total_subscribers > 0
+        else 0.0,
         "re_engage_count": sum(1 for s in inactive_subs if s.recommended_action == "re-engage"),
         "suppress_count": sum(1 for s in inactive_subs if s.recommended_action == "suppress"),
         "sunset_count": sum(1 for s in inactive_subs if s.recommended_action == "sunset"),

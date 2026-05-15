@@ -20,7 +20,12 @@ DEFAULT_TEMPLATES = {
         "sections": [
             {"id": "executive_summary", "title": "Executive Summary", "type": "narrative"},
             {"id": "kpi_scorecard", "title": "KPI Scorecard", "type": "table"},
-            {"id": "channel_performance", "title": "Channel Performance", "type": "chart_group", "charts": [{"chart_type": "time_series", "metrics": ["spend"], "group_by": "channel"}]},
+            {
+                "id": "channel_performance",
+                "title": "Channel Performance",
+                "type": "chart_group",
+                "charts": [{"chart_type": "time_series", "metrics": ["spend"], "group_by": "channel"}],
+            },
             {"id": "top_insights", "title": "Key Insights & Recommended Actions", "type": "narrative_list"},
         ],
     },
@@ -30,7 +35,12 @@ DEFAULT_TEMPLATES = {
         "sections": [
             {"id": "executive_summary", "title": "Executive Summary", "type": "narrative"},
             {"id": "kpi_scorecard", "title": "KPI Scorecard", "type": "table"},
-            {"id": "attribution_analysis", "title": "Channel Attribution & MMM Results", "type": "chart_group", "charts": [{"chart_type": "waterfall", "metrics": ["attributed_revenue"], "group_by": "channel"}]},
+            {
+                "id": "attribution_analysis",
+                "title": "Channel Attribution & MMM Results",
+                "type": "chart_group",
+                "charts": [{"chart_type": "waterfall", "metrics": ["attributed_revenue"], "group_by": "channel"}],
+            },
             {"id": "recommendations", "title": "Strategic Recommendations", "type": "narrative_list"},
         ],
     },
@@ -87,7 +97,11 @@ def build_kpi_scorecard(
             if delta is not None
             else f"<tr><td>{html.escape(name)}</td><td>{html.escape(str(value))}</td><td>{html.escape(str(target) if target is not None else '-')}</td><td>-</td><td class='{status}'>{status.replace('_', ' ').title()}</td></tr>"
         )
-    return "<table class='scorecard'><thead><tr><th>Metric</th><th>Value</th><th>Target</th><th>Delta</th><th>Status</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
+    return (
+        "<table class='scorecard'><thead><tr><th>Metric</th><th>Value</th><th>Target</th><th>Delta</th><th>Status</th></tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table>"
+    )
 
 
 def build_narrative_section(
@@ -117,7 +131,14 @@ def build_data_table(
             cells.append(f"<td style='text-align:{align}'>{html.escape(str(value))}</td>")
         rows.append("<tr>" + "".join(cells) + "</tr>")
     title_html = f"<h3>{html.escape(title)}</h3>" if title else ""
-    return title_html + "<table class='data-table'><thead><tr>" + header + "</tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
+    return (
+        title_html
+        + "<table class='data-table'><thead><tr>"
+        + header
+        + "</tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table>"
+    )
 
 
 def build_chart_section(
@@ -151,19 +172,30 @@ def build_layout(
         if section_type == "narrative":
             html_fragment = build_narrative_section(section["title"], insights.get("executive_summary", ""))
         elif section_type == "narrative_list":
-            html_fragment = build_narrative_section(section["title"], insights.get("insight_list_html", ""), section_type="insight_list")
+            html_fragment = build_narrative_section(
+                section["title"], insights.get("insight_list_html", ""), section_type="insight_list"
+            )
         elif section_type == "table":
             html_fragment = build_kpi_scorecard(scorecard_data, targets=targets, comparison_values=comparison_values)
         elif section_type == "chart_group":
             fragments = []
             for chart in chart_lookup.get(section_id, []):
-                fragments.append(build_chart_section(Path(chart["html_path"]).read_text(encoding="utf-8"), chart["title"], chart["alt_text"]))
+                fragments.append(
+                    build_chart_section(
+                        Path(chart["html_path"]).read_text(encoding="utf-8"), chart["title"], chart["alt_text"]
+                    )
+                )
             html_fragment = "".join(fragments)
         else:
             table_rows = data_tables.get(section_id, [])
-            columns = [{"key": key, "label": key.replace("_", " ").title()} for key in (table_rows[0].keys() if table_rows else [])]
+            columns = [
+                {"key": key, "label": key.replace("_", " ").title()}
+                for key in (table_rows[0].keys() if table_rows else [])
+            ]
             html_fragment = build_data_table(table_rows, columns, title=section["title"])
-        sections.append({"section_id": section_id, "title": section["title"], "html": html_fragment, "type": section_type})
+        sections.append(
+            {"section_id": section_id, "title": section["title"], "html": html_fragment, "type": section_type}
+        )
     return sections
 
 
@@ -206,10 +238,16 @@ def render_html(
     disclaimer_text: str | None = None,
 ) -> str:
     generated_at = generated_at or datetime.utcnow().isoformat() + "Z"
-    disclaimer_text = disclaimer_text or "This dashboard is generated for analytical review and may require human validation."
+    disclaimer_text = (
+        disclaimer_text or "This dashboard is generated for analytical review and may require human validation."
+    )
     nav = ""
     if include_nav:
-        nav = "<nav>" + "".join(f"<a href='#{section['section_id']}'>{html.escape(section['title'])}</a>" for section in sections) + "</nav>"
+        nav = (
+            "<nav>"
+            + "".join(f"<a href='#{section['section_id']}'>{html.escape(section['title'])}</a>" for section in sections)
+            + "</nav>"
+        )
     section_html = "".join(f"<div id='{section['section_id']}'>{section['html']}</div>" for section in sections)
     disclaimer = f"<footer><p>{html.escape(disclaimer_text)}</p></footer>" if financial_services_mode else ""
     subtitle_html = f"<p>{html.escape(subtitle)}</p>" if subtitle else ""

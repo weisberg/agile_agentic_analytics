@@ -147,47 +147,32 @@ def engineer_features(
 
     # --- Session frequency: approximate sessions per week ---
     # Active span in weeks (minimum 1 week to avoid division by zero)
-    active_span_weeks = (
-        (user_agg["last_event"] - user_agg["first_event"]).dt.total_seconds()
-        / (7 * 24 * 3600)
-    ).clip(lower=1.0)
-    # Approximate sessions as distinct event-days
-    sessions_per_user = (
-        df.assign(_date=df[timestamp_column].dt.date)
-        .groupby(user_id_column)["_date"]
-        .nunique()
+    active_span_weeks = ((user_agg["last_event"] - user_agg["first_event"]).dt.total_seconds() / (7 * 24 * 3600)).clip(
+        lower=1.0
     )
+    # Approximate sessions as distinct event-days
+    sessions_per_user = df.assign(_date=df[timestamp_column].dt.date).groupby(user_id_column)["_date"].nunique()
     user_agg = user_agg.join(sessions_per_user.rename("_n_sessions"))
     user_agg["session_frequency"] = user_agg["_n_sessions"] / active_span_weeks
 
     # --- Average page depth: events per session-day ---
-    user_agg["avg_page_depth"] = (
-        user_agg["engagement_intensity"] / user_agg["_n_sessions"]
-    )
+    user_agg["avg_page_depth"] = user_agg["engagement_intensity"] / user_agg["_n_sessions"]
 
     # --- Content affinity: proportion of events per event type ---
     event_counts = df.groupby([user_id_column, event_column]).size().unstack(fill_value=0)
     event_proportions = event_counts.div(event_counts.sum(axis=1), axis=0)
-    event_proportions.columns = [
-        f"content_affinity_{col}" for col in event_proportions.columns
-    ]
+    event_proportions.columns = [f"content_affinity_{col}" for col in event_proportions.columns]
     user_agg = user_agg.join(event_proportions)
 
     # --- Channel preference (if 'channel' column exists) ---
     if "channel" in df.columns:
-        channel_counts = (
-            df.groupby([user_id_column, "channel"]).size().unstack(fill_value=0)
-        )
+        channel_counts = df.groupby([user_id_column, "channel"]).size().unstack(fill_value=0)
         channel_proportions = channel_counts.div(channel_counts.sum(axis=1), axis=0)
-        channel_proportions.columns = [
-            f"channel_preference_{col}" for col in channel_proportions.columns
-        ]
+        channel_proportions.columns = [f"channel_preference_{col}" for col in channel_proportions.columns]
         user_agg = user_agg.join(channel_proportions)
 
     # Drop helper columns
-    user_agg = user_agg.drop(
-        columns=["first_event", "last_event", "_n_sessions"], errors="ignore"
-    )
+    user_agg = user_agg.drop(columns=["first_event", "last_event", "_n_sessions"], errors="ignore")
 
     # Fill any remaining NaN (e.g. users with a single event type) with 0
     user_agg = user_agg.fillna(0.0)
@@ -262,9 +247,7 @@ def scale_features(
     }
 
     if method not in scalers:
-        raise ValueError(
-            f"Unsupported scaling method '{method}'. Choose from: {list(scalers)}"
-        )
+        raise ValueError(f"Unsupported scaling method '{method}'. Choose from: {list(scalers)}")
 
     scaler = scalers[method]()
     X_scaled = scaler.fit_transform(feature_matrix.values)
@@ -367,8 +350,7 @@ def find_optimal_k(
 
     if best_score < DEFAULT_MIN_SILHOUETTE:
         logger.warning(
-            "Best silhouette score %.4f is below threshold %.2f; "
-            "data may not have clear cluster structure",
+            "Best silhouette score %.4f is below threshold %.2f; data may not have clear cluster structure",
             best_score,
             DEFAULT_MIN_SILHOUETTE,
         )
@@ -528,13 +510,9 @@ def run_dbscan(
     }
 
     if noise_pct > 30:
-        logger.warning(
-            "DBSCAN noise percentage %.1f%% is high; consider increasing eps", noise_pct
-        )
+        logger.warning("DBSCAN noise percentage %.1f%% is high; consider increasing eps", noise_pct)
     if n_clusters < 2:
-        logger.warning(
-            "DBSCAN found %d cluster(s); consider falling back to K-Means", n_clusters
-        )
+        logger.warning("DBSCAN found %d cluster(s); consider falling back to K-Means", n_clusters)
 
     logger.info(
         "DBSCAN: %d clusters, %d noise points (%.1f%%)",
@@ -674,9 +652,7 @@ def run_clustering_pipeline(
     diagnostics: dict[str, Any] = {}
     if method == "kmeans":
         opt = find_optimal_k(X_cluster, random_state=random_state)
-        labels, model = run_kmeans(
-            X_cluster, n_clusters=opt["optimal_k"], random_state=random_state
-        )
+        labels, model = run_kmeans(X_cluster, n_clusters=opt["optimal_k"], random_state=random_state)
         diagnostics.update(opt)
     elif method == "dbscan":
         labels, model, dbscan_diag = run_dbscan(X_cluster)

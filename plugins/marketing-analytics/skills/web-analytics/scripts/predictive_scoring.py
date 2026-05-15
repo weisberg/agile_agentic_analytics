@@ -14,7 +14,7 @@ Dependencies:
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Any, Literal
@@ -43,16 +43,18 @@ class ScoringConfig:
     """
 
     model_type: Literal["conversion", "churn"] = "conversion"
-    features: list[str] = field(default_factory=lambda: [
-        "session_count",
-        "avg_pages_per_session",
-        "avg_session_duration",
-        "days_since_first_visit",
-        "days_since_last_visit",
-        "content_affinity_score",
-        "top_channel",
-        "device_category",
-    ])
+    features: list[str] = field(
+        default_factory=lambda: [
+            "session_count",
+            "avg_pages_per_session",
+            "avg_session_duration",
+            "days_since_first_visit",
+            "days_since_last_visit",
+            "content_affinity_score",
+            "top_channel",
+            "device_category",
+        ]
+    )
     target_column: str = "converted"
     holdout_date: date | None = None
     regularization_strength: float = 1.0
@@ -138,8 +140,7 @@ def prepare_features(
     available_features = [f for f in features if f in df.columns]
     if not available_features:
         raise ValueError(
-            f"None of the specified features found in DataFrame. "
-            f"Requested: {features}, Available: {list(df.columns)}"
+            f"None of the specified features found in DataFrame. Requested: {features}, Available: {list(df.columns)}"
         )
 
     X = df[available_features].copy()
@@ -230,15 +231,9 @@ def temporal_train_test_split(
     holdout_df = df[holdout_mask].copy()
 
     if len(train_df) == 0:
-        raise ValueError(
-            f"Training set is empty. All {len(df)} records are on or after "
-            f"holdout_date={holdout_date}"
-        )
+        raise ValueError(f"Training set is empty. All {len(df)} records are on or after holdout_date={holdout_date}")
     if len(holdout_df) == 0:
-        raise ValueError(
-            f"Holdout set is empty. All {len(df)} records are before "
-            f"holdout_date={holdout_date}"
-        )
+        raise ValueError(f"Holdout set is empty. All {len(df)} records are before holdout_date={holdout_date}")
 
     return train_df, holdout_df
 
@@ -330,15 +325,15 @@ def score_users(
     """
     y_proba = model.predict_proba(X)[:, 1]
 
-    scores_df = pd.DataFrame({
-        "user_id": user_ids.values,
-        "propensity_score": y_proba,
-        "high_propensity": y_proba >= score_threshold,
-    })
-
-    scores_df = scores_df.sort_values("propensity_score", ascending=False).reset_index(
-        drop=True
+    scores_df = pd.DataFrame(
+        {
+            "user_id": user_ids.values,
+            "propensity_score": y_proba,
+            "high_propensity": y_proba >= score_threshold,
+        }
     )
+
+    scores_df = scores_df.sort_values("propensity_score", ascending=False).reset_index(drop=True)
     return scores_df
 
 
@@ -358,14 +353,10 @@ def extract_coefficients(
     coefs = model.coef_[0]
     intercept = float(model.intercept_[0])
 
-    coef_dict = {
-        name: float(coef) for name, coef in zip(feature_names, coefs)
-    }
+    coef_dict = {name: float(coef) for name, coef in zip(feature_names, coefs)}
 
     # Sort by absolute value descending.
-    coef_dict = dict(
-        sorted(coef_dict.items(), key=lambda item: abs(item[1]), reverse=True)
-    )
+    coef_dict = dict(sorted(coef_dict.items(), key=lambda item: abs(item[1]), reverse=True))
 
     return coef_dict, intercept
 
@@ -448,9 +439,7 @@ def run_predictive_scoring(
     y_holdout = y_all.iloc[n_train:]
 
     # Fit model.
-    model = fit_propensity_model(
-        X_train, y_train, config.regularization_strength, config.class_weight
-    )
+    model = fit_propensity_model(X_train, y_train, config.regularization_strength, config.class_weight)
 
     # Evaluate on holdout.
     auc_roc, auc_pr = evaluate_model(model, X_holdout, y_holdout)
@@ -461,9 +450,7 @@ def run_predictive_scoring(
 
     # Score all users.
     user_ids = (
-        combined[user_id_column]
-        if user_id_column is not None
-        else pd.Series(range(len(combined)), name="user_id")
+        combined[user_id_column] if user_id_column is not None else pd.Series(range(len(combined)), name="user_id")
     )
     scores_df = score_users(model, X_all, user_ids, config.score_threshold)
 

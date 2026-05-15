@@ -44,9 +44,7 @@ class AnomalyConfig:
     seasonal_period: int = 7
     min_history_days: int = 56
     suppression_dates: set[date] = field(default_factory=set)
-    decomposition_dimensions: list[str] = field(
-        default_factory=lambda: ["source", "device", "country", "page"]
-    )
+    decomposition_dimensions: list[str] = field(default_factory=lambda: ["source", "device", "country", "page"])
 
 
 @dataclass
@@ -101,10 +99,7 @@ def validate_time_series(
 
     # Ensure the metric column is numeric.
     if not pd.api.types.is_numeric_dtype(df[metric_column]):
-        raise ValueError(
-            f"Metric column '{metric_column}' must be numeric, "
-            f"got {df[metric_column].dtype}"
-        )
+        raise ValueError(f"Metric column '{metric_column}' must be numeric, got {df[metric_column].dtype}")
 
     # Check for all-null metric.
     if df[metric_column].isna().all():
@@ -116,19 +111,14 @@ def validate_time_series(
     n_days = len(unique_dates)
 
     if n_days < min_history_days:
-        raise ValueError(
-            f"Insufficient history: {n_days} days available, "
-            f"{min_history_days} required"
-        )
+        raise ValueError(f"Insufficient history: {n_days} days available, {min_history_days} required")
 
     # Check for large date gaps (more than 3 consecutive missing days).
     sorted_dates = pd.DatetimeIndex(sorted(unique_dates))
     gaps = sorted_dates[1:] - sorted_dates[:-1]
     max_gap = gaps.max() if len(gaps) > 0 else pd.Timedelta(0)
     if max_gap > pd.Timedelta(days=3):
-        raise ValueError(
-            f"Large date gap detected: {max_gap.days} consecutive days missing"
-        )
+        raise ValueError(f"Large date gap detected: {max_gap.days} consecutive days missing")
 
     return True
 
@@ -218,11 +208,7 @@ def detect_anomalies(
     # Build daily aggregated series.
     ts_df = df[[date_column, metric_column]].copy()
     ts_df[date_column] = pd.to_datetime(ts_df[date_column])
-    daily = (
-        ts_df.groupby(date_column)[metric_column]
-        .sum()
-        .sort_index()
-    )
+    daily = ts_df.groupby(date_column)[metric_column].sum().sort_index()
     daily.index = pd.DatetimeIndex(daily.index)
 
     # Fill any missing dates in the range with zero to get a continuous series.
@@ -317,9 +303,8 @@ def decompose_root_causes(
 
     # Baseline: data from 4 comparable day-of-week periods prior.
     anomaly_weekday = anomaly_date.weekday()
-    baseline_mask = (
-        (df_copy["_parsed_date"] < anomaly_date)
-        & (df_copy["_parsed_date"].apply(lambda d: d.weekday()) == anomaly_weekday)
+    baseline_mask = (df_copy["_parsed_date"] < anomaly_date) & (
+        df_copy["_parsed_date"].apply(lambda d: d.weekday()) == anomaly_weekday
     )
     baseline_data = df_copy[baseline_mask]
 
@@ -350,17 +335,13 @@ def decompose_root_causes(
             exp = float(expected.get(val, 0.0))
             contrib = obs - exp
             total_deviation += contrib
-            contributions.append(
-                {"value": str(val), "contribution": contrib, "pct_contribution": 0.0}
-            )
+            contributions.append({"value": str(val), "contribution": contrib, "pct_contribution": 0.0})
 
         # Compute percentage contributions.
         abs_total = abs(total_deviation) if total_deviation != 0 else 1.0
         for entry in contributions:
             entry["pct_contribution"] = round(
-                (entry["contribution"] / abs_total) * 100.0
-                if abs_total != 0
-                else 0.0,
+                (entry["contribution"] / abs_total) * 100.0 if abs_total != 0 else 0.0,
                 2,
             )
 
@@ -418,14 +399,10 @@ def run_anomaly_detection(
             continue
 
         # Decompose root causes for each anomaly.
-        available_dims = [
-            d for d in config.decomposition_dimensions if d in df.columns
-        ]
+        available_dims = [d for d in config.decomposition_dimensions if d in df.columns]
         for anomaly in anomalies:
             if available_dims:
-                anomaly.root_causes = decompose_root_causes(
-                    df, anomaly.anomaly_date, metric, available_dims
-                )
+                anomaly.root_causes = decompose_root_causes(df, anomaly.anomaly_date, metric, available_dims)
 
         all_anomalies.extend(anomalies)
 

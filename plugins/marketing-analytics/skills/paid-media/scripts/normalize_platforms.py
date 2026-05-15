@@ -13,11 +13,41 @@ except ModuleNotFoundError:  # pragma: no cover
 
 
 PLATFORM_METRIC_MAP: dict[str, dict[str, str]] = {
-    "google": {"Impressions": "impressions", "Clicks": "clicks", "Cost": "spend", "Conversions": "conversions", "ConversionValue": "revenue"},
-    "meta": {"impressions": "impressions", "outbound_clicks": "clicks", "spend": "spend", "actions_purchase": "conversions", "action_values_purchase": "revenue"},
-    "linkedin": {"impressions": "impressions", "clicks": "clicks", "costInLocalCurrency": "spend", "externalWebsiteConversions": "conversions", "conversionValueInLocalCurrency": "revenue"},
-    "tiktok": {"impressions": "impressions", "clicks": "clicks", "spend": "spend", "conversions": "conversions", "value": "revenue"},
-    "dv360": {"impressions": "impressions", "clicks": "clicks", "revenue": "spend", "totalConversions": "conversions", "totalConversionValue": "revenue"},
+    "google": {
+        "Impressions": "impressions",
+        "Clicks": "clicks",
+        "Cost": "spend",
+        "Conversions": "conversions",
+        "ConversionValue": "revenue",
+    },
+    "meta": {
+        "impressions": "impressions",
+        "outbound_clicks": "clicks",
+        "spend": "spend",
+        "actions_purchase": "conversions",
+        "action_values_purchase": "revenue",
+    },
+    "linkedin": {
+        "impressions": "impressions",
+        "clicks": "clicks",
+        "costInLocalCurrency": "spend",
+        "externalWebsiteConversions": "conversions",
+        "conversionValueInLocalCurrency": "revenue",
+    },
+    "tiktok": {
+        "impressions": "impressions",
+        "clicks": "clicks",
+        "spend": "spend",
+        "conversions": "conversions",
+        "value": "revenue",
+    },
+    "dv360": {
+        "impressions": "impressions",
+        "clicks": "clicks",
+        "revenue": "spend",
+        "totalConversions": "conversions",
+        "totalConversionValue": "revenue",
+    },
 }
 
 ATTRIBUTION_WINDOWS: dict[str, str] = {
@@ -113,8 +143,10 @@ def normalize_currency(
     for metric in ("spend", "revenue"):
         if metric in normalized.columns:
             normalized[metric] = normalized.apply(
-                lambda row: _to_decimal(row[metric])
-                * fx_rates.get(str(row["date"])[:10], fx_rates.get(source_currency, Decimal("1"))),
+                lambda row: (
+                    _to_decimal(row[metric])
+                    * fx_rates.get(str(row["date"])[:10], fx_rates.get(source_currency, Decimal("1")))
+                ),
                 axis=1,
             )
     normalized["reporting_currency"] = target_currency
@@ -136,10 +168,18 @@ def compute_derived_metrics(df: Any) -> Any:
         lambda row: _safe_divide(_to_decimal(row["spend"]) * Decimal("1000"), _to_decimal(row["impressions"])),
         axis=1,
     )
-    derived["cpc"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["spend"]), _to_decimal(row["clicks"])), axis=1)
-    derived["ctr"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["clicks"]), _to_decimal(row["impressions"])), axis=1)
-    derived["cpa"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["spend"]), _to_decimal(row["conversions"])), axis=1)
-    derived["roas"] = derived.apply(lambda row: _safe_divide(_to_decimal(row["revenue"]), _to_decimal(row["spend"])), axis=1)
+    derived["cpc"] = derived.apply(
+        lambda row: _safe_divide(_to_decimal(row["spend"]), _to_decimal(row["clicks"])), axis=1
+    )
+    derived["ctr"] = derived.apply(
+        lambda row: _safe_divide(_to_decimal(row["clicks"]), _to_decimal(row["impressions"])), axis=1
+    )
+    derived["cpa"] = derived.apply(
+        lambda row: _safe_divide(_to_decimal(row["spend"]), _to_decimal(row["conversions"])), axis=1
+    )
+    derived["roas"] = derived.apply(
+        lambda row: _safe_divide(_to_decimal(row["revenue"]), _to_decimal(row["spend"])), axis=1
+    )
     return derived
 
 
@@ -153,7 +193,9 @@ def normalize_platform(
     frame = rename_columns(frame, platform)
     if platform == "google":
         frame = convert_google_micros(frame, columns=["spend", "revenue"])
-    frame = normalize_currency(frame, str(frame["currency"].iloc[0] or target_currency), target_currency=target_currency, fx_rates=fx_rates)
+    frame = normalize_currency(
+        frame, str(frame["currency"].iloc[0] or target_currency), target_currency=target_currency, fx_rates=fx_rates
+    )
     frame = add_attribution_label(frame, platform)
     frame = compute_derived_metrics(frame)
     frame["campaign_id"] = frame["campaign_id"].fillna(frame["platform"] + "_unknown_campaign")

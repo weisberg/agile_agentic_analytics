@@ -25,10 +25,9 @@ class SRMResult:
 def _chi_square_p_value(statistic: float, degrees_of_freedom: int) -> float:
     if degrees_of_freedom <= 0:
         return 1.0
-    z_score = (
-        ((statistic / degrees_of_freedom) ** (1 / 3))
-        - (1 - 2 / (9 * degrees_of_freedom))
-    ) / math.sqrt(2 / (9 * degrees_of_freedom))
+    z_score = (((statistic / degrees_of_freedom) ** (1 / 3)) - (1 - 2 / (9 * degrees_of_freedom))) / math.sqrt(
+        2 / (9 * degrees_of_freedom)
+    )
     return 1 - NormalDist().cdf(z_score)
 
 
@@ -84,7 +83,9 @@ def run_srm_diagnostic_breakdown(
             for value, variant in zip(values, variant_assignments):
                 if str(value) == unique_value:
                     counts[variant] += 1
-            dimension_results[unique_value] = run_srm_check(counts, expected_ratios=expected_ratios, threshold=threshold)
+            dimension_results[unique_value] = run_srm_check(
+                counts, expected_ratios=expected_ratios, threshold=threshold
+            )
         results[dimension] = dimension_results
     return results
 

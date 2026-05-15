@@ -26,7 +26,7 @@ import csv
 import json
 import logging
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -48,9 +48,7 @@ def authenticate_gsc(credentials_path: str) -> Any:
     """
     cred_path = Path(credentials_path)
     if not cred_path.exists():
-        raise FileNotFoundError(
-            f"Credentials file not found: {credentials_path}"
-        )
+        raise FileNotFoundError(f"Credentials file not found: {credentials_path}")
 
     try:
         from google.oauth2 import service_account
@@ -67,9 +65,7 @@ def authenticate_gsc(credentials_path: str) -> Any:
             scopes=["https://www.googleapis.com/auth/webmasters.readonly"],
         )
     except (json.JSONDecodeError, KeyError, ValueError) as exc:
-        raise ValueError(
-            f"Malformed credentials file: {credentials_path}"
-        ) from exc
+        raise ValueError(f"Malformed credentials file: {credentials_path}") from exc
 
     service = build("webmasters", "v3", credentials=credentials)
     logger.info("Successfully authenticated with Google Search Console API")
@@ -181,17 +177,13 @@ def execute_paginated_query(
         response = None
         for attempt in range(max_retries):
             try:
-                response = (
-                    service.searchanalytics()
-                    .query(siteUrl=site_url, body=request_body)
-                    .execute()
-                )
+                response = service.searchanalytics().query(siteUrl=site_url, body=request_body).execute()
                 break
             except Exception as exc:
                 exc_str = str(exc)
                 # Handle rate limiting (HTTP 429) with exponential backoff
                 if "429" in exc_str or "rate" in exc_str.lower():
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     logger.warning(
                         "Rate limited, retrying in %ds (attempt %d/%d)",
                         wait_time,
@@ -200,14 +192,10 @@ def execute_paginated_query(
                     )
                     time.sleep(wait_time)
                 else:
-                    raise RuntimeError(
-                        f"GSC API error: {exc}"
-                    ) from exc
+                    raise RuntimeError(f"GSC API error: {exc}") from exc
 
         if response is None:
-            raise RuntimeError(
-                "GSC API request failed after all retries"
-            )
+            raise RuntimeError("GSC API request failed after all retries")
 
         rows = response.get("rows", [])
         all_rows.extend(rows)
@@ -456,9 +444,7 @@ def extract_gsc_data(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Extract Google Search Console data"
-    )
+    parser = argparse.ArgumentParser(description="Extract Google Search Console data")
     parser.add_argument("--credentials", required=True, help="Path to service account JSON")
     parser.add_argument("--site-url", required=True, help="GSC site URL")
     parser.add_argument("--start-date", required=True, help="Start date (YYYY-MM-DD)")

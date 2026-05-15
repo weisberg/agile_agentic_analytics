@@ -67,8 +67,7 @@ def load_csv_with_validation(
     missing = set(required_columns) - set(df.columns)
     if missing:
         raise ValueError(
-            f"CSV is missing required columns: {sorted(missing)}.  "
-            f"Available columns: {sorted(df.columns.tolist())}"
+            f"CSV is missing required columns: {sorted(missing)}.  Available columns: {sorted(df.columns.tolist())}"
         )
 
     # Parse date columns -------------------------------------------------------
@@ -81,9 +80,7 @@ def load_csv_with_validation(
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    logger.info(
-        "Loaded %s: %d rows, %d columns", filepath.name, len(df), len(df.columns)
-    )
+    logger.info("Loaded %s: %d rows, %d columns", filepath.name, len(df), len(df.columns))
     return df
 
 
@@ -201,12 +198,7 @@ def normalize_dates(
         # Map convenient shorthand to pandas offset aliases
         freq_map: Dict[str, str] = {"D": "D", "W": "W", "M": "MS"}
         pd_freq = freq_map.get(freq, freq)
-        result = (
-            result.set_index(date_col)
-            .resample(pd_freq)
-            .sum(numeric_only=True)
-            .reset_index()
-        )
+        result = result.set_index(date_col).resample(pd_freq).sum(numeric_only=True).reset_index()
 
     return result
 
@@ -258,15 +250,11 @@ def detect_missing_windows(
     for d in missing_dates[1:]:
         expected_gap = pd.tseries.frequencies.to_offset(pd_freq)
         if d - prev > expected_gap * 1.5:  # allow small tolerance
-            windows.append(
-                {"start": window_start.isoformat()[:10], "end": prev.isoformat()[:10]}
-            )
+            windows.append({"start": window_start.isoformat()[:10], "end": prev.isoformat()[:10]})
             window_start = d
         prev = d
 
-    windows.append(
-        {"start": window_start.isoformat()[:10], "end": prev.isoformat()[:10]}
-    )
+    windows.append({"start": window_start.isoformat()[:10], "end": prev.isoformat()[:10]})
     return windows
 
 
@@ -310,9 +298,7 @@ def compute_period_over_period(
     """
     period_days = {"WoW": 7, "MoM": 30, "YoY": 365}
     if period not in period_days:
-        raise ValueError(
-            f"Unknown period '{period}'. Must be one of {sorted(period_days.keys())}"
-        )
+        raise ValueError(f"Unknown period '{period}'. Must be one of {sorted(period_days.keys())}")
 
     for col in (metric_col, date_col):
         if col not in df.columns:
@@ -367,9 +353,7 @@ def decimal_currency(value: Any) -> Decimal:
     try:
         d = Decimal(str(value))
     except (InvalidOperation, ValueError, TypeError) as exc:
-        raise InvalidOperation(
-            f"Cannot convert {value!r} to Decimal"
-        ) from exc
+        raise InvalidOperation(f"Cannot convert {value!r} to Decimal") from exc
     return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
@@ -398,9 +382,7 @@ def format_percentage(value: Any, decimals: int = 1) -> str:
     return f"{num:.{decimals}f}%"
 
 
-def format_currency(
-    value: Any, symbol: str = "$", decimals: int = 2
-) -> str:
+def format_currency(value: Any, symbol: str = "$", decimals: int = 2) -> str:
     """Format a numeric value as a currency string with thousands separators.
 
     Parameters

@@ -181,7 +181,9 @@ def drill_down_root_cause(
     platform: str,
 ) -> str:
     pandas = _require_pandas()
-    subset = df[(pandas.to_datetime(df["date"]).dt.strftime("%Y-%m-%d") == anomaly_date) & (df["platform"] == platform)].copy()
+    subset = df[
+        (pandas.to_datetime(df["date"]).dt.strftime("%Y-%m-%d") == anomaly_date) & (df["platform"] == platform)
+    ].copy()
     if subset.empty or metric not in subset.columns:
         return "No lower-level driver identified."
     grouping_columns = [column for column in ("campaign_id", "ad_group_id", "keyword") if column in subset.columns]
@@ -210,7 +212,9 @@ def detect_anomalies(
     working["date"] = pandas.to_datetime(working["date"])
 
     if "conversion_rate" not in working.columns and {"conversions", "clicks"}.issubset(working.columns):
-        working["conversion_rate"] = working["conversions"].astype(float) / working["clicks"].replace(0, pd.NA).astype(float)
+        working["conversion_rate"] = working["conversions"].astype(float) / working["clicks"].replace(0, pd.NA).astype(
+            float
+        )
         working["conversion_rate"] = working["conversion_rate"].fillna(0.0)
 
     for (platform, campaign_id), group in working.groupby(["platform", "campaign_id"]):
@@ -239,13 +243,19 @@ def detect_anomalies(
                         campaign_id=str(campaign_id),
                         metric=metric,
                         observed_value=float(ordered.loc[index, metric]),
-                        expected_value=float(zscore.loc[index, "rolling_mean"]) if pd.notna(zscore.loc[index, "rolling_mean"]) else float(ordered.loc[index, metric]),
+                        expected_value=float(zscore.loc[index, "rolling_mean"])
+                        if pd.notna(zscore.loc[index, "rolling_mean"])
+                        else float(ordered.loc[index, metric]),
                         z_score=float(zscore.loc[index, "z_score"]) if pd.notna(zscore.loc[index, "z_score"]) else None,
                         isolation_score=float(iso_scores.loc[index]),
-                        stl_residual=float(stl.loc[index, "residual"]) if pd.notna(stl.loc[index, "residual"]) else None,
+                        stl_residual=float(stl.loc[index, "residual"])
+                        if pd.notna(stl.loc[index, "residual"])
+                        else None,
                         severity=level,
                         root_cause=drill_down_root_cause(working, date_str, metric, str(platform)),
                     )
                 )
     severity_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-    return sorted(alerts, key=lambda alert: (severity_rank.get(alert.severity, 9), alert.date, alert.platform, alert.campaign_id))
+    return sorted(
+        alerts, key=lambda alert: (severity_rank.get(alert.severity, 9), alert.date, alert.platform, alert.campaign_id)
+    )

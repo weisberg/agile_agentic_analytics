@@ -98,7 +98,9 @@ def estimate_theta(
         raise ValueError("covariate must have non-zero variance")
     metric_mean = statistics.fmean(metric)
     covariate_mean = statistics.fmean(covariate)
-    covariance = sum((m - metric_mean) * (c - covariate_mean) for m, c in zip(metric, covariate)) / max(len(metric) - 1, 1)
+    covariance = sum((m - metric_mean) * (c - covariate_mean) for m, c in zip(metric, covariate)) / max(
+        len(metric) - 1, 1
+    )
     theta = covariance / covariate_variance
     correlation = covariance / math.sqrt(max(_variance(metric) * covariate_variance, 1e-12))
     return theta, correlation

@@ -116,7 +116,13 @@ def _parse_templates(file_path: Path, customized: bool) -> dict[DisclosureType, 
         if disclosure_type is None:
             continue
         template_text = match.group(2).strip()
-        jurisdiction = "UK" if "UK" in heading or "FCA" in heading else "US" if "US" in heading or "SEC" in heading or "FINRA" in heading else "BOTH"
+        jurisdiction = (
+            "UK"
+            if "UK" in heading or "FCA" in heading
+            else "US"
+            if "US" in heading or "SEC" in heading or "FINRA" in heading
+            else "BOTH"
+        )
         placeholders = re.findall(r"\[[^\]]+\]", template_text)
         templates[disclosure_type] = DisclosureTemplate(
             disclosure_type=disclosure_type,
@@ -148,7 +154,9 @@ def determine_required_disclosures(
 ) -> list[DisclosureType]:
     required = set()
     if ContentType.PERFORMANCE in content_types:
-        required.add(DisclosureType.PAST_PERFORMANCE_US if "US" in jurisdictions else DisclosureType.PAST_PERFORMANCE_UK)
+        required.add(
+            DisclosureType.PAST_PERFORMANCE_US if "US" in jurisdictions else DisclosureType.PAST_PERFORMANCE_UK
+        )
         required.add(DisclosureType.GENERAL_RISK_US if "US" in jurisdictions else DisclosureType.GENERAL_RISK_UK)
         if re.search(r"\bgross\b", content, re.IGNORECASE):
             required.add(DisclosureType.GROSS_NET)
@@ -187,12 +195,30 @@ def find_insertion_points(
     performance_match = re.search(r"%|\bperformance\b|\breturn\b", content, re.IGNORECASE)
     footer_position = len(content)
     for disclosure in disclosures_to_insert:
-        if disclosure in {DisclosureType.PAST_PERFORMANCE_US, DisclosureType.PAST_PERFORMANCE_UK, DisclosureType.GROSS_NET, DisclosureType.HYPOTHETICAL, DisclosureType.BENCHMARK} and performance_match:
-            points[disclosure] = InsertionPoint(position=performance_match.end(), anchor_text=performance_match.group(0), placement="AFTER")
-        elif disclosure in {DisclosureType.GENERAL_RISK_US, DisclosureType.GENERAL_RISK_UK, DisclosureType.CAPITAL_AT_RISK}:
+        if (
+            disclosure
+            in {
+                DisclosureType.PAST_PERFORMANCE_US,
+                DisclosureType.PAST_PERFORMANCE_UK,
+                DisclosureType.GROSS_NET,
+                DisclosureType.HYPOTHETICAL,
+                DisclosureType.BENCHMARK,
+            }
+            and performance_match
+        ):
+            points[disclosure] = InsertionPoint(
+                position=performance_match.end(), anchor_text=performance_match.group(0), placement="AFTER"
+            )
+        elif disclosure in {
+            DisclosureType.GENERAL_RISK_US,
+            DisclosureType.GENERAL_RISK_UK,
+            DisclosureType.CAPITAL_AT_RISK,
+        }:
             points[disclosure] = InsertionPoint(position=0, anchor_text="document start", placement="BEFORE")
         else:
-            points[disclosure] = InsertionPoint(position=footer_position, anchor_text="document end", placement="FOOTER")
+            points[disclosure] = InsertionPoint(
+                position=footer_position, anchor_text="document end", placement="FOOTER"
+            )
     return points
 
 
@@ -215,10 +241,33 @@ def validate_disclosure_placement(
 ) -> list[dict[str, str]]:
     issues = []
     for disclosure in disclosures:
-        if disclosure.disclosure_type in {DisclosureType.PAST_PERFORMANCE_US, DisclosureType.PAST_PERFORMANCE_UK, DisclosureType.GENERAL_RISK_US, DisclosureType.GENERAL_RISK_UK} and disclosure.insertion_point.placement == "FOOTER":
-            issues.append({"disclosure_type": disclosure.disclosure_type.value, "issue": "Important disclosure placed only in footer.", "remediation": "Move disclosure closer to the related claim or top of document."})
-    if "CAPITAL AT RISK" not in content.upper() and any(disclosure.disclosure_type == DisclosureType.CAPITAL_AT_RISK for disclosure in disclosures):
-        issues.append({"disclosure_type": DisclosureType.CAPITAL_AT_RISK.value, "issue": "Capital-at-risk disclosure text not prominent after insertion.", "remediation": "Use explicit 'Capital at risk' wording near the headline or first investment claim."})
+        if (
+            disclosure.disclosure_type
+            in {
+                DisclosureType.PAST_PERFORMANCE_US,
+                DisclosureType.PAST_PERFORMANCE_UK,
+                DisclosureType.GENERAL_RISK_US,
+                DisclosureType.GENERAL_RISK_UK,
+            }
+            and disclosure.insertion_point.placement == "FOOTER"
+        ):
+            issues.append(
+                {
+                    "disclosure_type": disclosure.disclosure_type.value,
+                    "issue": "Important disclosure placed only in footer.",
+                    "remediation": "Move disclosure closer to the related claim or top of document.",
+                }
+            )
+    if "CAPITAL AT RISK" not in content.upper() and any(
+        disclosure.disclosure_type == DisclosureType.CAPITAL_AT_RISK for disclosure in disclosures
+    ):
+        issues.append(
+            {
+                "disclosure_type": DisclosureType.CAPITAL_AT_RISK.value,
+                "issue": "Capital-at-risk disclosure text not prominent after insertion.",
+                "remediation": "Use explicit 'Capital at risk' wording near the headline or first investment claim.",
+            }
+        )
     return issues
 
 

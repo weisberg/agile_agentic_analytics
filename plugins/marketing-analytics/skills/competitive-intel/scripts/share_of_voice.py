@@ -16,9 +16,8 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import date
-from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -212,15 +211,11 @@ def calculate_paid_sov(
         Dict mapping competitor name to their paid ChannelSOV.
     """
     # Determine data availability: prefer impression_share, fall back to proxy
-    has_impression_share = any(
-        "impression_share" in paid_data.get(c, {}) for c in competitors
-    )
+    has_impression_share = any("impression_share" in paid_data.get(c, {}) for c in competitors)
 
     raw_scores: dict[str, float] = {}
     confidence = "high" if has_impression_share else "low"
-    data_source = (
-        "impression_share" if has_impression_share else "ad_position_frequency (proxy)"
-    )
+    data_source = "impression_share" if has_impression_share else "ad_position_frequency (proxy)"
 
     for comp in competitors:
         comp_data = paid_data.get(comp, {})
@@ -306,10 +301,7 @@ def calculate_social_sov(
             sov_score=round(sov, 6),
             data_source="social_benchmarks.json",
             confidence="medium" if has_data else "low",
-            methodology_note=(
-                "Engagement-weighted social SOV: shares (3x), comments (2x), "
-                "likes (1x), posts (0.5x)."
-            ),
+            methodology_note=("Engagement-weighted social SOV: shares (3x), comments (2x), likes (1x), posts (0.5x)."),
         )
 
     return results
@@ -358,10 +350,7 @@ def calculate_earned_sov(
             sov_score=round(sov, 6),
             data_source="competitor_data.csv / PR monitoring",
             confidence="medium" if has_data else "low",
-            methodology_note=(
-                "Earned media SOV: weighted sum of mentions (1x), "
-                "backlinks (2x), PR coverage (3x)."
-            ),
+            methodology_note=("Earned media SOV: weighted sum of mentions (1x), backlinks (2x), PR coverage (3x)."),
         )
 
     return results
@@ -499,8 +488,8 @@ def load_social_data(filepath: Path) -> dict[str, dict[str, int]]:
             data = json.load(f)
     except FileNotFoundError:
         logger.warning(
-            "Social data file not found at %s. Returning empty data "
-            "(graceful degradation).", filepath,
+            "Social data file not found at %s. Returning empty data (graceful degradation).",
+            filepath,
         )
         return {}
 
@@ -529,8 +518,8 @@ def load_competitor_data(filepath: Path) -> dict[str, dict[str, Any]]:
         df = pd.read_csv(filepath, encoding="utf-8")
     except FileNotFoundError:
         logger.warning(
-            "Competitor data file not found at %s. Returning empty data "
-            "(graceful degradation).", filepath,
+            "Competitor data file not found at %s. Returning empty data (graceful degradation).",
+            filepath,
         )
         return {}
     except UnicodeDecodeError:
@@ -608,16 +597,15 @@ def run_sov_analysis(
         comp_metrics = competitor_data.get(comp, {})
         # Build paid data
         paid_data[comp] = {
-            k: v for k, v in comp_metrics.items()
-            if k in ("impression_share", "ad_position_frequency",
-                      "estimated_ad_spend")
+            k: v
+            for k, v in comp_metrics.items()
+            if k in ("impression_share", "ad_position_frequency", "estimated_ad_spend")
         }
         # Build earned data
         earned_data[comp] = {
             k: int(float(v))
             for k, v in comp_metrics.items()
-            if k in ("mentions", "backlinks", "pr_coverage_count")
-            and v is not None
+            if k in ("mentions", "backlinks", "pr_coverage_count") and v is not None
         }
 
     # Calculate per-channel SOV
@@ -655,26 +643,30 @@ def export_results(
     for r in results:
         channel_details = []
         for cd in r.channel_details:
-            channel_details.append({
-                "competitor": cd.competitor,
-                "channel": cd.channel,
-                "sov_score": cd.sov_score,
-                "data_source": cd.data_source,
-                "confidence": cd.confidence,
-                "methodology_note": cd.methodology_note,
-            })
-        output_data.append({
-            "competitor": r.competitor,
-            "competitor_domain": r.competitor_domain,
-            "organic_sov": r.organic_sov,
-            "paid_sov": r.paid_sov,
-            "social_sov": r.social_sov,
-            "earned_sov": r.earned_sov,
-            "composite_sov": r.composite_sov,
-            "channel_details": channel_details,
-            "methodology_notes": r.methodology_notes,
-            "last_updated": r.last_updated,
-        })
+            channel_details.append(
+                {
+                    "competitor": cd.competitor,
+                    "channel": cd.channel,
+                    "sov_score": cd.sov_score,
+                    "data_source": cd.data_source,
+                    "confidence": cd.confidence,
+                    "methodology_note": cd.methodology_note,
+                }
+            )
+        output_data.append(
+            {
+                "competitor": r.competitor,
+                "competitor_domain": r.competitor_domain,
+                "organic_sov": r.organic_sov,
+                "paid_sov": r.paid_sov,
+                "social_sov": r.social_sov,
+                "earned_sov": r.earned_sov,
+                "composite_sov": r.composite_sov,
+                "channel_details": channel_details,
+                "methodology_notes": r.methodology_notes,
+                "last_updated": r.last_updated,
+            }
+        )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
@@ -686,9 +678,7 @@ def export_results(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Multi-channel share of voice aggregation"
-    )
+    parser = argparse.ArgumentParser(description="Multi-channel share of voice aggregation")
     parser.add_argument(
         "--keyword-data",
         type=Path,

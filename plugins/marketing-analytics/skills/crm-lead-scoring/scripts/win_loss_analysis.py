@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -84,22 +84,24 @@ def compare_continuous_features(
 
         # Cohen's d
         pooled_std = np.sqrt(
-            ((len(won_vals) - 1) * won_std ** 2 + (len(lost_vals) - 1) * lost_std ** 2)
+            ((len(won_vals) - 1) * won_std**2 + (len(lost_vals) - 1) * lost_std**2)
             / (len(won_vals) + len(lost_vals) - 2)
         )
         cohens_d = (won_mean - lost_mean) / pooled_std if pooled_std > 0 else 0.0
 
-        results.append({
-            "feature": feat,
-            "won_mean": round(won_mean, 4),
-            "won_std": round(won_std, 4),
-            "lost_mean": round(lost_mean, 4),
-            "lost_std": round(lost_std, 4),
-            "t_statistic": round(float(t_stat), 4),
-            "p_value": float(p_val),
-            "effect_size": round(float(cohens_d), 4),
-            "significant": bool(p_val < significance_level),
-        })
+        results.append(
+            {
+                "feature": feat,
+                "won_mean": round(won_mean, 4),
+                "won_std": round(won_std, 4),
+                "lost_mean": round(lost_mean, 4),
+                "lost_std": round(lost_std, 4),
+                "t_statistic": round(float(t_stat), 4),
+                "p_value": float(p_val),
+                "effect_size": round(float(cohens_d), 4),
+                "significant": bool(p_val < significance_level),
+            }
+        )
 
     return results
 
@@ -154,10 +156,12 @@ def compare_categorical_features(
         if len(all_categories) < 2:
             continue
 
-        contingency = pd.DataFrame({
-            "won": won_counts.reindex(all_categories, fill_value=0),
-            "lost": lost_counts.reindex(all_categories, fill_value=0),
-        })
+        contingency = pd.DataFrame(
+            {
+                "won": won_counts.reindex(all_categories, fill_value=0),
+                "lost": lost_counts.reindex(all_categories, fill_value=0),
+            }
+        )
 
         chi2, p_val, dof, _ = chi2_contingency(contingency.T.values)
 
@@ -170,15 +174,17 @@ def compare_categorical_features(
         won_dist = (won_counts / won_counts.sum()).round(4).to_dict()
         lost_dist = (lost_counts / lost_counts.sum()).round(4).to_dict()
 
-        results.append({
-            "feature": feat,
-            "chi2_statistic": round(float(chi2), 4),
-            "p_value": float(p_val),
-            "cramers_v": round(float(cramers_v), 4),
-            "significant": bool(p_val < significance_level),
-            "won_distribution": {str(k): float(v) for k, v in won_dist.items()},
-            "lost_distribution": {str(k): float(v) for k, v in lost_dist.items()},
-        })
+        results.append(
+            {
+                "feature": feat,
+                "chi2_statistic": round(float(chi2), 4),
+                "p_value": float(p_val),
+                "cramers_v": round(float(cramers_v), 4),
+                "significant": bool(p_val < significance_level),
+                "won_distribution": {str(k): float(v) for k, v in won_dist.items()},
+                "lost_distribution": {str(k): float(v) for k, v in lost_dist.items()},
+            }
+        )
 
     return results
 
@@ -214,23 +220,27 @@ def rank_differentiating_factors(
     for r in continuous_results:
         if r["significant"]:
             direction = "higher in won deals" if r["effect_size"] > 0 else "higher in lost deals"
-            candidates.append({
-                "feature": r["feature"],
-                "feature_type": "continuous",
-                "effect_size": abs(r["effect_size"]),
-                "p_value": r["p_value"],
-                "direction": direction,
-            })
+            candidates.append(
+                {
+                    "feature": r["feature"],
+                    "feature_type": "continuous",
+                    "effect_size": abs(r["effect_size"]),
+                    "p_value": r["p_value"],
+                    "direction": direction,
+                }
+            )
 
     for r in categorical_results:
         if r["significant"]:
-            candidates.append({
-                "feature": r["feature"],
-                "feature_type": "categorical",
-                "effect_size": r["cramers_v"],
-                "p_value": r["p_value"],
-                "direction": "distribution differs between won and lost",
-            })
+            candidates.append(
+                {
+                    "feature": r["feature"],
+                    "feature_type": "categorical",
+                    "effect_size": r["cramers_v"],
+                    "p_value": r["p_value"],
+                    "direction": "distribution differs between won and lost",
+                }
+            )
 
     # Sort by effect size descending
     candidates.sort(key=lambda x: x["effect_size"], reverse=True)
@@ -299,14 +309,16 @@ def compute_stage_outcome_rates(
         win_rate = won_count / total_reaching if total_reaching > 0 else 0.0
         cumulative_drop = 1.0 - (total_reaching / total_deals) if total_deals > 0 else 0.0
 
-        results.append({
-            "stage": stage,
-            "total_reaching_stage": total_reaching,
-            "won_count": won_count,
-            "lost_count": lost_count,
-            "win_rate_at_stage": round(win_rate, 4),
-            "cumulative_drop_rate": round(cumulative_drop, 4),
-        })
+        results.append(
+            {
+                "stage": stage,
+                "total_reaching_stage": total_reaching,
+                "won_count": won_count,
+                "lost_count": lost_count,
+                "win_rate_at_stage": round(win_rate, 4),
+                "cumulative_drop_rate": round(cumulative_drop, 4),
+            }
+        )
 
     return pd.DataFrame(results)
 
@@ -428,13 +440,15 @@ def analyze_time_in_stage_by_outcome(
             if len(subset) < 1:
                 continue
 
-            results.append({
-                "stage": stage,
-                "outcome": outcome_label,
-                "median_days": float(subset.median()),
-                "mean_days": float(subset.mean()),
-                "p75_days": float(subset.quantile(0.75)) if len(subset) > 0 else None,
-            })
+            results.append(
+                {
+                    "stage": stage,
+                    "outcome": outcome_label,
+                    "median_days": float(subset.median()),
+                    "mean_days": float(subset.mean()),
+                    "p75_days": float(subset.quantile(0.75)) if len(subset) > 0 else None,
+                }
+            )
 
         # Compute p-value between won and lost
         won_days = days[deals["_is_won"]].dropna()
@@ -487,8 +501,15 @@ def compute_competitive_win_rates(
     """
     if competitor_column not in deals.columns:
         return pd.DataFrame(
-            columns=["competitor", "deal_count", "win_count", "win_rate",
-                      "avg_cycle_days", "avg_deal_size", "win_rate_vs_baseline"]
+            columns=[
+                "competitor",
+                "deal_count",
+                "win_count",
+                "win_rate",
+                "avg_cycle_days",
+                "avg_deal_size",
+                "win_rate_vs_baseline",
+            ]
         )
 
     deals = deals.copy()
@@ -513,8 +534,15 @@ def compute_competitive_win_rates(
 
     if not exploded:
         return pd.DataFrame(
-            columns=["competitor", "deal_count", "win_count", "win_rate",
-                      "avg_cycle_days", "avg_deal_size", "win_rate_vs_baseline"]
+            columns=[
+                "competitor",
+                "deal_count",
+                "win_count",
+                "win_rate",
+                "avg_cycle_days",
+                "avg_deal_size",
+                "win_rate_vs_baseline",
+            ]
         )
 
     comp_df = pd.DataFrame(exploded)
@@ -533,15 +561,17 @@ def compute_competitive_win_rates(
         avg_cycle = float(comp_deals["_cycle_days"].mean()) if "_cycle_days" in comp_deals.columns else None
         avg_size = float(comp_deals["amount"].mean()) if "amount" in comp_deals.columns else None
 
-        results.append({
-            "competitor": competitor,
-            "deal_count": deal_count,
-            "win_count": win_count,
-            "win_rate": round(win_rate, 4),
-            "avg_cycle_days": round(avg_cycle, 1) if avg_cycle is not None else None,
-            "avg_deal_size": round(avg_size, 2) if avg_size is not None else None,
-            "win_rate_vs_baseline": round(win_rate - overall_win_rate, 4),
-        })
+        results.append(
+            {
+                "competitor": competitor,
+                "deal_count": deal_count,
+                "win_count": win_count,
+                "win_rate": round(win_rate, 4),
+                "avg_cycle_days": round(avg_cycle, 1) if avg_cycle is not None else None,
+                "avg_deal_size": round(avg_size, 2) if avg_size is not None else None,
+                "win_rate_vs_baseline": round(win_rate - overall_win_rate, 4),
+            }
+        )
 
     return pd.DataFrame(results)
 
@@ -631,8 +661,16 @@ def compute_source_quality_metrics(
     """
     if source_column not in deals.columns:
         return pd.DataFrame(
-            columns=["source", "lead_count", "won_count", "win_rate",
-                      "avg_deal_size", "total_revenue", "avg_cycle_days", "quality_score"]
+            columns=[
+                "source",
+                "lead_count",
+                "won_count",
+                "win_rate",
+                "avg_deal_size",
+                "total_revenue",
+                "avg_cycle_days",
+                "quality_score",
+            ]
         )
 
     deals = deals.copy()
@@ -654,21 +692,24 @@ def compute_source_quality_metrics(
         total_revenue = float(won["amount"].sum())
         avg_cycle = float(won["_cycle_days"].mean()) if "_cycle_days" in won.columns and len(won) > 0 else None
 
-        results.append({
-            "source": source,
-            "lead_count": lead_count,
-            "won_count": won_count,
-            "win_rate": round(win_rate, 4),
-            "avg_deal_size": round(avg_deal_size, 2),
-            "total_revenue": round(total_revenue, 2),
-            "avg_cycle_days": round(avg_cycle, 1) if avg_cycle is not None else None,
-        })
+        results.append(
+            {
+                "source": source,
+                "lead_count": lead_count,
+                "won_count": won_count,
+                "win_rate": round(win_rate, 4),
+                "avg_deal_size": round(avg_deal_size, 2),
+                "total_revenue": round(total_revenue, 2),
+                "avg_cycle_days": round(avg_cycle, 1) if avg_cycle is not None else None,
+            }
+        )
 
     df = pd.DataFrame(results)
 
     # Compute composite quality score:
     # Normalize win_rate, avg_deal_size, total_revenue to 0-1 and combine
     if len(df) > 0:
+
         def _normalize(series: pd.Series) -> pd.Series:
             smin, smax = series.min(), series.max()
             if smax == smin:
@@ -733,16 +774,8 @@ def compare_engagement_patterns(
     results = []
     for atype in activity_types:
         # Count per lead for each outcome
-        won_counts = (
-            won_activities[won_activities["activity_type"] == atype]
-            .groupby("lead_id")
-            .size()
-        )
-        lost_counts = (
-            lost_activities[lost_activities["activity_type"] == atype]
-            .groupby("lead_id")
-            .size()
-        )
+        won_counts = won_activities[won_activities["activity_type"] == atype].groupby("lead_id").size()
+        lost_counts = lost_activities[lost_activities["activity_type"] == atype].groupby("lead_id").size()
 
         # Include leads with zero activity of this type
         won_leads = won_activities["lead_id"].unique()
@@ -759,14 +792,16 @@ def compare_engagement_patterns(
         else:
             t_stat, p_val = 0.0, 1.0
 
-        results.append({
-            "activity_type": atype,
-            "won_avg_count": round(won_avg, 4),
-            "lost_avg_count": round(lost_avg, 4),
-            "t_statistic": round(float(t_stat), 4),
-            "p_value": float(p_val),
-            "significant": bool(p_val < 0.05),
-        })
+        results.append(
+            {
+                "activity_type": atype,
+                "won_avg_count": round(won_avg, 4),
+                "lost_avg_count": round(lost_avg, 4),
+                "t_statistic": round(float(t_stat), 4),
+                "p_value": float(p_val),
+                "significant": bool(p_val < 0.05),
+            }
+        )
 
     return results
 
@@ -832,20 +867,20 @@ def compute_engagement_timeline(
 
     for week in range(max_week + 1):
         for outcome in ["won", "lost"]:
-            week_data = grouped[
-                (grouped["week_number"] == week) & (grouped["_outcome_label"] == outcome)
-            ]
+            week_data = grouped[(grouped["week_number"] == week) & (grouped["_outcome_label"] == outcome)]
             avg_activities = float(week_data["activity_count"].mean()) if len(week_data) > 0 else 0.0
             active_leads = week_data["lead_id"].nunique()
             total_leads = total_by_outcome.get(outcome, 1)
             active_pct = (active_leads / total_leads * 100) if total_leads > 0 else 0.0
 
-            results.append({
-                "week_number": week,
-                "outcome": outcome,
-                "avg_activities": round(avg_activities, 2),
-                "active_deal_pct": round(active_pct, 2),
-            })
+            results.append(
+                {
+                    "week_number": week,
+                    "outcome": outcome,
+                    "avg_activities": round(avg_activities, 2),
+                    "active_deal_pct": round(active_pct, 2),
+                }
+            )
 
     return pd.DataFrame(results)
 
@@ -977,18 +1012,23 @@ def run_win_loss_analysis(
 
     # 3. Identify continuous and categorical feature columns
     exclude_cols = {
-        "lead_id", "deal_id", "outcome", "stage", "created_date", "close_date",
-        "owner", "description", "deal_name", "_is_won", "_is_lost",
+        "lead_id",
+        "deal_id",
+        "outcome",
+        "stage",
+        "created_date",
+        "close_date",
+        "owner",
+        "description",
+        "deal_name",
+        "_is_won",
+        "_is_lost",
     }
     feature_cols = [c for c in deals.columns if c not in exclude_cols and not c.startswith("stage_")]
 
-    continuous_features = [
-        c for c in feature_cols
-        if pd.api.types.is_numeric_dtype(deals[c])
-    ]
+    continuous_features = [c for c in feature_cols if pd.api.types.is_numeric_dtype(deals[c])]
     categorical_features = [
-        c for c in feature_cols
-        if not pd.api.types.is_numeric_dtype(deals[c]) and deals[c].nunique() < 50
+        c for c in feature_cols if not pd.api.types.is_numeric_dtype(deals[c]) and deals[c].nunique() < 50
     ]
 
     # 4. Compare features
@@ -1018,8 +1058,13 @@ def run_win_loss_analysis(
 
     # 11. Generate output
     generate_win_loss_output(
-        ranked_factors, divergence, competitive_rates,
-        source_quality, engagement, stage_time, output_path,
+        ranked_factors,
+        divergence,
+        competitive_rates,
+        source_quality,
+        engagement,
+        stage_time,
+        output_path,
     )
 
     return {

@@ -49,10 +49,7 @@ def calculate_sample_size_proportion(
     z_alpha, z_beta = _z_value(alpha, power, two_sided)
     numerator = (
         z_alpha * math.sqrt(2 * p_bar * (1 - p_bar))
-        + z_beta * math.sqrt(
-            baseline_rate * (1 - baseline_rate)
-            + treatment_rate * (1 - treatment_rate)
-        )
+        + z_beta * math.sqrt(baseline_rate * (1 - baseline_rate) + treatment_rate * (1 - treatment_rate))
     ) ** 2
     sample_size = math.ceil(numerator / (delta**2))
     return PowerAnalysisResult(

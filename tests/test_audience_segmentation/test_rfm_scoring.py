@@ -56,17 +56,20 @@ def _make_minimal_transactions(n_customers: int = 50) -> pd.DataFrame:
     for cid in range(1, n_customers + 1):
         n_txns = rng.integers(1, 20)
         for _ in range(n_txns):
-            rows.append({
-                "customer_id": f"C-{cid:03d}",
-                "date": pd.Timestamp("2024-01-01") + pd.Timedelta(days=int(rng.integers(0, 365))),
-                "amount": round(float(rng.lognormal(3, 1)), 2),
-            })
+            rows.append(
+                {
+                    "customer_id": f"C-{cid:03d}",
+                    "date": pd.Timestamp("2024-01-01") + pd.Timedelta(days=int(rng.integers(0, 365))),
+                    "amount": round(float(rng.lognormal(3, 1)), 2),
+                }
+            )
     return pd.DataFrame(rows)
 
 
 # ---------------------------------------------------------------------------
 # test_compute_rfm_basic
 # ---------------------------------------------------------------------------
+
 
 class TestComputeRfmBasic:
     """Validates that compute_rfm produces the expected columns."""
@@ -101,6 +104,7 @@ class TestComputeRfmBasic:
 # ---------------------------------------------------------------------------
 # test_assign_quintiles
 # ---------------------------------------------------------------------------
+
 
 class TestAssignQuintiles:
     """Validates quintile scoring produces scores 1-5."""
@@ -143,6 +147,7 @@ class TestAssignQuintiles:
 # ---------------------------------------------------------------------------
 # test_label_segments
 # ---------------------------------------------------------------------------
+
 
 class TestLabelSegments:
     """Validates all customers get exactly one named segment."""
@@ -192,6 +197,7 @@ class TestLabelSegments:
 # test_rfm_pipeline_end_to_end
 # ---------------------------------------------------------------------------
 
+
 class TestRfmPipelineEndToEnd:
     """Full pipeline from CSV to segment output."""
 
@@ -236,9 +242,17 @@ class TestRfmPipelineEndToEnd:
         )
 
         reloaded = pd.read_csv(output_dir / "rfm_segments.csv")
-        expected_cols = {"recency", "frequency", "monetary", "r_score",
-                         "f_score", "m_score", "rfm_composite",
-                         "rfm_weighted", "segment"}
+        expected_cols = {
+            "recency",
+            "frequency",
+            "monetary",
+            "r_score",
+            "f_score",
+            "m_score",
+            "rfm_composite",
+            "rfm_weighted",
+            "segment",
+        }
         assert expected_cols.issubset(set(reloaded.columns))
 
     def test_load_transactions_missing_file(self):

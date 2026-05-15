@@ -124,25 +124,13 @@ def compute_share_of_voice(
 
     # Build unified mention counts per brand
     # Brand mentions: each row is a mention, count them
-    brand_counts = (
-        brand_mentions.groupby("brand")
-        .size()
-        .reset_index(name="mention_count")
-    )
+    brand_counts = brand_mentions.groupby("brand").size().reset_index(name="mention_count")
 
     # Competitor data may already have mention_count aggregated
     if "mention_count" in competitor_data.columns:
-        comp_counts = (
-            competitor_data.groupby("brand")["mention_count"]
-            .sum()
-            .reset_index()
-        )
+        comp_counts = competitor_data.groupby("brand")["mention_count"].sum().reset_index()
     else:
-        comp_counts = (
-            competitor_data.groupby("brand")
-            .size()
-            .reset_index(name="mention_count")
-        )
+        comp_counts = competitor_data.groupby("brand").size().reset_index(name="mention_count")
 
     # Combine all brands
     all_counts = pd.concat([brand_counts, comp_counts], ignore_index=True)
@@ -150,9 +138,7 @@ def compute_share_of_voice(
     total_mentions = all_counts["mention_count"].sum()
 
     # Overall SOV per brand
-    all_counts["sov_pct"] = (
-        all_counts["mention_count"] / max(total_mentions, 1) * 100
-    )
+    all_counts["sov_pct"] = all_counts["mention_count"] / max(total_mentions, 1) * 100
     overall_sov = all_counts.set_index("brand")["sov_pct"].to_dict()
     overall_sov = {str(k): round(float(v), 2) for k, v in overall_sov.items()}
 
@@ -172,9 +158,7 @@ def compute_share_of_voice(
         plat_total = plat_df["mention_count"].sum()
         plat_sov = {}
         for _, row in plat_df.iterrows():
-            plat_sov[str(row["brand"])] = round(
-                float(row["mention_count"] / max(plat_total, 1) * 100), 2
-            )
+            plat_sov[str(row["brand"])] = round(float(row["mention_count"] / max(plat_total, 1) * 100), 2)
         by_platform[str(platform)] = plat_sov
 
     # By period
@@ -186,17 +170,16 @@ def compute_share_of_voice(
             brand_ts = brand_mentions_ts[brand_mentions_ts["brand"] == brand_name]
             period_counts = brand_ts.resample(freq).size()
             for period, count in period_counts.items():
-                by_period.append({
-                    "period": str(period.date()) if hasattr(period, "date") else str(period),
-                    "brand": str(brand_name),
-                    "mention_count": int(count),
-                })
+                by_period.append(
+                    {
+                        "period": str(period.date()) if hasattr(period, "date") else str(period),
+                        "brand": str(brand_name),
+                        "mention_count": int(count),
+                    }
+                )
 
     # Competitor ranking
-    ranking = (
-        all_counts.sort_values("mention_count", ascending=False)
-        .reset_index(drop=True)
-    )
+    ranking = all_counts.sort_values("mention_count", ascending=False).reset_index(drop=True)
     competitor_ranking = [
         {
             "rank": i + 1,
@@ -264,19 +247,27 @@ def compute_sentiment_weighted_sov(
 
     if "mention_count" in comp_w.columns:
         # Competitor data is pre-aggregated; use sentiment distribution if available
-        comp_net = comp_w.groupby("brand").agg(
-            net_sentiment=("_sent_weight", "sum"),
-            mention_count=("mention_count", "sum"),
-        ).reset_index()
+        comp_net = (
+            comp_w.groupby("brand")
+            .agg(
+                net_sentiment=("_sent_weight", "sum"),
+                mention_count=("mention_count", "sum"),
+            )
+            .reset_index()
+        )
     else:
         comp_net = comp_w.groupby("brand")["_sent_weight"].agg(["sum", "count"]).reset_index()
         comp_net.columns = ["brand", "net_sentiment", "mention_count"]
 
     all_net = pd.concat([brand_net, comp_net], ignore_index=True)
-    all_net = all_net.groupby("brand").agg(
-        net_sentiment=("net_sentiment", "sum"),
-        mention_count=("mention_count", "sum"),
-    ).reset_index()
+    all_net = (
+        all_net.groupby("brand")
+        .agg(
+            net_sentiment=("net_sentiment", "sum"),
+            mention_count=("mention_count", "sum"),
+        )
+        .reset_index()
+    )
 
     # Net sentiment SOV: share of positive sentiment volume
     total_positive_sentiment = all_net["net_sentiment"][all_net["net_sentiment"] > 0].sum()
@@ -286,10 +277,7 @@ def compute_sentiment_weighted_sov(
         0.0,
     )
 
-    net_sov = {
-        str(row["brand"]): round(float(row["net_sentiment_sov"]), 2)
-        for _, row in all_net.iterrows()
-    }
+    net_sov = {str(row["brand"]): round(float(row["net_sentiment_sov"]), 2) for _, row in all_net.iterrows()}
 
     # By platform
     by_platform: dict[str, dict[str, float]] = {}
@@ -300,9 +288,13 @@ def compute_sentiment_weighted_sov(
         comp_plat_w = comp_w.groupby(["platform", "brand"])["_sent_weight"].sum().reset_index()
         comp_plat_w.columns = ["platform", "brand", "net_sentiment"]
     else:
-        comp_plat_w = comp_w.groupby(["platform", "brand"]).agg(
-            net_sentiment=("_sent_weight", "sum"),
-        ).reset_index()
+        comp_plat_w = (
+            comp_w.groupby(["platform", "brand"])
+            .agg(
+                net_sentiment=("_sent_weight", "sum"),
+            )
+            .reset_index()
+        )
 
     all_plat_w = pd.concat([brand_plat_w, comp_plat_w], ignore_index=True)
     all_plat_w = all_plat_w.groupby(["platform", "brand"])["net_sentiment"].sum().reset_index()
@@ -311,10 +303,7 @@ def compute_sentiment_weighted_sov(
         pos_total = plat_df["net_sentiment"][plat_df["net_sentiment"] > 0].sum()
         plat_sov = {}
         for _, row in plat_df.iterrows():
-            share = (
-                float(max(row["net_sentiment"], 0) / pos_total * 100)
-                if pos_total > 0 else 0.0
-            )
+            share = float(max(row["net_sentiment"], 0) / pos_total * 100) if pos_total > 0 else 0.0
             plat_sov[str(row["brand"])] = round(share, 2)
         by_platform[str(platform)] = plat_sov
 
@@ -334,9 +323,7 @@ def compute_sentiment_weighted_sov(
                 "positive_pct": round(dist.get("positive", 0) / total * 100, 1),
                 "neutral_pct": round(dist.get("neutral", 0) / total * 100, 1),
                 "negative_pct": round(dist.get("negative", 0) / total * 100, 1),
-                "net_sentiment": round(
-                    (dist.get("positive", 0) - dist.get("negative", 0)) / total, 3
-                ),
+                "net_sentiment": round((dist.get("positive", 0) - dist.get("negative", 0)) / total, 3),
             }
 
     logger.info("Computed sentiment-weighted SOV for %d brands", len(net_sov))
@@ -403,11 +390,13 @@ def benchmark_engagement_rates(
         else:
             avg_er = 0.0
 
-        engagement_ranking.append({
-            "brand": str(brand_name),
-            "avg_engagement_rate": round(avg_er, 6),
-            "total_posts": int(len(brand_df)),
-        })
+        engagement_ranking.append(
+            {
+                "brand": str(brand_name),
+                "avg_engagement_rate": round(avg_er, 6),
+                "total_posts": int(len(brand_df)),
+            }
+        )
 
     engagement_ranking.sort(key=lambda x: x["avg_engagement_rate"], reverse=True)
     for i, item in enumerate(engagement_ranking):
@@ -459,9 +448,7 @@ def benchmark_engagement_rates(
             if total == 0:
                 continue
             dist = brand_df[type_col].value_counts()
-            content_mix[str(brand_name)] = {
-                str(k): round(float(v / total * 100), 1) for k, v in dist.items()
-            }
+            content_mix[str(brand_name)] = {str(k): round(float(v / total * 100), 1) for k, v in dist.items()}
 
     logger.info("Benchmarked engagement rates for %d brands", len(engagement_ranking))
     return {
@@ -528,14 +515,8 @@ def analyze_competitor_content_strategy(
 
         # Top content types by engagement
         if type_col and eng_col:
-            type_eng = (
-                brand_df.groupby(type_col)[eng_col]
-                .mean()
-                .sort_values(ascending=False)
-            )
-            top_content_types[brand_str] = {
-                str(k): round(float(v), 6) for k, v in type_eng.items()
-            }
+            type_eng = brand_df.groupby(type_col)[eng_col].mean().sort_values(ascending=False)
+            top_content_types[brand_str] = {str(k): round(float(v), 6) for k, v in type_eng.items()}
 
         # Top topics
         if topic_col and eng_col:
@@ -600,8 +581,7 @@ def analyze_competitor_content_strategy(
         if all_days:
             best_day = Counter(all_days).most_common(1)[0][0]
             actionable_insights.append(
-                f"Top competitor posts cluster on {best_day}. "
-                f"Test posting on {best_day} for higher reach."
+                f"Top competitor posts cluster on {best_day}. Test posting on {best_day} for higher reach."
             )
 
     logger.info("Analyzed content strategy for %d competitors", len(top_content_types))
@@ -666,9 +646,7 @@ def compute_sov_trends(
     period_totals = period_df.groupby("period")["mention_count"].sum().reset_index()
     period_totals.columns = ["period", "total_mentions"]
     period_df = period_df.merge(period_totals, on="period", how="left")
-    period_df["sov_pct"] = (
-        period_df["mention_count"] / period_df["total_mentions"].replace(0, np.nan) * 100
-    )
+    period_df["sov_pct"] = period_df["mention_count"] / period_df["total_mentions"].replace(0, np.nan) * 100
 
     trend_direction: dict[str, str] = {}
     period_over_period_change: dict[str, list[dict[str, Any]]] = {}
@@ -689,21 +667,26 @@ def compute_sov_trends(
         for j in range(1, len(brand_df)):
             prev = float(sov_values[j - 1])
             curr = float(sov_values[j])
-            pct_change = (
-                (curr - prev) / prev * 100 if prev != 0 else 0.0
+            pct_change = (curr - prev) / prev * 100 if prev != 0 else 0.0
+            period_str = (
+                str(brand_df.iloc[j]["period"].date())
+                if hasattr(brand_df.iloc[j]["period"], "date")
+                else str(brand_df.iloc[j]["period"])
             )
-            period_str = str(brand_df.iloc[j]["period"].date()) if hasattr(brand_df.iloc[j]["period"], "date") else str(brand_df.iloc[j]["period"])
-            changes.append({
-                "period": period_str,
-                "sov_pct": round(curr, 2),
-                "change_pct": round(pct_change, 2),
-            })
+            changes.append(
+                {
+                    "period": period_str,
+                    "sov_pct": round(curr, 2),
+                    "change_pct": round(pct_change, 2),
+                }
+            )
 
         period_over_period_change[brand_str] = changes
 
         # Trend direction via simple linear slope
         try:
             from scipy.stats import linregress
+
             x = np.arange(len(sov_values))
             slope, _, _, p_value, _ = linregress(x, sov_values)
             if p_value < 0.1:
@@ -736,12 +719,14 @@ def compute_sov_trends(
                 for c in changes:
                     z = abs(c["change_pct"] - mean_change) / std_change
                     if z > 2.0:
-                        inflection_points.append({
-                            "brand": brand_str,
-                            "period": c["period"],
-                            "sov_change_pct": c["change_pct"],
-                            "z_score": round(float(z), 2),
-                        })
+                        inflection_points.append(
+                            {
+                                "brand": brand_str,
+                                "period": c["period"],
+                                "sov_change_pct": c["change_pct"],
+                                "z_score": round(float(z), 2),
+                            }
+                        )
 
     logger.info("Computed SOV trends for %d brands", len(trend_direction))
     return {
@@ -850,12 +835,15 @@ def main() -> None:
     args = parse_args()
 
     brand_mentions, competitor_data = load_mention_data(
-        args.mentions, args.competitors,
+        args.mentions,
+        args.competitors,
     )
 
     sov = compute_share_of_voice(brand_mentions, competitor_data, args.time_window)
     sentiment_sov = compute_sentiment_weighted_sov(
-        brand_mentions, competitor_data, args.time_window,
+        brand_mentions,
+        competitor_data,
+        args.time_window,
     )
     engagement = benchmark_engagement_rates(brand_mentions, competitor_data)
     strategy = analyze_competitor_content_strategy(competitor_data)

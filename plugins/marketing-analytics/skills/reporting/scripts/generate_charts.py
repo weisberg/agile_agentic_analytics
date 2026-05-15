@@ -16,9 +16,33 @@ SEQUENTIAL_PALETTES = {
     "red": ["#FEF2F2", "#FECACA", "#F87171", "#DC2626", "#991B1B", "#7F1D1D"],
 }
 DIVERGING_PALETTE = ["#DC2626", "#F87171", "#FCA5A5", "#E5E7EB", "#86EFAC", "#4ADE80", "#16A34A"]
-STATUS_COLORS = {"on_track": "#16A34A", "at_risk": "#F59E0B", "off_track": "#DC2626", "no_data": "#9CA3AF", "above_target": "#2563EB"}
+STATUS_COLORS = {
+    "on_track": "#16A34A",
+    "at_risk": "#F59E0B",
+    "off_track": "#DC2626",
+    "no_data": "#9CA3AF",
+    "above_target": "#2563EB",
+}
 
-ChartType = Literal["line", "area", "bar", "grouped_bar", "stacked_bar", "horizontal_bar", "waterfall", "funnel", "scatter", "bubble", "heatmap", "histogram", "box", "violin", "donut", "treemap", "choropleth"]
+ChartType = Literal[
+    "line",
+    "area",
+    "bar",
+    "grouped_bar",
+    "stacked_bar",
+    "horizontal_bar",
+    "waterfall",
+    "funnel",
+    "scatter",
+    "bubble",
+    "heatmap",
+    "histogram",
+    "box",
+    "violin",
+    "donut",
+    "treemap",
+    "choropleth",
+]
 
 
 def _plotly():
@@ -83,17 +107,39 @@ def render_time_series(
 ) -> Any:
     go = _plotly()
     if go is None:
-        return {"type": "time_series", "data": data, "x_col": x_col, "y_cols": y_cols, "group_by": group_by, "comparison_data": comparison_data, "config": config}
+        return {
+            "type": "time_series",
+            "data": data,
+            "x_col": x_col,
+            "y_cols": y_cols,
+            "group_by": group_by,
+            "comparison_data": comparison_data,
+            "config": config,
+        }
     figure = go.Figure()
     if group_by:
         groups = sorted({row.get(group_by) for row in data})
         for group in groups:
             subset = [row for row in data if row.get(group_by) == group]
             for y_col in y_cols:
-                figure.add_trace(go.Scatter(x=[row.get(x_col) for row in subset], y=[row.get(y_col) for row in subset], mode="lines+markers", name=f"{group} {y_col}"))
+                figure.add_trace(
+                    go.Scatter(
+                        x=[row.get(x_col) for row in subset],
+                        y=[row.get(y_col) for row in subset],
+                        mode="lines+markers",
+                        name=f"{group} {y_col}",
+                    )
+                )
     else:
         for y_col in y_cols:
-            figure.add_trace(go.Scatter(x=[row.get(x_col) for row in data], y=[row.get(y_col) for row in data], mode="lines+markers", name=y_col))
+            figure.add_trace(
+                go.Scatter(
+                    x=[row.get(x_col) for row in data],
+                    y=[row.get(y_col) for row in data],
+                    mode="lines+markers",
+                    name=y_col,
+                )
+            )
     figure.update_layout(**config["layout"])
     return figure
 
@@ -108,13 +154,25 @@ def render_bar_chart(
 ) -> Any:
     go = _plotly()
     if go is None:
-        return {"type": "bar", "data": data, "category_col": category_col, "value_cols": value_cols, "orientation": orientation, "bar_mode": bar_mode, "config": config}
+        return {
+            "type": "bar",
+            "data": data,
+            "category_col": category_col,
+            "value_cols": value_cols,
+            "orientation": orientation,
+            "bar_mode": bar_mode,
+            "config": config,
+        }
     figure = go.Figure()
     for value_col in value_cols:
         figure.add_trace(
             go.Bar(
-                x=[row.get(category_col) for row in data] if orientation == "vertical" else [row.get(value_col) for row in data],
-                y=[row.get(value_col) for row in data] if orientation == "vertical" else [row.get(category_col) for row in data],
+                x=[row.get(category_col) for row in data]
+                if orientation == "vertical"
+                else [row.get(value_col) for row in data],
+                y=[row.get(value_col) for row in data]
+                if orientation == "vertical"
+                else [row.get(category_col) for row in data],
                 name=value_col,
                 orientation="h" if orientation == "horizontal" else "v",
             )
@@ -132,7 +190,14 @@ def render_waterfall(
 ) -> Any:
     go = _plotly()
     if go is None:
-        return {"type": "waterfall", "data": data, "category_col": category_col, "value_col": value_col, "base_value": base_value, "config": config}
+        return {
+            "type": "waterfall",
+            "data": data,
+            "category_col": category_col,
+            "value_col": value_col,
+            "base_value": base_value,
+            "config": config,
+        }
     figure = go.Figure(
         go.Waterfall(
             x=[row.get(category_col) for row in data],
@@ -172,13 +237,25 @@ def render_scatter(
     del trendline
     go = _plotly()
     if go is None:
-        return {"type": "scatter", "data": data, "x_col": x_col, "y_col": y_col, "size_col": size_col, "color_col": color_col, "config": config}
+        return {
+            "type": "scatter",
+            "data": data,
+            "x_col": x_col,
+            "y_col": y_col,
+            "size_col": size_col,
+            "color_col": color_col,
+            "config": config,
+        }
     marker = {}
     if size_col:
         marker["size"] = [row.get(size_col, 10) for row in data]
     if color_col:
         marker["color"] = [row.get(color_col) for row in data]
-    figure = go.Figure(go.Scatter(x=[row.get(x_col) for row in data], y=[row.get(y_col) for row in data], mode="markers", marker=marker))
+    figure = go.Figure(
+        go.Scatter(
+            x=[row.get(x_col) for row in data], y=[row.get(y_col) for row in data], mode="markers", marker=marker
+        )
+    )
     figure.update_layout(**config["layout"])
     return figure
 
@@ -193,13 +270,33 @@ def render_heatmap(
 ) -> Any:
     go = _plotly()
     if go is None:
-        return {"type": "heatmap", "data": data, "x_col": x_col, "y_col": y_col, "value_col": value_col, "color_scale": color_scale, "config": config}
+        return {
+            "type": "heatmap",
+            "data": data,
+            "x_col": x_col,
+            "y_col": y_col,
+            "value_col": value_col,
+            "color_scale": color_scale,
+            "config": config,
+        }
     x_values = sorted({row.get(x_col) for row in data})
     y_values = sorted({row.get(y_col) for row in data})
     matrix = []
     for y_value in y_values:
-        matrix.append([next((row.get(value_col) for row in data if row.get(x_col) == x_value and row.get(y_col) == y_value), 0) for x_value in x_values])
-    figure = go.Figure(go.Heatmap(x=x_values, y=y_values, z=matrix, colorscale=SEQUENTIAL_PALETTES.get(color_scale, SEQUENTIAL_PALETTES["blue"])))
+        matrix.append(
+            [
+                next((row.get(value_col) for row in data if row.get(x_col) == x_value and row.get(y_col) == y_value), 0)
+                for x_value in x_values
+            ]
+        )
+    figure = go.Figure(
+        go.Heatmap(
+            x=x_values,
+            y=y_values,
+            z=matrix,
+            colorscale=SEQUENTIAL_PALETTES.get(color_scale, SEQUENTIAL_PALETTES["blue"]),
+        )
+    )
     figure.update_layout(**config["layout"])
     return figure
 
@@ -228,13 +325,22 @@ def render_chart(
     if chart_type in {"bar", "grouped_bar", "stacked_bar", "horizontal_bar"}:
         orientation = "horizontal" if chart_type == "horizontal_bar" else "vertical"
         bar_mode = "stack" if chart_type == "stacked_bar" else "group"
-        return render_bar_chart(data, kwargs["category_col"], kwargs["value_cols"], config, orientation=orientation, bar_mode=bar_mode)
+        return render_bar_chart(
+            data, kwargs["category_col"], kwargs["value_cols"], config, orientation=orientation, bar_mode=bar_mode
+        )
     if chart_type == "waterfall":
         return render_waterfall(data, kwargs["category_col"], kwargs["value_col"], config)
     if chart_type == "funnel":
         return render_funnel(data, kwargs["stage_col"], kwargs["value_col"], config)
     if chart_type in {"scatter", "bubble"}:
-        return render_scatter(data, kwargs["x_col"], kwargs["y_col"], config, size_col=kwargs.get("size_col"), color_col=kwargs.get("color_col"))
+        return render_scatter(
+            data,
+            kwargs["x_col"],
+            kwargs["y_col"],
+            config,
+            size_col=kwargs.get("size_col"),
+            color_col=kwargs.get("color_col"),
+        )
     if chart_type == "heatmap":
         return render_heatmap(data, kwargs["x_col"], kwargs["y_col"], kwargs["value_col"], config)
     raise ValueError(f"Unsupported chart type: {chart_type}")
@@ -291,7 +397,9 @@ def generate_all_charts(
             if chart_type == "time_series":
                 resolved_type = "line"
                 config = build_chart_config("line", section["title"], x_label="Date", y_label=", ".join(metrics))
-                figure = render_chart("line", rows, config, x_col="date", y_cols=metrics, group_by=chart_spec.get("group_by"))
+                figure = render_chart(
+                    "line", rows, config, x_col="date", y_cols=metrics, group_by=chart_spec.get("group_by")
+                )
             elif chart_type == "bar":
                 resolved_type = "bar"
                 category_col = chart_spec.get("group_by", "date")
@@ -299,16 +407,37 @@ def generate_all_charts(
                 figure = render_chart("bar", rows, config, category_col=category_col, value_cols=metrics)
             elif chart_type == "waterfall":
                 resolved_type = "waterfall"
-                config = build_chart_config("waterfall", section["title"], x_label="Component", y_label=metrics[0] if metrics else "value")
-                figure = render_chart("waterfall", rows, config, category_col=chart_spec.get("group_by", "date"), value_col=metrics[0] if metrics else "value")
+                config = build_chart_config(
+                    "waterfall", section["title"], x_label="Component", y_label=metrics[0] if metrics else "value"
+                )
+                figure = render_chart(
+                    "waterfall",
+                    rows,
+                    config,
+                    category_col=chart_spec.get("group_by", "date"),
+                    value_col=metrics[0] if metrics else "value",
+                )
             elif chart_type == "funnel":
                 resolved_type = "funnel"
                 config = build_chart_config("funnel", section["title"])
-                figure = render_chart("funnel", rows, config, stage_col=chart_spec.get("group_by", "stage"), value_col=metrics[0] if metrics else "value")
+                figure = render_chart(
+                    "funnel",
+                    rows,
+                    config,
+                    stage_col=chart_spec.get("group_by", "stage"),
+                    value_col=metrics[0] if metrics else "value",
+                )
             elif chart_type == "scatter":
                 resolved_type = "scatter"
                 config = build_chart_config("scatter", section["title"])
-                figure = render_chart("scatter", rows, config, x_col=metrics[0], y_col=metrics[1] if len(metrics) > 1 else metrics[0], color_col=chart_spec.get("group_by"))
+                figure = render_chart(
+                    "scatter",
+                    rows,
+                    config,
+                    x_col=metrics[0],
+                    y_col=metrics[1] if len(metrics) > 1 else metrics[0],
+                    color_col=chart_spec.get("group_by"),
+                )
             else:
                 resolved_type = "bar"
                 config = build_chart_config("bar", section["title"])
@@ -319,7 +448,14 @@ def generate_all_charts(
             html_path.write_text(export_chart_html(figure), encoding="utf-8")
             export_chart_image(figure, image_path)
             alt_text = generate_alt_text(
-                resolved_type, section["title"], {"entity": section["title"], "start_date": unified_dataset.get("date_range", {}).get("start"), "end_date": unified_dataset.get("date_range", {}).get("end"), "metric_name": ", ".join(metrics)},
+                resolved_type,
+                section["title"],
+                {
+                    "entity": section["title"],
+                    "start_date": unified_dataset.get("date_range", {}).get("start"),
+                    "end_date": unified_dataset.get("date_range", {}).get("end"),
+                    "metric_name": ", ".join(metrics),
+                },
                 key_finding=f"Rendered from section {section['id']}.",
             )
             manifest.append(

@@ -32,7 +32,7 @@ from enum import Enum
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import requests
 
@@ -49,9 +49,9 @@ class CWVRating(Enum):
 
 # Core Web Vitals thresholds
 CWV_THRESHOLDS = {
-    "LCP": {"good": 2500, "poor": 4000},       # milliseconds
-    "INP": {"good": 200, "poor": 500},          # milliseconds
-    "CLS": {"good": 0.1, "poor": 0.25},         # unitless score
+    "LCP": {"good": 2500, "poor": 4000},  # milliseconds
+    "INP": {"good": 200, "poor": 500},  # milliseconds
+    "CLS": {"good": 0.1, "poor": 0.25},  # unitless score
 }
 
 # Required properties per schema.org type
@@ -136,9 +136,7 @@ def classify_cwv_metric(
         ValueError: If metric_name is not recognized.
     """
     if metric_name not in CWV_THRESHOLDS:
-        raise ValueError(
-            f"Unknown CWV metric: {metric_name}. Expected one of: {list(CWV_THRESHOLDS.keys())}"
-        )
+        raise ValueError(f"Unknown CWV metric: {metric_name}. Expected one of: {list(CWV_THRESHOLDS.keys())}")
 
     thresholds = CWV_THRESHOLDS[metric_name]
     if value <= thresholds["good"]:
@@ -193,31 +191,33 @@ def fetch_pagespeed_insights(
         try:
             resp = requests.get(endpoint, params=params, timeout=120)
             if resp.status_code == 429:
-                wait_time = 2 ** attempt
+                wait_time = 2**attempt
                 logger.warning(
                     "PSI rate limited for %s, retrying in %ds (attempt %d/%d)",
-                    url, wait_time, attempt + 1, max_retries,
+                    url,
+                    wait_time,
+                    attempt + 1,
+                    max_retries,
                 )
                 time.sleep(wait_time)
                 continue
             if resp.status_code != 200:
                 raise RuntimeError(
-                    f"PageSpeed Insights API error for {url}: "
-                    f"HTTP {resp.status_code} - {resp.text[:500]}"
+                    f"PageSpeed Insights API error for {url}: HTTP {resp.status_code} - {resp.text[:500]}"
                 )
             return resp.json()
         except requests.exceptions.RequestException as exc:
             if attempt < max_retries - 1:
-                wait_time = 2 ** attempt
+                wait_time = 2**attempt
                 logger.warning(
                     "PSI request failed for %s, retrying in %ds: %s",
-                    url, wait_time, exc,
+                    url,
+                    wait_time,
+                    exc,
                 )
                 time.sleep(wait_time)
             else:
-                raise RuntimeError(
-                    f"PageSpeed Insights request failed after {max_retries} attempts for {url}"
-                ) from exc
+                raise RuntimeError(f"PageSpeed Insights request failed after {max_retries} attempts for {url}") from exc
 
     raise RuntimeError(f"PageSpeed Insights request failed after {max_retries} attempts for {url}")
 
@@ -266,9 +266,7 @@ def extract_cwv_from_response(
         result.cls_rating = classify_cwv_metric("CLS", result.cls_score)
 
     # Fall back to lab data (Lighthouse) for missing metrics
-    lab_audits = (
-        response.get("lighthouseResult", {}).get("audits", {})
-    )
+    lab_audits = response.get("lighthouseResult", {}).get("audits", {})
 
     if result.lcp_ms is None:
         lcp_audit = lab_audits.get("largest-contentful-paint", {})
@@ -338,7 +336,10 @@ def audit_core_web_vitals(
             completed += 1
             logger.info(
                 "Auditing CWV %d/%d: %s (%s)",
-                completed, total, url, strategy,
+                completed,
+                total,
+                url,
+                strategy,
             )
             try:
                 response = fetch_pagespeed_insights(
@@ -388,9 +389,7 @@ def validate_structured_data(
     # Fetch HTML if not provided
     if html_content is None:
         try:
-            resp = requests.get(url, timeout=30, headers={
-                "User-Agent": "Mozilla/5.0 (compatible; SEOAuditBot/1.0)"
-            })
+            resp = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0 (compatible; SEOAuditBot/1.0)"})
             resp.raise_for_status()
             html_content = resp.text
         except requests.exceptions.RequestException as exc:
@@ -556,7 +555,8 @@ def audit_structured_data(
 
     logger.info(
         "Structured data audit complete: %d issues across %d URLs",
-        len(all_issues), len(urls),
+        len(all_issues),
+        len(urls),
     )
     return all_issues
 
@@ -585,17 +585,13 @@ def detect_redirect_chains(
                 url,
                 allow_redirects=True,
                 timeout=30,
-                headers={
-                    "User-Agent": "Mozilla/5.0 (compatible; SEOAuditBot/1.0)"
-                },
+                headers={"User-Agent": "Mozilla/5.0 (compatible; SEOAuditBot/1.0)"},
                 stream=True,
             )
             # Count redirect hops
             hop_count = len(resp.history)
             if hop_count > chain_threshold:
-                chain_detail = " -> ".join(
-                    [r.url for r in resp.history] + [resp.url]
-                )
+                chain_detail = " -> ".join([r.url for r in resp.history] + [resp.url])
                 severity = "error" if hop_count >= 4 else "warning"
                 issues.append(
                     CrawlIssue(
@@ -648,9 +644,7 @@ def detect_broken_internal_links(
                 url,
                 allow_redirects=True,
                 timeout=15,
-                headers={
-                    "User-Agent": "Mozilla/5.0 (compatible; SEOAuditBot/1.0)"
-                },
+                headers={"User-Agent": "Mozilla/5.0 (compatible; SEOAuditBot/1.0)"},
             )
             status = resp.status_code
 
@@ -821,7 +815,8 @@ def check_robots_and_sitemap(
             else:
                 logger.info(
                     "Sitemap %s contains approximately %d URLs",
-                    sitemap_url, url_count,
+                    sitemap_url,
+                    url_count,
                 )
 
             # Check if sitemap is excessively large
@@ -871,16 +866,16 @@ def generate_audit_report(
 
     # Compute CWV summary
     cwv_good = sum(
-        1 for r in cwv_results
+        1
+        for r in cwv_results
         if r.lcp_rating == CWVRating.GOOD
         and r.cls_rating == CWVRating.GOOD
         and (r.inp_rating is None or r.inp_rating == CWVRating.GOOD)
     )
     cwv_poor = sum(
-        1 for r in cwv_results
-        if r.lcp_rating == CWVRating.POOR
-        or r.cls_rating == CWVRating.POOR
-        or r.inp_rating == CWVRating.POOR
+        1
+        for r in cwv_results
+        if r.lcp_rating == CWVRating.POOR or r.cls_rating == CWVRating.POOR or r.inp_rating == CWVRating.POOR
     )
 
     # Crawl issue summary by severity
@@ -1056,9 +1051,7 @@ def run_seo_audit(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Technical SEO audit"
-    )
+    parser = argparse.ArgumentParser(description="Technical SEO audit")
     parser.add_argument("--urls", default="workspace/raw/content_inventory.csv")
     parser.add_argument("--output", default="workspace/analysis/seo_audit.json")
     parser.add_argument("--api-key", default=None, help="PageSpeed Insights API key")

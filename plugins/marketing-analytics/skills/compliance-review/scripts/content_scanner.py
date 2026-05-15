@@ -61,9 +61,33 @@ class ScanRule:
 
 def load_default_rules() -> list[ScanRule]:
     return [
-        ScanRule("sec_superlatives", re.compile(r"\b(best|guaranteed|risk[- ]free|safe|certain)\b", re.IGNORECASE), Severity.HIGH, Jurisdiction.SEC, "SEC Marketing Rule 206(4)-1", "Promissory or superlative statement detected.", "Remove or qualify the statement and add balanced risk language."),
-        ScanRule("finra_balance", re.compile(r"\b(outperform|superior returns|consistent gains)\b", re.IGNORECASE), Severity.MEDIUM, Jurisdiction.FINRA, "FINRA Rule 2210(d)", "Benefit claim may not be balanced with risks.", "Add fair-and-balanced risk disclosures near the claim."),
-        ScanRule("fca_clear_fair", re.compile(r"\b(capital guaranteed|guaranteed income)\b", re.IGNORECASE), Severity.HIGH, Jurisdiction.FCA, "FCA financial promotions", "Potentially misleading FCA promotion language detected.", "Replace with factual wording and include capital-at-risk messaging."),
+        ScanRule(
+            "sec_superlatives",
+            re.compile(r"\b(best|guaranteed|risk[- ]free|safe|certain)\b", re.IGNORECASE),
+            Severity.HIGH,
+            Jurisdiction.SEC,
+            "SEC Marketing Rule 206(4)-1",
+            "Promissory or superlative statement detected.",
+            "Remove or qualify the statement and add balanced risk language.",
+        ),
+        ScanRule(
+            "finra_balance",
+            re.compile(r"\b(outperform|superior returns|consistent gains)\b", re.IGNORECASE),
+            Severity.MEDIUM,
+            Jurisdiction.FINRA,
+            "FINRA Rule 2210(d)",
+            "Benefit claim may not be balanced with risks.",
+            "Add fair-and-balanced risk disclosures near the claim.",
+        ),
+        ScanRule(
+            "fca_clear_fair",
+            re.compile(r"\b(capital guaranteed|guaranteed income)\b", re.IGNORECASE),
+            Severity.HIGH,
+            Jurisdiction.FCA,
+            "FCA financial promotions",
+            "Potentially misleading FCA promotion language detected.",
+            "Replace with factual wording and include capital-at-risk messaging.",
+        ),
     ]
 
 
@@ -133,8 +157,12 @@ def scan_for_superlatives(content: str) -> list[ComplianceFinding]:
 
 def scan_for_cherry_picked_performance(content: str) -> list[ComplianceFinding]:
     findings = []
-    performance_claims = list(re.finditer(r"([+-]?\d+(?:\.\d+)?)%\s+(?:return|gain|performance)", content, re.IGNORECASE))
-    if performance_claims and not re.search(r"\b(1[- ]year|5[- ]year|10[- ]year|since inception)\b", content, re.IGNORECASE):
+    performance_claims = list(
+        re.finditer(r"([+-]?\d+(?:\.\d+)?)%\s+(?:return|gain|performance)", content, re.IGNORECASE)
+    )
+    if performance_claims and not re.search(
+        r"\b(1[- ]year|5[- ]year|10[- ]year|since inception)\b", content, re.IGNORECASE
+    ):
         for match in performance_claims:
             findings.append(
                 ComplianceFinding(
@@ -175,7 +203,9 @@ def scan_for_missing_risk_disclosures(content: str) -> list[ComplianceFinding]:
 def scan_for_fca_violations(content: str) -> list[ComplianceFinding]:
     findings = []
     if re.search(r"\b(uk|united kingdom|fca)\b", content, re.IGNORECASE):
-        if not re.search(r"\b(capital at risk|may not get back the amount originally invested)\b", content, re.IGNORECASE):
+        if not re.search(
+            r"\b(capital at risk|may not get back the amount originally invested)\b", content, re.IGNORECASE
+        ):
             findings.append(
                 ComplianceFinding(
                     issue_id=str(uuid.uuid4()),
@@ -199,7 +229,10 @@ def classify_content(
     jurisdictions = set()
     if re.search(r"\b(uk|fca|england|wales)\b", content, re.IGNORECASE) or metadata.get("jurisdiction") == "UK":
         jurisdictions.add("FCA")
-    if re.search(r"\b(finra|broker-dealer|member sipc)\b", content, re.IGNORECASE) or metadata.get("firm_member_status") == "finra":
+    if (
+        re.search(r"\b(finra|broker-dealer|member sipc)\b", content, re.IGNORECASE)
+        or metadata.get("firm_member_status") == "finra"
+    ):
         jurisdictions.add("FINRA")
     jurisdictions.add("SEC")
     audience = metadata.get("target_audience", "RETAIL").upper()

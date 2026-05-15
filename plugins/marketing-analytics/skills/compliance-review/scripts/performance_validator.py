@@ -62,8 +62,10 @@ def extract_performance_claims(content: str) -> list[PerformanceClaim]:
     claims = []
     pattern = re.compile(r"([+-]?\d+(?:\.\d+)?)%\s*(?:return|gain|performance|growth)?", re.IGNORECASE)
     for match in pattern.finditer(content):
-        context = content[max(0, match.start() - 80): match.end() + 80]
-        time_match = re.search(r"\b(1[- ]year|5[- ]year|10[- ]year|since inception|ytd|quarter|month)\b", context, re.IGNORECASE)
+        context = content[max(0, match.start() - 80) : match.end() + 80]
+        time_match = re.search(
+            r"\b(1[- ]year|5[- ]year|10[- ]year|since inception|ytd|quarter|month)\b", context, re.IGNORECASE
+        )
         benchmark_match = re.search(r"\b(S&P 500|benchmark|index|MSCI [A-Za-z ]+)\b", context, re.IGNORECASE)
         lowered = context.lower()
         claims.append(
@@ -108,7 +110,9 @@ def validate_time_period_completeness(
     findings = []
     periods = {claim.time_period.lower() for claim in claims if claim.time_period}
     required = {"1-year", "5-year"}
-    required.add("10-year" if inception_date is None or (date.today().year - inception_date.year) >= 10 else "since inception")
+    required.add(
+        "10-year" if inception_date is None or (date.today().year - inception_date.year) >= 10 else "since inception"
+    )
     if not any(period in periods for period in required):
         findings.append(
             ValidationFinding(
@@ -178,7 +182,9 @@ def validate_extracted_performance(
     claims: list[PerformanceClaim],
 ) -> list[ValidationFinding]:
     findings = []
-    if re.search(r"\b(selected holdings|top positions|subset of portfolio)\b", content, re.IGNORECASE) and not re.search(r"\b(total portfolio|overall portfolio)\b", content, re.IGNORECASE):
+    if re.search(
+        r"\b(selected holdings|top positions|subset of portfolio)\b", content, re.IGNORECASE
+    ) and not re.search(r"\b(total portfolio|overall portfolio)\b", content, re.IGNORECASE):
         findings.append(
             ValidationFinding(
                 finding_id=str(uuid.uuid4()),

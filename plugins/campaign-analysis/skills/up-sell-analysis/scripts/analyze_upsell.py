@@ -51,12 +51,13 @@ def value_lift(deltas: np.ndarray, pre_mean: float) -> dict:
     deltas = deltas[~np.isnan(deltas)]
     if len(deltas) == 0:
         return {"n": 0}
+    pct_lift = float(deltas.mean() / pre_mean) if (pre_mean and np.isfinite(pre_mean)) else None
     return {
         "n": int(len(deltas)),
         "mean_delta": float(deltas.mean()),
         "median_delta": float(np.median(deltas)),
         "total_absolute_lift": float(deltas.sum()),
-        "percent_lift_vs_pre_mean": float(deltas.mean() / pre_mean) if pre_mean else None,
+        "percent_lift_vs_pre_mean": pct_lift,
     }
 
 
@@ -78,13 +79,17 @@ def holdout_comparison(treated: np.ndarray, holdout: np.ndarray) -> dict:
     ci_low, ci_high = bootstrap_ci_diff(treated, holdout)
     welch = stats.ttest_ind(treated, holdout, equal_var=False, nan_policy="omit")
     mw = stats.mannwhitneyu(treated, holdout, alternative="two-sided")
+    # Separate flags per test. The skill guidance is to treat Mann-Whitney as
+    # primary when the metric is skewed (most balance/AUM cases). Keep both
+    # flags so the report can speak to whichever the analyst chooses.
     return {
         "incremental_per_customer": incremental,
         "incremental_total_estimate": incremental * len(treated),
         "ci_95": [ci_low, ci_high],
         "welch_t_pvalue": float(welch.pvalue),
         "mann_whitney_pvalue": float(mw.pvalue),
-        "significant_at_0_05": bool(welch.pvalue < 0.05),
+        "welch_significant_at_0_05": bool(welch.pvalue < 0.05),
+        "mann_whitney_significant_at_0_05": bool(mw.pvalue < 0.05),
         "n_treated": int(len(treated)),
         "n_holdout": int(len(holdout)),
     }
@@ -150,9 +155,8 @@ def build_report(summary: dict, has_holdout: bool) -> str:
         lines += [
             f"- Incremental per customer: {h['incremental_per_customer']:,.2f}",
             f"- 95% CI: [{h['ci_95'][0]:,.2f}, {h['ci_95'][1]:,.2f}]",
-            f"- Welch's t p-value: {h['welch_t_pvalue']:.4f}",
-            f"- Mann-Whitney U p-value: {h['mann_whitney_pvalue']:.4f}",
-            f"- Significant at α=0.05: {h['significant_at_0_05']}",
+            f"- Welch's t p-value: {h['welch_t_pvalue']:.4f} (significant: {h['welch_significant_at_0_05']})",
+            f"- Mann-Whitney U p-value: {h['mann_whitney_pvalue']:.4f} (significant: {h['mann_whitney_significant_at_0_05']})",
             f"- Estimated total incremental lift: {h['incremental_total_estimate']:,.2f}",
         ]
     else:
@@ -202,6 +206,20 @@ def main() -> None:
         "treated",
         np.where(metric["customer_id"].isin(holdout_ids or set()), "holdout", "other"),
     )
+
+    # Merge segment_* columns from treated/holdout onto the metric frame so
+    # segment_breakdown can find them. Per the documented input schema,
+    # segment_* columns live on the treated/holdout files, not on the metric.
+    seg_sources: list[pd.DataFrame] = []
+    for arm_df in (treated, holdout):
+        if arm_df is None:
+            continue
+        seg_cols = [c for c in arm_df.columns if c.startswith("segment_")]
+        if seg_cols:
+            seg_sources.append(arm_df[["customer_id", *seg_cols]])
+    if seg_sources:
+        seg_lookup = pd.concat(seg_sources, ignore_index=True).drop_duplicates("customer_id")
+        metric = metric.merge(seg_lookup, on="customer_id", how="left")
 
     treated_metric = metric[metric["arm"] == "treated"]
     pre_mean = float(treated_metric["metric_pre"].mean())

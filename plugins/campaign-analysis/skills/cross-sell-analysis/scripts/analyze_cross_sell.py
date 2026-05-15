@@ -53,6 +53,12 @@ def apply_eligibility(
 ) -> tuple[pd.DataFrame, int]:
     if prior_holdings is None:
         return arm_df, 0
+    missing = {"customer_id", "product_code"} - set(prior_holdings.columns)
+    if missing:
+        raise ValueError(
+            f"prior_holdings file missing required columns: {sorted(missing)}. "
+            "Expected at least: customer_id, product_code."
+        )
     holders = set(prior_holdings.loc[prior_holdings["product_code"] == target_product, "customer_id"])
     before = len(arm_df)
     eligible = arm_df[~arm_df["customer_id"].isin(holders)].copy()
@@ -163,6 +169,12 @@ def holdout_tests(t_df: pd.DataFrame, h_df: pd.DataFrame) -> dict:
     nt, nh = len(t_conv), len(h_conv)
     kt, kh = int(t_conv.sum()), int(h_conv.sum())
 
+    if nt == 0 or nh == 0:
+        return {
+            "skipped": True,
+            "reason": (f"insufficient sample for statistical testing — treated eligible={nt}, holdout eligible={nh}"),
+        }
+
     # two-proportion z (pooled)
     p_pool = (kt + kh) / (nt + nh) if (nt + nh) else 0
     se = np.sqrt(p_pool * (1 - p_pool) * (1 / nt + 1 / nh)) if p_pool and (nt and nh) else np.nan
@@ -263,7 +275,7 @@ def build_report(summary: dict) -> str:
             f"- Holdout: {h['converters']:,} of {h['eligible']:,} ({h['conversion_rate']:.2%}), "
             f"95% CI [{h['conversion_rate_ci_95'][0]:.2%}, {h['conversion_rate_ci_95'][1]:.2%}]"
         )
-        if tests:
+        if tests and not tests.get("skipped"):
             lines.append(
                 f"- Absolute lift: {tests['absolute_lift_pp'] * 100:.2f} pp, "
                 f"95% CI [{tests['absolute_lift_ci_95'][0] * 100:.2f}, {tests['absolute_lift_ci_95'][1] * 100:.2f}] pp"
@@ -271,6 +283,8 @@ def build_report(summary: dict) -> str:
             if tests.get("relative_lift") is not None:
                 lines.append(f"- Relative lift: {tests['relative_lift']:.1%}")
             lines.append(f"- Incremental opens (estimated): {tests['incremental_opens_estimated']:,.0f}")
+        elif tests and tests.get("skipped"):
+            lines.append(f"- Tests skipped: {tests['reason']}")
 
     lines += ["", "## 3. Value"]
     if "value_per_eligible_mean" in t:
@@ -285,7 +299,7 @@ def build_report(summary: dict) -> str:
         lines.append("- Funded value data not provided; conversion rate only.")
 
     lines += ["", "## 4. Causal read"]
-    if tests:
+    if tests and not tests.get("skipped"):
         lines += [
             f"- Two-proportion z p-value: {tests.get('two_proportion_z_pvalue')}",
             f"- Fisher's exact p-value: {tests['fisher_exact_pvalue']:.4f}",

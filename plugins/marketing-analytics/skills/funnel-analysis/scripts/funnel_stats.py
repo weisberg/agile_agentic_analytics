@@ -183,6 +183,12 @@ def wilson_score_interval(
 
     lower = max(0.0, center - margin)
     upper = min(1.0, center + margin)
+    # Snap near-boundary floats to exact 0/1 — k=0 should give lower=0 exactly,
+    # not 3e-18, which breaks downstream equality checks and looks ugly in reports.
+    if lower < 1e-12:
+        lower = 0.0
+    if upper > 1 - 1e-12:
+        upper = 1.0
 
     return WilsonInterval(
         point_estimate=p_hat,

@@ -261,20 +261,22 @@ ALWAYS use this exact top-level structure:
 
 - `summary.json` — headline numbers (eligible, converters, rates, lifts, CIs, p-values, segments).
 - `report.md` — the report described above.
-- `segments.csv` — segment-level breakdown.
-- `engagement_vs_conversion.csv` — clicker/opener/unopened breakdown.
+- `segments.csv` — segment-level breakdown (written only if `segment_*` columns exist on the treated/holdout inputs).
+- `engagement_vs_conversion.csv` — clicker/opener/unopened breakdown. Produced only when the treated file contains per-customer `opened`/`clicked` flags; if engagement data is aggregate-only, this file is skipped and the report's engagement-vs-conversion table notes the gap.
 
 ---
 
 ## Using the helper script
 
-A reference implementation lives at `scripts/analyze_cross_sell.py`. It enforces
-eligibility, computes engagement and conversion rates, runs the two-proportion
-test and Fisher's exact, bootstraps a CI on absolute lift, computes value per
-eligible customer, and writes the full output set.
+A reference implementation lives at
+`plugins/campaign-analysis/skills/cross-sell-analysis/scripts/analyze_cross_sell.py`
+(relative to the repo root). It enforces eligibility, computes engagement and
+conversion rates, runs the two-proportion test and Fisher's exact, bootstraps
+a CI on absolute lift, computes value per eligible customer, and writes the
+full output set.
 
 ```
-python scripts/analyze_cross_sell.py \
+python plugins/campaign-analysis/skills/cross-sell-analysis/scripts/analyze_cross_sell.py \
   --treated path/to/treated.csv \
   --holdout path/to/holdout.csv \
   --product-opens path/to/product_opens.csv \

@@ -3,7 +3,7 @@ name: Up-Sell Campaign Analysis
 description: >
   Use when the user wants to measure the impact of a marketing campaign on existing
   clients, account owners, or current customers — phrases like "up-sell analysis",
-  "cross-sell impact", "did the campaign move balances", "expansion campaign results",
+  "did the campaign move balances", "expansion campaign results",
   "wallet share lift", "AUM lift", "deposit growth from campaign", "existing customer
   campaign", "customer growth campaign", "upgrade campaign", "in-book campaign",
   or any review of a campaign targeted at people who are already customers (so there
@@ -229,25 +229,26 @@ campaigns:
 
 **Outputs** written to `workspace/analysis/up-sell/<campaign>/`:
 
-- `summary.json` — machine-readable headline numbers (reach, engagement, lift, CI, p-value, segments).
+- `summary.json` — machine-readable headline numbers (reach, engagement, lift, CI, p-values, segments).
 - `report.md` — the report described above.
-- `segments.csv` — segment-level breakdown.
-- `engagement_vs_value.csv` — clicker/opener/unopened breakdown.
+- `segments.csv` — segment-level breakdown (written only if `segment_*` columns exist on the treated/holdout inputs).
+- `engagement_vs_value.csv` — clicker/opener/unopened breakdown. Produced only when the treated file contains `opened`/`clicked` flags per customer; if the engagement data is aggregate-only, this file is skipped and the report's engagement-vs-value table notes the gap.
 
 ---
 
 ## Using the helper script
 
-A reference implementation lives at `scripts/analyze_upsell.py`. It handles both
-the holdout and no-holdout branches, computes engagement metrics, runs the
-appropriate test, bootstraps a CI, and writes `summary.json`. Use it when the
-input shape matches the expected schema above. If the user's data is materially
-different (e.g., the metric is a panel of daily balances rather than pre/post),
-adapt the logic in a notebook or script rather than forcing the data into the
-expected shape.
+A reference implementation lives at
+`plugins/campaign-analysis/skills/up-sell-analysis/scripts/analyze_upsell.py`
+(relative to the repo root). It handles both the holdout and no-holdout
+branches, computes engagement metrics, runs the appropriate test, bootstraps
+a CI, and writes `summary.json`. Use it when the input shape matches the
+expected schema above. If the user's data is materially different (e.g., the
+metric is a panel of daily balances rather than pre/post), adapt the logic in
+a notebook or script rather than forcing the data into the expected shape.
 
 ```
-python scripts/analyze_upsell.py \
+python plugins/campaign-analysis/skills/up-sell-analysis/scripts/analyze_upsell.py \
   --treated path/to/treated.csv \
   --holdout path/to/holdout.csv \
   --metric  path/to/metric.csv \

@@ -2,7 +2,7 @@
 
 ## Repository Layout
 
-Top-level paths in this repository:
+Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print $1}' | sort -u` to verify):
 
 | Path | Contents |
 |------|----------|
@@ -14,8 +14,7 @@ Top-level paths in this repository:
 | `PLUGIN_ARCHITECTURE.md` | Architectural notes for plugin design across the repo. |
 | `PLUGIN_SKILLS.md` | Long-form notes on skill behavior per plugin. |
 | `pyproject.toml`, `pytest.ini`, `requirements.txt`, `requirements-dev.txt` | Python project and test configuration. |
-| `.claude-plugin/` | Repo-level Claude plugin manifest scaffolding. |
-| `.claude/` | Local Claude configuration for this repo. |
+| `.claude-plugin/` | Repo-level marketplace manifest (`marketplace.json`). |
 | `.github/` | GitHub workflows and repo metadata. |
 | `docs/` | Authoritative reference docs (see Documentation Map below). |
 | `docs/CREATE_PLUGINS.md`, `docs/PLUGINS_REFERENCE.md`, `docs/CREATE_CUSTOM_SUBAGENTS.md`, `docs/HOOKS_REFERENCE.md`, `docs/TOOLS_REFERENCE.md`, `docs/ADVANCED_SKILLS.md`, `docs/marketing_analytics_skill_specs.md` | Plugin, agent, hook, tool, and marketing-analytics reference material. |
@@ -26,14 +25,12 @@ Top-level paths in this repository:
 | `plugins/experimentation/` | Experimentation plugin (`agents/`, `references/`, `skills/{advanced-experiment-analysis, compliance-trust-review, early-signal-monitoring, email-incrementality, executive-evidence-brief, experiment-decision-review, experiment-operating-model, measurement-integration, null-results-knowledge-base, personalization-governance, power-duration-planning, safe-experiment-design}`). |
 | `plugins/marketing-analytics/` | Marketing analytics portfolio (`shared/{definitions, schemas, utils}`, `skills/{attribution-analysis, audience-segmentation, clv-modeling, competitive-intel, compliance-review, crm-lead-scoring, email-analytics, experimentation, funnel-analysis, paid-media, reporting, seo-content, social-analytics, voc-analytics, web-analytics}`). |
 | `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
-| `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`; agents/ pending). |
-| `plugins/campaign-measurement/` | Campaign measurement plugin (empty placeholder). |
-| `agents/`, `bin/`, `hooks/`, `scripts/`, `skills/` | Top-level component directories (currently empty; reserved for repo-wide components). |
+| `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`). |
 | `knowledge/experimentation/` | Knowledge base material for the experimentation plugin. |
 | `examples/` | Worked example workflows (`clv_segmentation_workflow.md`, `funnel_optimization.md`, `quick_start.md`, `generate_sample_data.py`, `data/`). |
 | `tests/` | Pytest suite (`conftest.py`, `fixtures/`, and per-skill test packages: `test_audience_segmentation`, `test_email_analytics`, `test_funnel_analysis`, `test_integration`, `test_voc_analytics`, `test_web_analytics`). |
 
-Note: `plugins/experimentation/references 2/` exists alongside `references/` and appears to be a duplicate (likely an accidental copy) — verify before referencing.
+Note: `.claude/` (local Claude settings) and `plugins/campaign-measurement/` exist locally but are not tracked in git. Top-level `agents/`, `bin/`, `hooks/`, `scripts/`, `skills/` are also untracked — git does not preserve empty directories, so these only appear once they contain files.
 
 ## Documentation Map
 

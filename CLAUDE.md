@@ -1,5 +1,40 @@
 # Agile Agentic Analytics — Skill Index
 
+## Repository Layout
+
+Top-level paths in this repository:
+
+| Path | Contents |
+|------|----------|
+| `CLAUDE.md` | This operating index. |
+| `AGENTS.md` | Agent-facing pointer to this index. |
+| `README.md` | Public-facing repo overview. |
+| `LICENSE` | Repo license. |
+| `PLUGINS_AND_SKILLS.md` | Catalog of plugins and their skills. |
+| `PLUGIN_ARCHITECTURE.md` | Architectural notes for plugin design across the repo. |
+| `PLUGIN_SKILLS.md` | Long-form notes on skill behavior per plugin. |
+| `pyproject.toml`, `pytest.ini`, `requirements.txt`, `requirements-dev.txt` | Python project and test configuration. |
+| `.claude-plugin/` | Repo-level Claude plugin manifest scaffolding. |
+| `.claude/` | Local Claude configuration for this repo. |
+| `.github/` | GitHub workflows and repo metadata. |
+| `docs/` | Authoritative reference docs (see Documentation Map below). |
+| `docs/CREATE_PLUGINS.md`, `docs/PLUGINS_REFERENCE.md`, `docs/CREATE_CUSTOM_SUBAGENTS.md`, `docs/HOOKS_REFERENCE.md`, `docs/TOOLS_REFERENCE.md`, `docs/ADVANCED_SKILLS.md`, `docs/marketing_analytics_skill_specs.md` | Plugin, agent, hook, tool, and marketing-analytics reference material. |
+| `templates/skills/` | Reusable skill component pattern library. |
+| `templates/skills/catalogs/01-core-runtime.md` … `12-safety-utility-setup.md` | Type-based component catalogs (12 files, components 1-101). |
+| `plugins/` | Distributable plugins. One subdirectory per plugin. |
+| `plugins/ab-testing/` | A/B testing plugin (`agents/`, `skills/{analyze-results, design-experiment, experiment-report, review-experiment, sample-size}`). |
+| `plugins/experimentation/` | Experimentation plugin (`agents/`, `references/`, `skills/{advanced-experiment-analysis, compliance-trust-review, early-signal-monitoring, email-incrementality, executive-evidence-brief, experiment-decision-review, experiment-operating-model, measurement-integration, null-results-knowledge-base, personalization-governance, power-duration-planning, safe-experiment-design}`). |
+| `plugins/marketing-analytics/` | Marketing analytics portfolio (`shared/{definitions, schemas, utils}`, `skills/{attribution-analysis, audience-segmentation, clv-modeling, competitive-intel, compliance-review, crm-lead-scoring, email-analytics, experimentation, funnel-analysis, paid-media, reporting, seo-content, social-analytics, voc-analytics, web-analytics}`). |
+| `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
+| `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`; agents/ pending). |
+| `plugins/campaign-measurement/` | Campaign measurement plugin (empty placeholder). |
+| `agents/`, `bin/`, `hooks/`, `scripts/`, `skills/` | Top-level component directories (currently empty; reserved for repo-wide components). |
+| `knowledge/experimentation/` | Knowledge base material for the experimentation plugin. |
+| `examples/` | Worked example workflows (`clv_segmentation_workflow.md`, `funnel_optimization.md`, `quick_start.md`, `generate_sample_data.py`, `data/`). |
+| `tests/` | Pytest suite (`conftest.py`, `fixtures/`, and per-skill test packages: `test_audience_segmentation`, `test_email_analytics`, `test_funnel_analysis`, `test_integration`, `test_voc_analytics`, `test_web_analytics`). |
+
+Note: `plugins/experimentation/references 2/` exists alongside `references/` and appears to be a duplicate (likely an accidental copy) — verify before referencing.
+
 ## Documentation Map
 
 This repository includes official Anthropic Claude Code documentation, a marketing analytics product specification, and advanced skill-design notes in `docs/`. Treat these files as source material when creating, changing, validating, or extending plugins and skills. The notes below summarize what each document is for and when to consult it.
@@ -163,6 +198,15 @@ A focused A/B testing toolkit with five skills for experiment lifecycle manageme
 | **analyze-results** | Analyze A/B test results with proper statistical methods — significance, confidence intervals, effect sizes. |
 | **review-experiment** | Review experiment implementation code for common A/B testing pitfalls — assignment bugs, logging gaps, bucketing leaks. |
 | **experiment-report** | Generate a structured, stakeholder-ready experiment report from A/B test results. |
+
+### campaign-analysis
+
+Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting. Targets existing-customer and acquisition campaigns alike.
+
+| Skill | Trigger Phrases | Description |
+|-------|----------------|-------------|
+| **up-sell-analysis** | up-sell analysis, expansion campaign results, wallet share lift, AUM lift, deposit growth from campaign, existing customer campaign, in-book campaign, did the campaign move balances, treated vs holdout for existing customers | Measure a campaign's impact on existing clients or account owners. Reports reach, CTR, and change in a value metric (sales, balances, AUM). Runs holdout-vs-treated statistical testing (Welch's t + Mann-Whitney + bootstrap 95% CI) when a holdout is available; otherwise reports pre/post descriptive lift and is explicit about the lack of causal attribution. No conversion-rate metric (audience is already a customer). |
+| **cross-sell-analysis** | cross-sell analysis, cross-sell campaign, product attach rate, account open rate, new product adoption from campaign, second product campaign, add-a-product campaign, checking-to-savings campaign, credit card cross-sell, did the campaign drive new account opens, attach campaign | Measure a campaign promoting a NEW product to existing customers. Reports reach, CTR, conversion rate (account open rate), funded balance / value per eligible customer; runs two-proportion z + Fisher's exact + bootstrap CI on conversion lift and Welch's t + Mann-Whitney on value per eligible when a holdout is provided. Enforces eligibility (excludes prior holders), pre-commits the attribution window, and surfaces cannibalization risk. |
 
 ### marketing-analytics
 

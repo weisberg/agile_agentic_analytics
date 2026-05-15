@@ -19,7 +19,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -207,9 +206,7 @@ def assign_quintiles(
     result["m_score"] = _safe_qcut(result["monetary"], ascending=True)
 
     result["rfm_composite"] = (
-        result["r_score"].astype(str)
-        + result["f_score"].astype(str)
-        + result["m_score"].astype(str)
+        result["r_score"].astype(str) + result["f_score"].astype(str) + result["m_score"].astype(str)
     )
 
     result["rfm_weighted"] = (
@@ -282,9 +279,7 @@ def label_segments(
     # Verify exhaustiveness
     still_null = result["segment"].isna()
     if still_null.any():
-        raise ValueError(
-            f"{still_null.sum()} customers could not be assigned to any segment"
-        )
+        raise ValueError(f"{still_null.sum()} customers could not be assigned to any segment")
 
     logger.info("Segment distribution:\n%s", result["segment"].value_counts().to_string())
     return result

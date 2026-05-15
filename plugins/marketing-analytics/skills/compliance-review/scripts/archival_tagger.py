@@ -113,7 +113,11 @@ def determine_retention_policy(
     rule_citation = "SEC 17a-4(b)(4)"
     if communication_type == CommunicationType.RETAIL:
         period_years = max(period_years, 3)
-    if content_category in {ContentCategory.ADVERTISEMENT, ContentCategory.PROMOTIONAL, ContentCategory.SALES_LITERATURE}:
+    if content_category in {
+        ContentCategory.ADVERTISEMENT,
+        ContentCategory.PROMOTIONAL,
+        ContentCategory.SALES_LITERATURE,
+    }:
         period_years = max(period_years, 3)
     if is_complaint_related:
         period_years = max(period_years, 4)
@@ -140,9 +144,13 @@ def determine_filing_requirements(
 ) -> FilingMetadata:
     requires_filing = False
     filing_type = FilingType.NONE
-    if communication_type == CommunicationType.RETAIL and (is_new_member or content_category in {ContentCategory.ADVERTISEMENT, ContentCategory.SALES_LITERATURE}):
+    if communication_type == CommunicationType.RETAIL and (
+        is_new_member or content_category in {ContentCategory.ADVERTISEMENT, ContentCategory.SALES_LITERATURE}
+    ):
         requires_filing = True
-        filing_type = FilingType.PRE_USE if is_new_member or is_options_related or is_cmo_related else FilingType.POST_USE
+        filing_type = (
+            FilingType.PRE_USE if is_new_member or is_options_related or is_cmo_related else FilingType.POST_USE
+        )
     if is_investment_company and communication_type == CommunicationType.RETAIL:
         requires_filing = True
         filing_type = FilingType.POST_USE
@@ -175,7 +183,9 @@ def create_archival_tag(
     now = datetime.now(timezone.utc).isoformat()
     content_hash = compute_content_hash(content)
     retention = determine_retention_policy(communication_type, content_category, jurisdictions, is_complaint_related)
-    filing = determine_filing_requirements(communication_type, content_category, is_new_member, is_options_related, is_cmo_related, is_investment_company)
+    filing = determine_filing_requirements(
+        communication_type, content_category, is_new_member, is_options_related, is_cmo_related, is_investment_company
+    )
     content_id = str(uuid.uuid4())
     return ArchivalTag(
         content_id=content_id,
@@ -209,7 +219,9 @@ def serialize_archival_tag(tag: ArchivalTag) -> dict:
     payload["retention"]["start_date"] = tag.retention.start_date.isoformat()
     payload["retention"]["end_date"] = tag.retention.end_date.isoformat()
     payload["filing"]["filing_type"] = tag.filing.filing_type.value
-    payload["filing"]["filing_deadline"] = tag.filing.filing_deadline.isoformat() if tag.filing.filing_deadline else None
+    payload["filing"]["filing_deadline"] = (
+        tag.filing.filing_deadline.isoformat() if tag.filing.filing_deadline else None
+    )
     payload["filing"]["filing_status"] = tag.filing.filing_status.value
     payload["storage"]["format"] = tag.storage.format.value
     return payload
@@ -231,7 +243,18 @@ def export_manifest(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     serialized = [serialize_archival_tag(tag) for tag in manifest.tags]
     if format == "json":
-        output_path.write_text(json.dumps({"manifest_id": manifest.manifest_id, "generated_timestamp": manifest.generated_timestamp, "advisory_notice": manifest.advisory_notice, "tags": serialized}, indent=2), encoding="utf-8")
+        output_path.write_text(
+            json.dumps(
+                {
+                    "manifest_id": manifest.manifest_id,
+                    "generated_timestamp": manifest.generated_timestamp,
+                    "advisory_notice": manifest.advisory_notice,
+                    "tags": serialized,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
         return output_path
     if format == "csv":
         if not serialized:

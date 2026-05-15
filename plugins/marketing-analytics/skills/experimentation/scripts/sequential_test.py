@@ -139,7 +139,9 @@ def run_sequential_analysis(
     )
     boundary = compute_boundary(information_fraction, spending_function=spending_function, alpha=alpha)
     z_current = effect_estimate / math.sqrt(max(2 * sample_variance / current_n, 1e-12))
-    conditional_power = compute_conditional_power(effect_estimate, current_n, planned_n_per_group, sample_variance, alpha=alpha)
+    conditional_power = compute_conditional_power(
+        effect_estimate, current_n, planned_n_per_group, sample_variance, alpha=alpha
+    )
     reject = msprt >= (1 / alpha) or abs(z_current) >= boundary
     return SequentialResult(
         metric_name=metric_name,

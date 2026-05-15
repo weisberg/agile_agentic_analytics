@@ -49,7 +49,9 @@ def compute_channel_contributions(
     results: dict[str, dict[str, Any]] = {}
     for channel, values in contributions.items():
         draws = mmm.posterior_samples.get(channel, [mmm.coefficients.get(channel, 0.0)])
-        sampled_totals = [sum(value * draw / (mmm.coefficients.get(channel, 1.0) or 1.0) for value in values) for draw in draws]
+        sampled_totals = [
+            sum(value * draw / (mmm.coefficients.get(channel, 1.0) or 1.0) for value in values) for draw in draws
+        ]
         results[channel] = {
             "mean_contribution": statistics.fmean(values) if values else 0.0,
             "median_contribution": statistics.median(values) if values else 0.0,
@@ -83,7 +85,11 @@ def compute_baseline_contribution(
         "share_of_total_mean": (sum(baseline) / total_mean) if total_mean else 0.0,
         "components": {
             "intercept": mmm.intercept,
-            "seasonality": sum(mmm.coefficients.get(column, 0.0) for column in mmm.control_columns if str(column).startswith(("sin_", "cos_"))),
+            "seasonality": sum(
+                mmm.coefficients.get(column, 0.0)
+                for column in mmm.control_columns
+                if str(column).startswith(("sin_", "cos_"))
+            ),
             "trend": mmm.coefficients.get("trend", 0.0),
             "other_controls": sum(
                 mmm.coefficients.get(column, 0.0)
@@ -100,7 +106,10 @@ def validate_decomposition(
     observed_total: float,
     tolerance: float = 0.02,
 ) -> dict[str, Any]:
-    total_contributions = sum(item["mean_contribution"] for item in channel_contributions.values()) + baseline_contribution["mean_contribution"]
+    total_contributions = (
+        sum(item["mean_contribution"] for item in channel_contributions.values())
+        + baseline_contribution["mean_contribution"]
+    )
     relative_difference = abs(total_contributions - observed_total) / observed_total if observed_total else 0.0
     return {
         "total_contributions": total_contributions,
@@ -207,7 +216,12 @@ def save_contributions(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compute MMM channel contributions")
     parser.add_argument("--credible-interval", type=float, default=0.90, help="Credible interval width (default 0.90)")
-    parser.add_argument("--output", type=str, default=None, help="Output file path (default: workspace/analysis/mmm_channel_contributions.json)")
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="Output file path (default: workspace/analysis/mmm_channel_contributions.json)",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -216,10 +230,14 @@ def main() -> None:
     channel_contributions = compute_channel_contributions(mmm, credible_interval=args.credible_interval)
     baseline = compute_baseline_contribution(mmm, credible_interval=args.credible_interval)
     validation = validate_decomposition(channel_contributions, baseline, observed_total=sum(mmm.observed_y))
-    roi = compute_roi_by_channel(channel_contributions, mmm.training_spend_totals, credible_interval=args.credible_interval)
+    roi = compute_roi_by_channel(
+        channel_contributions, mmm.training_spend_totals, credible_interval=args.credible_interval
+    )
     save_contributions(channel_contributions, baseline, validation, roi, ANALYSIS_DIR)
     if args.output:
-        Path(args.output).write_text((ANALYSIS_DIR / "mmm_channel_contributions.json").read_text(encoding="utf-8"), encoding="utf-8")
+        Path(args.output).write_text(
+            (ANALYSIS_DIR / "mmm_channel_contributions.json").read_text(encoding="utf-8"), encoding="utf-8"
+        )
 
 
 if __name__ == "__main__":

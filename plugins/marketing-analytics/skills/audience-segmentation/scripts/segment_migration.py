@@ -23,7 +23,6 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -101,9 +100,7 @@ def load_segment_assignments(
 
     n_periods = df[period_column].nunique()
     if n_periods < 2:
-        raise ValueError(
-            f"At least 2 periods required for migration analysis, found {n_periods}"
-        )
+        raise ValueError(f"At least 2 periods required for migration analysis, found {n_periods}")
 
     logger.info(
         "Loaded segment assignments: %d rows, %d customers, %d periods",
@@ -174,17 +171,12 @@ def build_transition_matrix(
         deviations = (actual_sums - 100).abs()
         bad_rows = deviations[deviations > ROW_SUM_TOLERANCE * 100]
         if len(bad_rows) > 0:
-            raise ValueError(
-                f"Transition matrix row sums deviate from 100%: "
-                f"{bad_rows.to_dict()}"
-            )
+            raise ValueError(f"Transition matrix row sums deviate from 100%: {bad_rows.to_dict()}")
 
     matrix.index.name = "from_segment"
     matrix.columns.name = "to_segment"
 
-    logger.info(
-        "Built transition matrix: %d x %d segments", matrix.shape[0], matrix.shape[1]
-    )
+    logger.info("Built transition matrix: %d x %d segments", matrix.shape[0], matrix.shape[1])
     return matrix
 
 
@@ -272,8 +264,7 @@ def validate_transition_matrix(
     if len(bad_rows) > 0:
         details = {str(idx): round(float(val), 4) for idx, val in bad_rows.items()}
         raise ValueError(
-            f"Transition matrix validation failed. Row sum deviations "
-            f"exceeding {tolerance * 100}%: {details}"
+            f"Transition matrix validation failed. Row sum deviations exceeding {tolerance * 100}%: {details}"
         )
 
     logger.info("Transition matrix validated: all rows sum to ~100%%")
@@ -329,12 +320,14 @@ def detect_notable_migrations(
             else:
                 severity = "low"
 
-            results.append({
-                "from_segment": from_seg,
-                "to_segment": to_seg,
-                "percentage": round(pct, 2),
-                "severity": severity,
-            })
+            results.append(
+                {
+                    "from_segment": from_seg,
+                    "to_segment": to_seg,
+                    "percentage": round(pct, 2),
+                    "severity": severity,
+                }
+            )
 
     logger.info("Detected %d notable migrations above %.1f%%", len(results), threshold_pct)
     return results
@@ -368,10 +361,7 @@ def save_migration_results(
 
     for label, matrix in transitions.items():
         payload["transitions"][label] = {
-            str(row): {
-                str(col): round(float(matrix.loc[row, col]), 2)
-                for col in matrix.columns
-            }
+            str(row): {str(col): round(float(matrix.loc[row, col]), 2) for col in matrix.columns}
             for row in matrix.index
         }
 
@@ -428,7 +418,8 @@ def run_migration_pipeline(
 
     # 2. Build transition matrices
     transitions = build_multi_period_transitions(
-        assignments, normalize=normalize,
+        assignments,
+        normalize=normalize,
     )
 
     # 3. Validate matrices

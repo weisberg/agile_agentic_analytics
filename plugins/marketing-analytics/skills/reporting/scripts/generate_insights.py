@@ -6,7 +6,7 @@ import json
 import logging
 import math
 from dataclasses import dataclass, field, asdict
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Any, Literal
 
@@ -100,7 +100,7 @@ def detect_anomalies(
     ordered = sorted(data, key=lambda row: str(row.get(date_col, "")))
     for metric in metric_cols:
         for index in range(lookback_periods, len(ordered)):
-            window = _numeric_series(ordered[index - lookback_periods:index], metric)
+            window = _numeric_series(ordered[index - lookback_periods : index], metric)
             if len(window) < 3:
                 continue
             current = ordered[index].get(metric)
@@ -170,14 +170,45 @@ def detect_milestones(
             continue
         current_value = values[-1]
         if current_value >= max(values):
-            findings.append({"pattern_id": "milestone_record_high", "metric_name": metric, "value": current_value, "category": "milestone"})
+            findings.append(
+                {
+                    "pattern_id": "milestone_record_high",
+                    "metric_name": metric,
+                    "value": current_value,
+                    "category": "milestone",
+                }
+            )
         if current_value <= min(values):
-            findings.append({"pattern_id": "milestone_record_low", "metric_name": metric, "value": current_value, "category": "milestone"})
+            findings.append(
+                {
+                    "pattern_id": "milestone_record_low",
+                    "metric_name": metric,
+                    "value": current_value,
+                    "category": "milestone",
+                }
+            )
         for threshold in thresholds.get(metric, []):
             if current_value >= threshold:
-                findings.append({"pattern_id": "milestone_threshold_crossed", "metric_name": metric, "value": current_value, "threshold": threshold, "category": "milestone"})
-        if metric in historical_records and current_value > float(historical_records[metric].get("value", float("-inf"))):
-            findings.append({"pattern_id": "milestone_historical_record", "metric_name": metric, "value": current_value, "category": "milestone"})
+                findings.append(
+                    {
+                        "pattern_id": "milestone_threshold_crossed",
+                        "metric_name": metric,
+                        "value": current_value,
+                        "threshold": threshold,
+                        "category": "milestone",
+                    }
+                )
+        if metric in historical_records and current_value > float(
+            historical_records[metric].get("value", float("-inf"))
+        ):
+            findings.append(
+                {
+                    "pattern_id": "milestone_historical_record",
+                    "metric_name": metric,
+                    "value": current_value,
+                    "category": "milestone",
+                }
+            )
     return findings
 
 
@@ -190,7 +221,7 @@ def detect_correlations(
     findings = []
     for index, metric_a in enumerate(metric_cols):
         values_a = _numeric_series(data, metric_a)
-        for metric_b in metric_cols[index + 1:]:
+        for metric_b in metric_cols[index + 1 :]:
             values_b = _numeric_series(data, metric_b)
             overlap = min(len(values_a), len(values_b))
             if overlap < min_data_points:
@@ -200,10 +231,21 @@ def detect_correlations(
             mean_a = sum(paired_a) / overlap
             mean_b = sum(paired_b) / overlap
             numerator = sum((a - mean_a) * (b - mean_b) for a, b in zip(paired_a, paired_b))
-            denominator = math.sqrt(sum((a - mean_a) ** 2 for a in paired_a) * sum((b - mean_b) ** 2 for b in paired_b)) or 1.0
+            denominator = (
+                math.sqrt(sum((a - mean_a) ** 2 for a in paired_a) * sum((b - mean_b) ** 2 for b in paired_b)) or 1.0
+            )
             correlation = numerator / denominator
             if abs(correlation) >= min_correlation:
-                findings.append({"pattern_id": "correlation_metric_pair", "metric_a": metric_a, "metric_b": metric_b, "correlation": correlation, "lookback_periods": overlap, "category": "correlation"})
+                findings.append(
+                    {
+                        "pattern_id": "correlation_metric_pair",
+                        "metric_a": metric_a,
+                        "metric_b": metric_b,
+                        "correlation": correlation,
+                        "lookback_periods": overlap,
+                        "category": "correlation",
+                    }
+                )
     return findings
 
 
@@ -249,7 +291,9 @@ def detect_all_patterns(
     targets: dict[str, float] | None = None,
 ) -> list[dict[str, Any]]:
     data = unified_dataset.get("data", [])
-    metric_cols = [metric["name"] for metric in unified_dataset.get("metrics", []) if metric.get("data_type") == "numeric"]
+    metric_cols = [
+        metric["name"] for metric in unified_dataset.get("metrics", []) if metric.get("data_type") == "numeric"
+    ]
     findings = []
     findings.extend(detect_trends(data, metric_cols))
     findings.extend(detect_anomalies(data, metric_cols))
@@ -269,7 +313,17 @@ def rank_by_business_impact(
     ranked = []
     for finding in findings:
         metric_name = finding.get("metric_name") or finding.get("metric_a") or "unknown"
-        base_magnitude = abs(float(finding.get("cumulative_change_pct", finding.get("change_pct", finding.get("z_score", finding.get("correlation", finding.get("projected_value", 1.0)))))))
+        base_magnitude = abs(
+            float(
+                finding.get(
+                    "cumulative_change_pct",
+                    finding.get(
+                        "change_pct",
+                        finding.get("z_score", finding.get("correlation", finding.get("projected_value", 1.0))),
+                    ),
+                )
+            )
+        )
         priority = base_magnitude * business_weights.get(metric_name, 1.0)
         enriched = dict(finding)
         enriched["priority_score"] = priority
@@ -287,7 +341,12 @@ def render_insights_to_text(
     for finding in ranked_findings[:max_insights]:
         category = finding.get("category", "trend")
         metric_name = finding.get("metric_name", f"{finding.get('metric_a')} vs {finding.get('metric_b')}")
-        magnitude = float(finding.get("cumulative_change_pct", finding.get("change_pct", finding.get("z_score", finding.get("correlation", 0.0)))))
+        magnitude = float(
+            finding.get(
+                "cumulative_change_pct",
+                finding.get("change_pct", finding.get("z_score", finding.get("correlation", 0.0))),
+            )
+        )
         if category == "trend":
             narrative = f"{metric_name} shows a sustained trend of {magnitude:.1f}%."
         elif category == "anomaly":

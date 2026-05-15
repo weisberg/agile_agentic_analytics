@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class DriverResult:
     """Importance result for a single theme or feature as a satisfaction driver."""
@@ -77,6 +78,7 @@ class KeyDriverReport:
 # ---------------------------------------------------------------------------
 # Data preparation
 # ---------------------------------------------------------------------------
+
 
 def load_theme_data(themes_path: Path) -> pd.DataFrame:
     """Load theme extraction results and pivot to a respondent-level feature matrix.
@@ -121,9 +123,7 @@ def load_theme_data(themes_path: Path) -> pd.DataFrame:
         row: dict[str, Any] = {"respondent_id": rid}
 
         # Binary theme indicators
-        response_themes = {
-            t["theme_name"] for t in c.get("themes", [])
-        }
+        response_themes = {t["theme_name"] for t in c.get("themes", [])}
         for theme in all_themes:
             row[f"theme_{theme}"] = 1 if theme in response_themes else 0
 
@@ -141,7 +141,8 @@ def load_theme_data(themes_path: Path) -> pd.DataFrame:
 
     logger.info(
         "Loaded theme data: %d respondents, %d theme features.",
-        len(df), len(all_themes),
+        len(df),
+        len(all_themes),
     )
     return df
 
@@ -180,11 +181,7 @@ def load_satisfaction_scores(survey_path: Path) -> pd.DataFrame:
         score_df = df.copy()
 
     # Aggregate to one row per respondent
-    score_df = (
-        score_df.groupby("respondent_id")["score"]
-        .mean()
-        .reset_index()
-    )
+    score_df = score_df.groupby("respondent_id")["score"].mean().reset_index()
     score_df.rename(columns={"score": "nps_score"}, inplace=True)
 
     # Classify: Promoter=1, Detractor=0, Passive=NaN (excluded from model)
@@ -241,10 +238,11 @@ def build_feature_matrix(
     X = model_df.drop(columns=["nps_score", "nps_class"], errors="ignore")
 
     logger.info(
-        "Feature matrix: %d respondents, %d features. "
-        "Class distribution: Promoters=%d, Detractors=%d.",
-        len(X), len(X.columns),
-        int((y == 1).sum()), int((y == 0).sum()),
+        "Feature matrix: %d respondents, %d features. Class distribution: Promoters=%d, Detractors=%d.",
+        len(X),
+        len(X.columns),
+        int((y == 1).sum()),
+        int((y == 0).sum()),
     )
     return X, y
 
@@ -252,6 +250,7 @@ def build_feature_matrix(
 # ---------------------------------------------------------------------------
 # Random forest model and permutation importance
 # ---------------------------------------------------------------------------
+
 
 def train_driver_model(
     X: pd.DataFrame,
@@ -285,7 +284,8 @@ def train_driver_model(
         test_size = 0.2
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
+        X,
+        y,
         test_size=test_size,
         stratify=y,
         random_state=random_seed,
@@ -312,9 +312,11 @@ def train_driver_model(
         auc = 0.5  # fallback if only one class in test set
 
     logger.info(
-        "Random forest trained. Accuracy: %.3f, AUC: %.3f "
-        "(train=%d, test=%d).",
-        accuracy, auc, len(X_train), len(X_test),
+        "Random forest trained. Accuracy: %.3f, AUC: %.3f (train=%d, test=%d).",
+        accuracy,
+        auc,
+        len(X_train),
+        len(X_test),
     )
 
     return model, X_test, y_test, accuracy, auc
@@ -356,14 +358,18 @@ def compute_permutation_importance(
         n_jobs=-1,
     )
 
-    importance_df = pd.DataFrame({
-        "feature_name": X_test.columns,
-        "importance_mean": result.importances_mean,
-        "importance_std": result.importances_std,
-    })
+    importance_df = pd.DataFrame(
+        {
+            "feature_name": X_test.columns,
+            "importance_mean": result.importances_mean,
+            "importance_std": result.importances_std,
+        }
+    )
 
     importance_df.sort_values(
-        "importance_mean", ascending=False, inplace=True,
+        "importance_mean",
+        ascending=False,
+        inplace=True,
     )
     importance_df.reset_index(drop=True, inplace=True)
 
@@ -373,6 +379,7 @@ def compute_permutation_importance(
 # ---------------------------------------------------------------------------
 # Supplementary analyses
 # ---------------------------------------------------------------------------
+
 
 def compute_theme_prevalence(
     theme_df: pd.DataFrame,
@@ -407,23 +414,19 @@ def compute_theme_prevalence(
     rows = []
     for col in theme_cols:
         theme_name = col.replace("theme_", "", 1)
-        pct_prom = (
-            promoters[col].sum() / n_promoters * 100
-            if n_promoters > 0 else 0.0
-        )
-        pct_det = (
-            detractors[col].sum() / n_detractors * 100
-            if n_detractors > 0 else 0.0
-        )
+        pct_prom = promoters[col].sum() / n_promoters * 100 if n_promoters > 0 else 0.0
+        pct_det = detractors[col].sum() / n_detractors * 100 if n_detractors > 0 else 0.0
         # Lift ratio: how much more prevalent among detractors vs promoters
         lift = pct_det / pct_prom if pct_prom > 0 else float("inf")
 
-        rows.append({
-            "theme_name": theme_name,
-            "pct_promoters": round(pct_prom, 2),
-            "pct_detractors": round(pct_det, 2),
-            "lift_ratio": round(lift, 2) if lift != float("inf") else 999.99,
-        })
+        rows.append(
+            {
+                "theme_name": theme_name,
+                "pct_promoters": round(pct_prom, 2),
+                "pct_detractors": round(pct_det, 2),
+                "lift_ratio": round(lift, 2) if lift != float("inf") else 999.99,
+            }
+        )
 
     prevalence_df = pd.DataFrame(rows)
     prevalence_df.sort_values("lift_ratio", ascending=False, inplace=True)
@@ -472,9 +475,7 @@ def analyze_touchpoints(
 
         # Find top positive and negative themes for this touchpoint
         tp_respondents = set(tp_df["respondent_id"].astype(str))
-        tp_themes = theme_df.loc[
-            theme_df.index.isin(tp_respondents)
-        ]
+        tp_themes = theme_df.loc[theme_df.index.isin(tp_respondents)]
 
         theme_cols = [c for c in tp_themes.columns if c.startswith("theme_")]
 
@@ -487,14 +488,8 @@ def analyze_touchpoints(
         if len(tp_themes) > 0 and theme_cols:
             # Merge with scores
             tp_merged = tp_themes.copy()
-            score_lookup = (
-                tp_df.groupby("respondent_id")["score"]
-                .mean()
-                .to_dict()
-            )
-            tp_merged["_score"] = [
-                score_lookup.get(rid, np.nan) for rid in tp_merged.index
-            ]
+            score_lookup = tp_df.groupby("respondent_id")["score"].mean().to_dict()
+            tp_merged["_score"] = [score_lookup.get(rid, np.nan) for rid in tp_merged.index]
             tp_merged.dropna(subset=["_score"], inplace=True)
 
             if len(tp_merged) > 5:
@@ -507,19 +502,22 @@ def analyze_touchpoints(
 
                 if theme_corrs:
                     sorted_corrs = sorted(
-                        theme_corrs.items(), key=lambda x: x[1],
+                        theme_corrs.items(),
+                        key=lambda x: x[1],
                     )
                     top_negative = sorted_corrs[0][0]
                     top_positive = sorted_corrs[-1][0]
 
-        results.append(TouchpointResult(
-            touchpoint_name=str(tp_name),
-            mean_satisfaction=round(mean_sat, 2),
-            n_responses=n_responses,
-            pct_detractors=round(pct_det, 1),
-            top_negative_theme=top_negative,
-            top_positive_theme=top_positive,
-        ))
+        results.append(
+            TouchpointResult(
+                touchpoint_name=str(tp_name),
+                mean_satisfaction=round(mean_sat, 2),
+                n_responses=n_responses,
+                pct_detractors=round(pct_det, 1),
+                top_negative_theme=top_negative,
+                top_positive_theme=top_positive,
+            )
+        )
 
     # Sort by mean satisfaction ascending (worst first)
     results.sort(key=lambda r: r.mean_satisfaction)
@@ -555,10 +553,7 @@ def generate_recommendations(
     )
 
     # Top drivers where detractors mention the theme more than promoters
-    negative_drivers = [
-        d for d in drivers
-        if d.lift_ratio > 1.0 and d.importance_score > 0
-    ]
+    negative_drivers = [d for d in drivers if d.lift_ratio > 1.0 and d.importance_score > 0]
     negative_drivers.sort(key=lambda d: d.importance_score, reverse=True)
 
     for d in negative_drivers[:top_n]:
@@ -571,13 +566,10 @@ def generate_recommendations(
         )
 
     # Top positive drivers to reinforce
-    positive_drivers = [
-        d for d in drivers
-        if d.lift_ratio < 1.0 and d.importance_score > 0
-    ]
+    positive_drivers = [d for d in drivers if d.lift_ratio < 1.0 and d.importance_score > 0]
     positive_drivers.sort(key=lambda d: d.importance_score, reverse=True)
 
-    for d in positive_drivers[:min(2, top_n)]:
+    for d in positive_drivers[: min(2, top_n)]:
         feature_name = d.feature_name.replace("theme_", "").replace("_", " ")
         recommendations.append(
             f"Reinforce '{feature_name}': This theme is more prevalent among "
@@ -587,7 +579,7 @@ def generate_recommendations(
 
     # Worst touchpoints
     if touchpoints:
-        worst = touchpoints[:min(2, len(touchpoints))]
+        worst = touchpoints[: min(2, len(touchpoints))]
         for tp in worst:
             recommendations.append(
                 f"Improve '{tp.touchpoint_name}' touchpoint: "
@@ -596,12 +588,13 @@ def generate_recommendations(
                 f"Top negative theme: '{tp.top_negative_theme}'."
             )
 
-    return recommendations[:top_n + 2]  # disclaimer + top_n + up to 2 extras
+    return recommendations[: top_n + 2]  # disclaimer + top_n + up to 2 extras
 
 
 # ---------------------------------------------------------------------------
 # Orchestration and I/O
 # ---------------------------------------------------------------------------
+
 
 def run_key_driver_analysis(
     themes_path: Path,
@@ -638,10 +631,16 @@ def run_key_driver_analysis(
 
     # Step 3: Train model and compute permutation importance
     model, X_test, y_test, accuracy, auc = train_driver_model(
-        X, y, n_estimators=n_estimators, random_seed=random_seed,
+        X,
+        y,
+        n_estimators=n_estimators,
+        random_seed=random_seed,
     )
     importance_df = compute_permutation_importance(
-        model, X_test, y_test, random_seed=random_seed,
+        model,
+        X_test,
+        y_test,
+        random_seed=random_seed,
     )
 
     # Step 4: Compute theme prevalence
@@ -673,7 +672,8 @@ def run_key_driver_analysis(
         if feature_name in merged_all.columns and len(merged_all) > 2:
             try:
                 corr, _ = spearmanr(
-                    merged_all[feature_name], merged_all["nps_score"],
+                    merged_all[feature_name],
+                    merged_all["nps_score"],
                 )
                 if np.isnan(corr):
                     corr = 0.0
@@ -682,16 +682,18 @@ def run_key_driver_analysis(
         else:
             corr = 0.0
 
-        drivers.append(DriverResult(
-            feature_name=feature_name,
-            importance_score=round(float(row.importance_mean), 4),
-            importance_std=round(float(row.importance_std), 4),
-            importance_rank=rank,
-            correlation_with_nps=round(float(corr), 4),
-            pct_promoters_with_theme=pct_prom,
-            pct_detractors_with_theme=pct_det,
-            lift_ratio=lift,
-        ))
+        drivers.append(
+            DriverResult(
+                feature_name=feature_name,
+                importance_score=round(float(row.importance_mean), 4),
+                importance_std=round(float(row.importance_std), 4),
+                importance_rank=rank,
+                correlation_with_nps=round(float(corr), 4),
+                pct_promoters_with_theme=pct_prom,
+                pct_detractors_with_theme=pct_det,
+                lift_ratio=lift,
+            )
+        )
 
     # Step 6: Touchpoint analysis
     survey_df = pd.read_csv(survey_path)
@@ -739,6 +741,7 @@ def write_results(report: KeyDriverReport, output_path: Path) -> None:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     """Parse command-line arguments.
 
@@ -748,9 +751,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     Returns:
         Parsed arguments namespace.
     """
-    parser = argparse.ArgumentParser(
-        description="Key driver analysis: themes vs. satisfaction."
-    )
+    parser = argparse.ArgumentParser(description="Key driver analysis: themes vs. satisfaction.")
     parser.add_argument(
         "--themes",
         type=Path,

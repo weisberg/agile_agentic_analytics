@@ -9,18 +9,12 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import pytest
 
 # Make the scripts directory importable.
 _SCRIPTS_DIR = (
-    Path(__file__).resolve().parents[2]
-    / "plugins"
-    / "marketing-analytics"
-    / "skills"
-    / "email-analytics"
-    / "scripts"
+    Path(__file__).resolve().parents[2] / "plugins" / "marketing-analytics" / "skills" / "email-analytics" / "scripts"
 )
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
@@ -37,6 +31,7 @@ from conftest import write_fixture_csv
 # test_ctdr_calculation  -- CTDR matches manual calc within 1%
 # ---------------------------------------------------------------------------
 
+
 class TestCtdrCalculation:
     """Validate click-to-delivered rate calculation."""
 
@@ -45,30 +40,34 @@ class TestCtdrCalculation:
         rows = []
         # Campaign A: 100 delivered, 20 clicked => CTDR = 20%
         for i in range(100):
-            rows.append({
-                "campaign_id": "CAMP-A",
-                "send_time": "2024-06-01",
-                "recipient": f"user-{i}@test.com",
-                "delivered": 1,
-                "clicked": 1 if i < 20 else 0,
-                "opened": 1 if i < 60 else 0,
-                "converted": 1 if i < 5 else 0,
-                "unsubscribed": 0,
-                "revenue": 50.0 if i < 5 else 0.0,
-            })
+            rows.append(
+                {
+                    "campaign_id": "CAMP-A",
+                    "send_time": "2024-06-01",
+                    "recipient": f"user-{i}@test.com",
+                    "delivered": 1,
+                    "clicked": 1 if i < 20 else 0,
+                    "opened": 1 if i < 60 else 0,
+                    "converted": 1 if i < 5 else 0,
+                    "unsubscribed": 0,
+                    "revenue": 50.0 if i < 5 else 0.0,
+                }
+            )
         # Campaign B: 200 delivered, 10 clicked => CTDR = 5%
         for i in range(200):
-            rows.append({
-                "campaign_id": "CAMP-B",
-                "send_time": "2024-06-15",
-                "recipient": f"user-{i + 100}@test.com",
-                "delivered": 1,
-                "clicked": 1 if i < 10 else 0,
-                "opened": 1 if i < 80 else 0,
-                "converted": 1 if i < 2 else 0,
-                "unsubscribed": 0,
-                "revenue": 30.0 if i < 2 else 0.0,
-            })
+            rows.append(
+                {
+                    "campaign_id": "CAMP-B",
+                    "send_time": "2024-06-15",
+                    "recipient": f"user-{i + 100}@test.com",
+                    "delivered": 1,
+                    "clicked": 1 if i < 10 else 0,
+                    "opened": 1 if i < 80 else 0,
+                    "converted": 1 if i < 2 else 0,
+                    "unsubscribed": 0,
+                    "revenue": 30.0 if i < 2 else 0.0,
+                }
+            )
         df = pd.DataFrame(rows)
         return write_fixture_csv(tmp_path, "email_sends.csv", df)
 
@@ -102,17 +101,21 @@ class TestCtdrCalculation:
 
     def test_zero_delivered_campaign(self, tmp_path):
         """Campaign with zero delivered should have CTDR = 0."""
-        df = pd.DataFrame([{
-            "campaign_id": "CAMP-ZERO",
-            "send_time": "2024-06-01",
-            "recipient": "nobody@test.com",
-            "delivered": 0,
-            "clicked": 0,
-            "opened": 0,
-            "converted": 0,
-            "unsubscribed": 0,
-            "revenue": 0.0,
-        }])
+        df = pd.DataFrame(
+            [
+                {
+                    "campaign_id": "CAMP-ZERO",
+                    "send_time": "2024-06-01",
+                    "recipient": "nobody@test.com",
+                    "delivered": 0,
+                    "clicked": 0,
+                    "opened": 0,
+                    "converted": 0,
+                    "unsubscribed": 0,
+                    "revenue": 0.0,
+                }
+            ]
+        )
         csv_path = write_fixture_csv(tmp_path, "zero_sends.csv", df)
         results = calculate_ctdr(csv_path)
 
@@ -123,6 +126,7 @@ class TestCtdrCalculation:
 # ---------------------------------------------------------------------------
 # test_engagement_decay_detection  -- detects declining engagement
 # ---------------------------------------------------------------------------
+
 
 class TestEngagementDecayDetection:
     """Validate detection of declining subscriber engagement."""
@@ -136,34 +140,40 @@ class TestEngagementDecayDetection:
         # Comparison window: 31-90 days before reference
         # Recent window: last 30 days
         for day_offset in range(31, 91):
-            rows.append({
-                "campaign_id": "CAMP-X",
-                "send_time": reference_date - timedelta(days=day_offset),
-                "recipient": "decay-user@test.com",
-                "delivered": 1,
-                "clicked": 1,  # clicked in old window
-                "opened": 1,
-            })
+            rows.append(
+                {
+                    "campaign_id": "CAMP-X",
+                    "send_time": reference_date - timedelta(days=day_offset),
+                    "recipient": "decay-user@test.com",
+                    "delivered": 1,
+                    "clicked": 1,  # clicked in old window
+                    "opened": 1,
+                }
+            )
         for day_offset in range(0, 31):
-            rows.append({
-                "campaign_id": "CAMP-X",
-                "send_time": reference_date - timedelta(days=day_offset),
-                "recipient": "decay-user@test.com",
-                "delivered": 1,
-                "clicked": 0,  # stopped clicking recently
-                "opened": 1,
-            })
+            rows.append(
+                {
+                    "campaign_id": "CAMP-X",
+                    "send_time": reference_date - timedelta(days=day_offset),
+                    "recipient": "decay-user@test.com",
+                    "delivered": 1,
+                    "clicked": 0,  # stopped clicking recently
+                    "opened": 1,
+                }
+            )
 
         # Subscriber B: consistent engagement (control -- should NOT be flagged)
         for day_offset in range(0, 91):
-            rows.append({
-                "campaign_id": "CAMP-X",
-                "send_time": reference_date - timedelta(days=day_offset),
-                "recipient": "steady-user@test.com",
-                "delivered": 1,
-                "clicked": 1,
-                "opened": 1,
-            })
+            rows.append(
+                {
+                    "campaign_id": "CAMP-X",
+                    "send_time": reference_date - timedelta(days=day_offset),
+                    "recipient": "steady-user@test.com",
+                    "delivered": 1,
+                    "clicked": 1,
+                    "opened": 1,
+                }
+            )
 
         df = pd.DataFrame(rows)
         return write_fixture_csv(tmp_path, "decay_sends.csv", df)

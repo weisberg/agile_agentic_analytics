@@ -13,12 +13,7 @@ import pytest
 
 # Make the scripts directory importable.
 _SCRIPTS_DIR = (
-    Path(__file__).resolve().parents[2]
-    / "plugins"
-    / "marketing-analytics"
-    / "skills"
-    / "voc-analytics"
-    / "scripts"
+    Path(__file__).resolve().parents[2] / "plugins" / "marketing-analytics" / "skills" / "voc-analytics" / "scripts"
 )
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
@@ -33,6 +28,7 @@ from compute_metrics import (
 # ---------------------------------------------------------------------------
 # test_nps_computation  -- known NPS calculation
 # ---------------------------------------------------------------------------
+
 
 class TestNpsComputation:
     """Known NPS calculations with hand-verified results."""
@@ -89,6 +85,7 @@ class TestNpsComputation:
 # test_nps_bootstrap_ci  -- CI contains true NPS
 # ---------------------------------------------------------------------------
 
+
 class TestNpsBootstrapCi:
     """Validate bootstrap CI for NPS."""
 
@@ -97,7 +94,8 @@ class TestNpsBootstrapCi:
         rng = np.random.default_rng(42)
         # Create a sample with known NPS around +20
         scores = rng.choice(
-            range(0, 11), size=200,
+            range(0, 11),
+            size=200,
             p=[0.02, 0.02, 0.03, 0.03, 0.05, 0.05, 0.10, 0.15, 0.15, 0.20, 0.20],
         )
         observed_nps = compute_nps(scores).nps
@@ -140,6 +138,7 @@ class TestNpsBootstrapCi:
 # test_csat_computation  -- basic CSAT calc
 # ---------------------------------------------------------------------------
 
+
 class TestCsatComputation:
     """Basic Customer Satisfaction Score tests."""
 
@@ -178,6 +177,7 @@ class TestCsatComputation:
 # ---------------------------------------------------------------------------
 # test_ces_computation  -- basic CES calc
 # ---------------------------------------------------------------------------
+
 
 class TestCesComputation:
     """Basic Customer Effort Score tests."""

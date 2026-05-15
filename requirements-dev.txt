@@ -3,3 +3,7 @@ pytest>=7.4
 pytest-cov>=4.1
 ruff>=0.5
 mypy>=1.8
+# statsmodels is used by anomaly-detection scripts under marketing-analytics
+# (STL decomposition). Imported lazily in production code but required for
+# the tests that exercise the seasonal-decomposition path.
+statsmodels>=0.14

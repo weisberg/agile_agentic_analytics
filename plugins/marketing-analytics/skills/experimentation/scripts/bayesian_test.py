@@ -217,7 +217,9 @@ def run_bayesian_analysis(
                     prior_beta=float(variant_prior.get("prior_beta", 0.01)),
                 )
 
-        probabilities = probability_of_being_best(variant_posteriors, n_simulations=n_simulations, random_seed=random_seed)
+        probabilities = probability_of_being_best(
+            variant_posteriors, n_simulations=n_simulations, random_seed=random_seed
+        )
         losses = expected_loss(variant_posteriors, n_simulations=n_simulations, random_seed=random_seed)
         control_posterior = variant_posteriors.get("control")
         treatment_posterior = variant_posteriors.get("treatment")

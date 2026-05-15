@@ -53,7 +53,11 @@ def extract_response_curves(
     curves: dict[str, list[list[float]]] = {}
     for channel in channel_columns:
         bounds = spend_range.get(channel) if spend_range else None
-        maximum = bounds[1] if bounds else max(mmm.training_spend_totals.get(channel, 0.0) * 0.5, mmm.channel_scales.get(channel, 1.0) * 2)
+        maximum = (
+            bounds[1]
+            if bounds
+            else max(mmm.training_spend_totals.get(channel, 0.0) * 0.5, mmm.channel_scales.get(channel, 1.0) * 2)
+        )
         spends = [maximum * index / max(n_points - 1, 1) for index in range(n_points)]
         curves[channel] = mmm.response_curve(channel, spends, n_samples=n_posterior_samples)
     return curves
@@ -165,7 +169,9 @@ def run_scenario_analysis(
             channel_contributions = {}
             for channel in channel_columns:
                 draws = mmm.posterior_samples.get(channel, [mmm.coefficients.get(channel, 0.0)])
-                contribution = mmm.response_value(channel, allocation[channel], coefficient=draws[sample_index % len(draws)])
+                contribution = mmm.response_value(
+                    channel, allocation[channel], coefficient=draws[sample_index % len(draws)]
+                )
                 channel_contributions[channel] = contribution
                 total += contribution
             samples.append((total, channel_contributions))
@@ -256,7 +262,9 @@ def main() -> None:
     mmm = load_fitted_model(MODELS_DIR)
     constraints = json.loads(Path(args.constraints).read_text(encoding="utf-8")) if args.constraints else None
     scenarios = json.loads(Path(args.scenario).read_text(encoding="utf-8")) if args.scenario else []
-    marginal_roas = compute_marginal_roas(mmm, mmm.training_allocation, mmm.channel_columns, n_posterior_samples=args.n_samples)
+    marginal_roas = compute_marginal_roas(
+        mmm, mmm.training_allocation, mmm.channel_columns, n_posterior_samples=args.n_samples
+    )
     optimization = optimize_allocation(
         mmm,
         total_budget=args.total_budget,
@@ -264,7 +272,11 @@ def main() -> None:
         budget_bounds=constraints,
         n_posterior_samples=args.n_samples,
     )
-    scenario_results = run_scenario_analysis(mmm, scenarios, mmm.channel_columns, n_posterior_samples=args.n_samples) if scenarios else []
+    scenario_results = (
+        run_scenario_analysis(mmm, scenarios, mmm.channel_columns, n_posterior_samples=args.n_samples)
+        if scenarios
+        else []
+    )
     _ = generate_reallocation_table(optimization, scenario_results)
     save_optimization_results(optimization, scenario_results, marginal_roas, ANALYSIS_DIR)
 

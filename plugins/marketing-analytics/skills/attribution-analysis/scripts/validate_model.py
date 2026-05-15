@@ -104,13 +104,19 @@ def run_posterior_predictive_check(
     lower = [_quantile([sample[idx] for sample in samples], lower_q) for idx in range(len(observed_y))]
     upper = [_quantile([sample[idx] for sample in samples], upper_q) for idx in range(len(observed_y))]
     within = [low <= actual <= high for actual, low, high in zip(observed_y, lower, upper)]
-    mae = statistics.fmean([abs(actual - pred) for actual, pred in zip(observed_y, posterior_means)]) if observed_y else 0.0
+    mae = (
+        statistics.fmean([abs(actual - pred) for actual, pred in zip(observed_y, posterior_means)])
+        if observed_y
+        else 0.0
+    )
     mape = (
-        statistics.fmean([
-            abs(actual - pred) / abs(actual)
-            for actual, pred in zip(observed_y, posterior_means)
-            if abs(actual) > 1e-9
-        ])
+        statistics.fmean(
+            [
+                abs(actual - pred) / abs(actual)
+                for actual, pred in zip(observed_y, posterior_means)
+                if abs(actual) > 1e-9
+            ]
+        )
         if any(abs(actual) > 1e-9 for actual in observed_y)
         else 0.0
     )
@@ -137,10 +143,11 @@ def run_posterior_predictive_check(
 def compute_waic(idata: dict[str, Any]) -> dict[str, Any]:
     residuals = [float(value) for value in idata.get("residuals", [])]
     sigma = statistics.pstdev(residuals) if len(residuals) > 1 else 1.0
-    log_lik = [
-        -0.5 * math.log(2 * math.pi * sigma**2) - (residual**2 / (2 * sigma**2))
-        for residual in residuals
-    ] if sigma else [0.0 for _ in residuals]
+    log_lik = (
+        [-0.5 * math.log(2 * math.pi * sigma**2) - (residual**2 / (2 * sigma**2)) for residual in residuals]
+        if sigma
+        else [0.0 for _ in residuals]
+    )
     lppd = sum(log_lik)
     p_waic = statistics.pvariance(log_lik) * len(log_lik) if len(log_lik) > 1 else 0.0
     waic = -2 * (lppd - p_waic)
@@ -199,7 +206,9 @@ def compare_models(
         "comparison_method": "waic_then_loo",
         "ranking": [row[0] for row in rows],
         "details": details,
-        "recommendation": f"Prefer {rows[0][0]} for downstream budget decisions." if rows else "No models available for comparison.",
+        "recommendation": f"Prefer {rows[0][0]} for downstream budget decisions."
+        if rows
+        else "No models available for comparison.",
     }
 
 
@@ -252,8 +261,12 @@ def save_diagnostics(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate fitted MMM")
-    parser.add_argument("--compare", type=str, nargs="*", default=None, help="Paths to alternative model files for comparison")
-    parser.add_argument("--credible-interval", type=float, default=0.90, help="Credible interval width for PPC (default 0.90)")
+    parser.add_argument(
+        "--compare", type=str, nargs="*", default=None, help="Paths to alternative model files for comparison"
+    )
+    parser.add_argument(
+        "--credible-interval", type=float, default=0.90, help="Credible interval width for PPC (default 0.90)"
+    )
     parser.add_argument("--output", type=str, default=None, help="Output file path")
     args = parser.parse_args()
 
@@ -272,7 +285,9 @@ def main() -> None:
     report = generate_diagnostics_report(convergence, ppc, waic, loo, model_comparison=comparison)
     save_diagnostics(report, ANALYSIS_DIR)
     if args.output:
-        Path(args.output).write_text((ANALYSIS_DIR / "mmm_diagnostics.json").read_text(encoding="utf-8"), encoding="utf-8")
+        Path(args.output).write_text(
+            (ANALYSIS_DIR / "mmm_diagnostics.json").read_text(encoding="utf-8"), encoding="utf-8"
+        )
 
 
 if __name__ == "__main__":

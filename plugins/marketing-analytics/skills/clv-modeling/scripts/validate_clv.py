@@ -48,16 +48,13 @@ def temporal_split(
 
     if holdout_end is not None:
         ho_end = pd.Timestamp(holdout_end)
-        holdout_txns = transactions[
-            (transactions["date"] > cal_end) & (transactions["date"] <= ho_end)
-        ].copy()
+        holdout_txns = transactions[(transactions["date"] > cal_end) & (transactions["date"] <= ho_end)].copy()
     else:
         holdout_txns = transactions[transactions["date"] > cal_end].copy()
 
     if len(cal_txns) == 0:
         raise ValueError(
-            f"No transactions in calibration period (up to {calibration_end}). "
-            "Check the calibration_end date."
+            f"No transactions in calibration period (up to {calibration_end}). Check the calibration_end date."
         )
     if len(holdout_txns) == 0:
         raise ValueError(
@@ -91,8 +88,7 @@ def compute_holdout_actuals(
     # Aggregate holdout transactions per customer
     if len(holdout_transactions) > 0:
         holdout_agg = (
-            holdout_transactions
-            .groupby("customer_id")
+            holdout_transactions.groupby("customer_id")
             .agg(
                 actual_transactions=("date", "count"),
                 actual_monetary_value=("amount", "mean"),
@@ -100,9 +96,7 @@ def compute_holdout_actuals(
             .reset_index()
         )
     else:
-        holdout_agg = pd.DataFrame(
-            columns=["customer_id", "actual_transactions", "actual_monetary_value"]
-        )
+        holdout_agg = pd.DataFrame(columns=["customer_id", "actual_transactions", "actual_monetary_value"])
 
     # Start from the calibration customer universe
     all_customers = calibration_customers[["customer_id"]].copy()
@@ -165,7 +159,7 @@ def evaluate_transaction_predictions(
 
     errors = pred - actual
     mae = float(np.mean(np.abs(errors)))
-    rmse = float(np.sqrt(np.mean(errors ** 2)))
+    rmse = float(np.sqrt(np.mean(errors**2)))
 
     sum_actual = actual.sum()
     calibration_ratio = float(pred.sum() / sum_actual) if sum_actual > 0 else np.nan
@@ -231,13 +225,9 @@ def evaluate_probability_alive(
     )
 
     # Compute bin midpoints
-    calibration["bin_midpoint"] = calibration["bin"].apply(
-        lambda x: (x.left + x.right) / 2 if pd.notna(x) else np.nan
-    )
+    calibration["bin_midpoint"] = calibration["bin"].apply(lambda x: (x.left + x.right) / 2 if pd.notna(x) else np.nan)
 
-    return calibration[
-        ["bin_midpoint", "predicted_alive_rate", "observed_repurchase_rate", "n_customers"]
-    ]
+    return calibration[["bin_midpoint", "predicted_alive_rate", "observed_repurchase_rate", "n_customers"]]
 
 
 def compare_mle_vs_bayesian(
@@ -276,12 +266,8 @@ def compare_mle_vs_bayesian(
     mle_ci_lower = "expected_transactions_ci_lower"
     mle_ci_upper = "expected_transactions_ci_upper"
 
-    mle_width = float(
-        (mle_predictions[mle_ci_upper] - mle_predictions[mle_ci_lower]).mean()
-    )
-    bayes_width = float(
-        (bayesian_predictions[mle_ci_upper] - bayesian_predictions[mle_ci_lower]).mean()
-    )
+    mle_width = float((mle_predictions[mle_ci_upper] - mle_predictions[mle_ci_lower]).mean())
+    bayes_width = float((bayesian_predictions[mle_ci_upper] - bayesian_predictions[mle_ci_lower]).mean())
 
     # Coverage: fraction of actuals that fall within the predicted intervals
     def _coverage(preds: pd.DataFrame, acts: pd.DataFrame) -> float:
@@ -290,9 +276,8 @@ def compare_mle_vs_bayesian(
         preds["customer_id"] = preds["customer_id"].astype(str)
         acts["customer_id"] = acts["customer_id"].astype(str)
         merged = preds.merge(acts[["customer_id", "actual_transactions"]], on="customer_id")
-        within = (
-            (merged["actual_transactions"] >= merged[mle_ci_lower])
-            & (merged["actual_transactions"] <= merged[mle_ci_upper])
+        within = (merged["actual_transactions"] >= merged[mle_ci_lower]) & (
+            merged["actual_transactions"] <= merged[mle_ci_upper]
         )
         return float(within.mean()) if len(merged) > 0 else np.nan
 
@@ -342,14 +327,12 @@ def generate_diagnostic_plots(
     """
     try:
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except ImportError:
         logger.warning("matplotlib not available; generating text-only report.")
         return _generate_text_report(predictions, actuals, prob_alive_calibration, output_path)
-
-    import base64
-    from io import BytesIO
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -369,7 +352,8 @@ def generate_diagnostic_plots(
     ax.scatter(
         merged["actual_transactions"],
         merged["expected_transactions"],
-        alpha=0.3, s=10,
+        alpha=0.3,
+        s=10,
     )
     max_val = max(
         merged["actual_transactions"].max(),
@@ -401,7 +385,8 @@ def generate_diagnostic_plots(
         ax.plot(
             cal["predicted_alive_rate"],
             cal["observed_repurchase_rate"],
-            "bo-", label="Model",
+            "bo-",
+            label="Model",
         )
         ax.plot([0, 1], [0, 1], "r--", label="Perfect calibration")
         ax.set_xlabel("Predicted P(Alive)")
@@ -478,11 +463,11 @@ def _generate_text_report(
 <p>matplotlib not available; showing metrics only.</p>
 <table border="1" cellpadding="5">
 <tr><th>Metric</th><th>Value</th></tr>
-<tr><td>MAE</td><td>{metrics['mae']:.4f}</td></tr>
-<tr><td>RMSE</td><td>{metrics['rmse']:.4f}</td></tr>
-<tr><td>Calibration Ratio</td><td>{metrics['calibration_ratio']:.4f}</td></tr>
-<tr><td>Correlation</td><td>{metrics['correlation']:.4f}</td></tr>
-<tr><td>Customers</td><td>{metrics['n_customers']}</td></tr>
+<tr><td>MAE</td><td>{metrics["mae"]:.4f}</td></tr>
+<tr><td>RMSE</td><td>{metrics["rmse"]:.4f}</td></tr>
+<tr><td>Calibration Ratio</td><td>{metrics["calibration_ratio"]:.4f}</td></tr>
+<tr><td>Correlation</td><td>{metrics["correlation"]:.4f}</td></tr>
+<tr><td>Customers</td><td>{metrics["n_customers"]}</td></tr>
 </table>
 </body></html>"""
 
@@ -534,14 +519,18 @@ def run_validation_pipeline(
         - ``pass`` (bool): True if MAE within acceptance threshold
     """
     import sys
+
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from rfm_summary import build_rfm_summary, load_transactions  # noqa: E402
     from fit_bgnbd import (  # noqa: E402
-        fit_bgnbd_bayesian, fit_bgnbd_mle,
-        fit_gamma_gamma_bayesian, fit_gamma_gamma_mle,
+        fit_bgnbd_bayesian,
+        fit_bgnbd_mle,
+        fit_gamma_gamma_bayesian,
+        fit_gamma_gamma_mle,
     )
     from predict_clv import (  # noqa: E402
-        predict_expected_transactions, predict_probability_alive,
+        predict_expected_transactions,
+        predict_probability_alive,
     )
 
     # Load full transactions
@@ -572,9 +561,7 @@ def run_validation_pipeline(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    methods_to_run = (
-        ["mle", "bayesian"] if method == "both" else [method]
-    )
+    methods_to_run = ["mle", "bayesian"] if method == "both" else [method]
 
     all_metrics = {}
     all_predictions = {}
@@ -594,17 +581,14 @@ def run_validation_pipeline(
         bg_model = bgnbd_result["model"]
 
         # Step 4: Predict
-        exp_txns = predict_expected_transactions(
-            rfm_cal, bg_model, horizon_months=horizon_months
-        )
+        exp_txns = predict_expected_transactions(rfm_cal, bg_model, horizon_months=horizon_months)
         p_alive = predict_probability_alive(rfm_cal, bg_model)
 
         # Step 5: Evaluate transaction predictions
         metrics = evaluate_transaction_predictions(exp_txns, ho_actuals)
         all_metrics[m] = metrics
         all_predictions[m] = exp_txns
-        print(f"  MAE={metrics['mae']:.4f}, RMSE={metrics['rmse']:.4f}, "
-              f"Cal.Ratio={metrics['calibration_ratio']:.4f}")
+        print(f"  MAE={metrics['mae']:.4f}, RMSE={metrics['rmse']:.4f}, Cal.Ratio={metrics['calibration_ratio']:.4f}")
 
         # Step 6: Evaluate probability-alive calibration
         pa_cal = evaluate_probability_alive(p_alive, ho_txns)
@@ -619,7 +603,7 @@ def run_validation_pipeline(
             all_predictions["bayesian"],
             ho_actuals,
         )
-        print(f"\n--- MLE vs Bayesian Comparison ---")
+        print("\n--- MLE vs Bayesian Comparison ---")
         print(f"  MLE MAE: {comparison['mle_mae']:.4f}")
         print(f"  Bayesian MAE: {comparison['bayesian_mae']:.4f}")
         print(f"  Bayesian narrower intervals: {comparison['bayesian_narrower']}")
@@ -641,8 +625,9 @@ def run_validation_pipeline(
     acceptance_threshold = max(0.2 * cal_freq_mean, 0.5)  # floor at 0.5
     passed = primary_mae <= acceptance_threshold
 
-    print(f"\nAcceptance: MAE={primary_mae:.4f} vs threshold={acceptance_threshold:.4f} "
-          f"-> {'PASS' if passed else 'FAIL'}")
+    print(
+        f"\nAcceptance: MAE={primary_mae:.4f} vs threshold={acceptance_threshold:.4f} -> {'PASS' if passed else 'FAIL'}"
+    )
 
     return {
         "metrics": all_metrics,
@@ -673,5 +658,4 @@ if __name__ == "__main__":
     )
     print(f"Validation pass: {results.get('pass', 'N/A')}")
     for method_name, metrics in results.get("metrics", {}).items():
-        print(f"  {method_name}: MAE={metrics.get('mae', 'N/A'):.4f}, "
-              f"RMSE={metrics.get('rmse', 'N/A'):.4f}")
+        print(f"  {method_name}: MAE={metrics.get('mae', 'N/A'):.4f}, RMSE={metrics.get('rmse', 'N/A'):.4f}")

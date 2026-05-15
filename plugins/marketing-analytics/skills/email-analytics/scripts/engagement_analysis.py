@@ -32,6 +32,7 @@ from scipy import stats
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class CampaignEngagement:
     """Engagement metrics for a single campaign or flow step."""
@@ -97,6 +98,7 @@ class EngagementReport:
 # CTDR calculation
 # ---------------------------------------------------------------------------
 
+
 def calculate_ctdr(
     sends_csv_path: Path,
     group_by: str = "campaign_id",
@@ -127,14 +129,18 @@ def calculate_ctdr(
     if "revenue" not in df.columns:
         df["revenue"] = 0.0
 
-    grouped = df.groupby(group_by).agg(
-        delivered=("delivered", "sum"),
-        unique_clicks=("clicked", "sum"),
-        unique_opens=("opened", "sum"),
-        conversions=("converted", "sum"),
-        attributed_revenue=("revenue", "sum"),
-        unsubscribes=("unsubscribed", "sum"),
-    ).reset_index()
+    grouped = (
+        df.groupby(group_by)
+        .agg(
+            delivered=("delivered", "sum"),
+            unique_clicks=("clicked", "sum"),
+            unique_opens=("opened", "sum"),
+            conversions=("converted", "sum"),
+            attributed_revenue=("revenue", "sum"),
+            unsubscribes=("unsubscribed", "sum"),
+        )
+        .reset_index()
+    )
 
     results: list[CampaignEngagement] = []
     for _, row in grouped.iterrows():
@@ -152,21 +158,23 @@ def calculate_ctdr(
         rpc = revenue / clicks if clicks > 0 else 0.0
         unsub_rate = (unsubs / delivered * 100) if delivered > 0 else 0.0
 
-        results.append(CampaignEngagement(
-            campaign_id=str(row[group_by]),
-            delivered=delivered,
-            unique_clicks=clicks,
-            ctdr=round(ctdr, 4),
-            unique_opens=opens,
-            open_rate=round(open_rate, 4),
-            conversions=conversions,
-            conversion_rate=round(conversion_rate, 4),
-            attributed_revenue=round(revenue, 2),
-            revenue_per_email=round(rpe, 4),
-            revenue_per_click=round(rpc, 4),
-            unsubscribes=unsubs,
-            unsubscribe_rate=round(unsub_rate, 4),
-        ))
+        results.append(
+            CampaignEngagement(
+                campaign_id=str(row[group_by]),
+                delivered=delivered,
+                unique_clicks=clicks,
+                ctdr=round(ctdr, 4),
+                unique_opens=opens,
+                open_rate=round(open_rate, 4),
+                conversions=conversions,
+                conversion_rate=round(conversion_rate, 4),
+                attributed_revenue=round(revenue, 2),
+                revenue_per_email=round(rpe, 4),
+                revenue_per_click=round(rpc, 4),
+                unsubscribes=unsubs,
+                unsubscribe_rate=round(unsub_rate, 4),
+            )
+        )
 
     return results
 
@@ -219,12 +227,16 @@ def calculate_segment_ctdr(
         # Use segment_name as segment_id
         merged["segment_id"] = merged["segment_name"]
 
-    grouped = merged.groupby(["segment_id", "segment_name"]).agg(
-        total_delivered=("delivered", "sum"),
-        total_clicks=("clicked", "sum"),
-        total_conversions=("converted", "sum"),
-        total_revenue=("revenue", "sum"),
-    ).reset_index()
+    grouped = (
+        merged.groupby(["segment_id", "segment_name"])
+        .agg(
+            total_delivered=("delivered", "sum"),
+            total_clicks=("clicked", "sum"),
+            total_conversions=("converted", "sum"),
+            total_revenue=("revenue", "sum"),
+        )
+        .reset_index()
+    )
 
     results: list[SegmentEngagement] = []
     for _, row in grouped.iterrows():
@@ -233,16 +245,18 @@ def calculate_segment_ctdr(
         ctdr = (clicks / delivered * 100) if delivered > 0 else 0.0
         rpe = float(row["total_revenue"]) / delivered if delivered > 0 else 0.0
 
-        results.append(SegmentEngagement(
-            segment_id=str(row["segment_id"]),
-            segment_name=str(row["segment_name"]),
-            total_delivered=delivered,
-            total_clicks=clicks,
-            ctdr=round(ctdr, 4),
-            total_conversions=int(row["total_conversions"]),
-            total_revenue=round(float(row["total_revenue"]), 2),
-            revenue_per_email=round(rpe, 4),
-        ))
+        results.append(
+            SegmentEngagement(
+                segment_id=str(row["segment_id"]),
+                segment_name=str(row["segment_name"]),
+                total_delivered=delivered,
+                total_clicks=clicks,
+                ctdr=round(ctdr, 4),
+                total_conversions=int(row["total_conversions"]),
+                total_revenue=round(float(row["total_revenue"]), 2),
+                revenue_per_email=round(rpe, 4),
+            )
+        )
 
     return results
 
@@ -250,6 +264,7 @@ def calculate_segment_ctdr(
 # ---------------------------------------------------------------------------
 # Revenue attribution
 # ---------------------------------------------------------------------------
+
 
 def attribute_revenue(
     sends_csv_path: Path,
@@ -327,32 +342,44 @@ def attribute_revenue(
         if conv_rev_col not in merged.columns:
             conv_rev_col = "revenue"
 
-        campaign_rev = merged.groupby("campaign_id").agg(
-            attributed_revenue=(conv_rev_col, "sum"),
-            conversions=(conv_rev_col, "count"),
-        ).reset_index()
+        campaign_rev = (
+            merged.groupby("campaign_id")
+            .agg(
+                attributed_revenue=(conv_rev_col, "sum"),
+                conversions=(conv_rev_col, "count"),
+            )
+            .reset_index()
+        )
 
         # Merge back with campaign-level delivery stats
-        campaign_stats = df.groupby("campaign_id").agg(
-            delivered=("delivered", "sum"),
-            unique_clicks=("clicked", "sum"),
-            unique_opens=("opened", "sum"),
-            unsubscribes=("unsubscribed", "sum"),
-        ).reset_index()
+        campaign_stats = (
+            df.groupby("campaign_id")
+            .agg(
+                delivered=("delivered", "sum"),
+                unique_clicks=("clicked", "sum"),
+                unique_opens=("opened", "sum"),
+                unsubscribes=("unsubscribed", "sum"),
+            )
+            .reset_index()
+        )
 
         final = campaign_stats.merge(campaign_rev, on="campaign_id", how="left")
         final["attributed_revenue"] = final["attributed_revenue"].fillna(0)
         final["conversions"] = final["conversions"].fillna(0).astype(int)
     else:
         # Use inline revenue/conversion columns
-        final = df.groupby("campaign_id").agg(
-            delivered=("delivered", "sum"),
-            unique_clicks=("clicked", "sum"),
-            unique_opens=("opened", "sum"),
-            conversions=("converted", "sum"),
-            attributed_revenue=("revenue", "sum"),
-            unsubscribes=("unsubscribed", "sum"),
-        ).reset_index()
+        final = (
+            df.groupby("campaign_id")
+            .agg(
+                delivered=("delivered", "sum"),
+                unique_clicks=("clicked", "sum"),
+                unique_opens=("opened", "sum"),
+                conversions=("converted", "sum"),
+                attributed_revenue=("revenue", "sum"),
+                unsubscribes=("unsubscribed", "sum"),
+            )
+            .reset_index()
+        )
 
     results: list[CampaignEngagement] = []
     for _, row in final.iterrows():
@@ -370,21 +397,23 @@ def attribute_revenue(
         rpc = revenue / clicks if clicks > 0 else 0.0
         unsub_rate = (unsubs / delivered * 100) if delivered > 0 else 0.0
 
-        results.append(CampaignEngagement(
-            campaign_id=str(row["campaign_id"]),
-            delivered=delivered,
-            unique_clicks=clicks,
-            ctdr=round(ctdr, 4),
-            unique_opens=opens,
-            open_rate=round(open_rate, 4),
-            conversions=conversions,
-            conversion_rate=round(conversion_rate, 4),
-            attributed_revenue=round(revenue, 2),
-            revenue_per_email=round(rpe, 4),
-            revenue_per_click=round(rpc, 4),
-            unsubscribes=unsubs,
-            unsubscribe_rate=round(unsub_rate, 4),
-        ))
+        results.append(
+            CampaignEngagement(
+                campaign_id=str(row["campaign_id"]),
+                delivered=delivered,
+                unique_clicks=clicks,
+                ctdr=round(ctdr, 4),
+                unique_opens=opens,
+                open_rate=round(open_rate, 4),
+                conversions=conversions,
+                conversion_rate=round(conversion_rate, 4),
+                attributed_revenue=round(revenue, 2),
+                revenue_per_email=round(rpe, 4),
+                revenue_per_click=round(rpc, 4),
+                unsubscribes=unsubs,
+                unsubscribe_rate=round(unsub_rate, 4),
+            )
+        )
 
     return results
 
@@ -392,6 +421,7 @@ def attribute_revenue(
 # ---------------------------------------------------------------------------
 # Engagement decay detection
 # ---------------------------------------------------------------------------
+
 
 def detect_engagement_decay(
     sends_csv_path: Path,
@@ -433,15 +463,23 @@ def detect_engagement_decay(
 
     # Compute click frequency (clicks per send) per subscriber in each window
     def _click_freq(subset: pd.DataFrame) -> pd.DataFrame:
-        grouped = subset.groupby(recipient_col).agg(
-            sends=("clicked", "count"),
-            clicks=("clicked", "sum"),
-        ).reset_index()
+        grouped = (
+            subset.groupby(recipient_col)
+            .agg(
+                sends=("clicked", "count"),
+                clicks=("clicked", "sum"),
+            )
+            .reset_index()
+        )
         grouped["freq"] = grouped["clicks"] / grouped["sends"]
         return grouped
 
-    recent_freq = _click_freq(recent).rename(columns={"freq": "recent_freq", "sends": "recent_sends", "clicks": "recent_clicks"})
-    comparison_freq = _click_freq(comparison).rename(columns={"freq": "previous_freq", "sends": "prev_sends", "clicks": "prev_clicks"})
+    recent_freq = _click_freq(recent).rename(
+        columns={"freq": "recent_freq", "sends": "recent_sends", "clicks": "recent_clicks"}
+    )
+    comparison_freq = _click_freq(comparison).rename(
+        columns={"freq": "previous_freq", "sends": "prev_sends", "clicks": "prev_clicks"}
+    )
 
     merged = comparison_freq.merge(recent_freq, on=recipient_col, how="inner")
 
@@ -468,14 +506,16 @@ def detect_engagement_decay(
 
         risk = classify_decay_risk(float(row["decay_rate"]), days_since)
 
-        results.append(EngagementDecayRecord(
-            subscriber_id=str(row[recipient_col]),
-            current_click_frequency=round(float(row["recent_freq"]), 4),
-            previous_click_frequency=round(float(row["previous_freq"]), 4),
-            decay_rate=round(float(row["decay_rate"]), 4),
-            last_click_date=last_click_str,
-            risk_level=risk,
-        ))
+        results.append(
+            EngagementDecayRecord(
+                subscriber_id=str(row[recipient_col]),
+                current_click_frequency=round(float(row["recent_freq"]), 4),
+                previous_click_frequency=round(float(row["previous_freq"]), 4),
+                decay_rate=round(float(row["decay_rate"]), 4),
+                last_click_date=last_click_str,
+                risk_level=risk,
+            )
+        )
 
     return results
 
@@ -512,6 +552,7 @@ def classify_decay_risk(
 # ---------------------------------------------------------------------------
 # Unsubscribe trend analysis
 # ---------------------------------------------------------------------------
+
 
 def analyze_unsubscribe_trends(
     sends_csv_path: Path,
@@ -552,10 +593,14 @@ def analyze_unsubscribe_trends(
     if actual_group not in df.columns:
         return []
 
-    grouped = df.groupby(actual_group).agg(
-        total_delivered=("delivered", "sum"),
-        total_unsubscribes=("unsubscribed", "sum"),
-    ).reset_index()
+    grouped = (
+        df.groupby(actual_group)
+        .agg(
+            total_delivered=("delivered", "sum"),
+            total_unsubscribes=("unsubscribed", "sum"),
+        )
+        .reset_index()
+    )
 
     grouped["unsubscribe_rate"] = np.where(
         grouped["total_delivered"] > 0,
@@ -578,7 +623,7 @@ def analyze_unsubscribe_trends(
             # Use simple linear regression on the date-ordered rates
             idx = grouped.index.get_loc(row.name)
             if idx >= 3:
-                recent_rates = grouped["unsubscribe_rate"].iloc[max(0, idx - 6):idx + 1].values
+                recent_rates = grouped["unsubscribe_rate"].iloc[max(0, idx - 6) : idx + 1].values
                 if len(recent_rates) >= 3:
                     x = np.arange(len(recent_rates))
                     slope, _, _, _, _ = stats.linregress(x, recent_rates)
@@ -587,15 +632,17 @@ def analyze_unsubscribe_trends(
                     elif slope < -0.001:
                         trend = "decreasing"
 
-        results.append({
-            "group": str(row[actual_group]),
-            "total_delivered": int(row["total_delivered"]),
-            "total_unsubscribes": int(row["total_unsubscribes"]),
-            "unsubscribe_rate": round(rate, 4),
-            "trend": trend,
-            "is_anomaly": is_anomaly,
-            "overall_average_rate": round(overall_rate, 4),
-        })
+        results.append(
+            {
+                "group": str(row[actual_group]),
+                "total_delivered": int(row["total_delivered"]),
+                "total_unsubscribes": int(row["total_unsubscribes"]),
+                "unsubscribe_rate": round(rate, 4),
+                "trend": trend,
+                "is_anomaly": is_anomaly,
+                "overall_average_rate": round(overall_rate, 4),
+            }
+        )
 
     return results
 
@@ -603,6 +650,7 @@ def analyze_unsubscribe_trends(
 # ---------------------------------------------------------------------------
 # Subject line analysis (chi-squared test on click rates)
 # ---------------------------------------------------------------------------
+
 
 def analyze_subject_lines(
     sends_csv_path: Path,
@@ -630,10 +678,14 @@ def analyze_subject_lines(
         if col not in df.columns:
             df[col] = 1 if col == "delivered" else 0
 
-    grouped = df.groupby(subject_column).agg(
-        delivered=("delivered", "sum"),
-        clicks=("clicked", "sum"),
-    ).reset_index()
+    grouped = (
+        df.groupby(subject_column)
+        .agg(
+            delivered=("delivered", "sum"),
+            clicks=("clicked", "sum"),
+        )
+        .reset_index()
+    )
 
     # Filter for minimum sample size
     grouped = grouped[grouped["delivered"] >= min_sample_size]
@@ -643,21 +695,22 @@ def analyze_subject_lines(
         for _, row in grouped.iterrows():
             delivered = int(row["delivered"])
             clicks = int(row["clicks"])
-            results.append({
-                "subject_line": str(row[subject_column]),
-                "delivered": delivered,
-                "clicks": clicks,
-                "ctdr": round(clicks / delivered * 100, 4) if delivered > 0 else 0.0,
-                "chi2_p_value": None,
-                "significant": False,
-            })
+            results.append(
+                {
+                    "subject_line": str(row[subject_column]),
+                    "delivered": delivered,
+                    "clicks": clicks,
+                    "ctdr": round(clicks / delivered * 100, 4) if delivered > 0 else 0.0,
+                    "chi2_p_value": None,
+                    "significant": False,
+                }
+            )
         return results
 
     # Build contingency table: rows = subject lines, cols = [clicked, not_clicked]
-    contingency = np.array([
-        [int(row["clicks"]), int(row["delivered"]) - int(row["clicks"])]
-        for _, row in grouped.iterrows()
-    ])
+    contingency = np.array(
+        [[int(row["clicks"]), int(row["delivered"]) - int(row["clicks"])] for _, row in grouped.iterrows()]
+    )
 
     chi2, p_value, dof, expected = stats.chi2_contingency(contingency)
 
@@ -665,15 +718,17 @@ def analyze_subject_lines(
     for _, row in grouped.iterrows():
         delivered = int(row["delivered"])
         clicks = int(row["clicks"])
-        results.append({
-            "subject_line": str(row[subject_column]),
-            "delivered": delivered,
-            "clicks": clicks,
-            "ctdr": round(clicks / delivered * 100, 4) if delivered > 0 else 0.0,
-            "chi2_statistic": round(float(chi2), 4),
-            "chi2_p_value": round(float(p_value), 6),
-            "significant": bool(p_value < 0.05),
-        })
+        results.append(
+            {
+                "subject_line": str(row[subject_column]),
+                "delivered": delivered,
+                "clicks": clicks,
+                "ctdr": round(clicks / delivered * 100, 4) if delivered > 0 else 0.0,
+                "chi2_statistic": round(float(chi2), 4),
+                "chi2_p_value": round(float(p_value), 6),
+                "significant": bool(p_value < 0.05),
+            }
+        )
 
     # Sort by CTDR descending
     results.sort(key=lambda x: x["ctdr"], reverse=True)
@@ -683,6 +738,7 @@ def analyze_subject_lines(
 # ---------------------------------------------------------------------------
 # Report generation
 # ---------------------------------------------------------------------------
+
 
 def generate_engagement_report(
     sends_csv_path: Path,

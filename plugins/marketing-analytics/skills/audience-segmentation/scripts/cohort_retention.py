@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Literal, Optional
 
 import numpy as np
 import pandas as pd
@@ -136,10 +136,7 @@ def _compute_period_offset(
 ) -> pd.Series:
     """Return integer period offset between two date series."""
     if granularity == "month":
-        return (
-            (txn_date.dt.year - first_date.dt.year) * 12
-            + (txn_date.dt.month - first_date.dt.month)
-        )
+        return (txn_date.dt.year - first_date.dt.year) * 12 + (txn_date.dt.month - first_date.dt.month)
     elif granularity == "week":
         return ((txn_date - first_date).dt.days // 7).astype(int)
     else:
@@ -200,9 +197,7 @@ def build_retention_matrix(
     merged["first_transaction_date"] = pd.to_datetime(merged["first_transaction_date"])
 
     # Compute period offset
-    merged["period_offset"] = _compute_period_offset(
-        merged[date_column], merged["first_transaction_date"], granularity
-    )
+    merged["period_offset"] = _compute_period_offset(merged[date_column], merged["first_transaction_date"], granularity)
 
     # Keep only offsets in [0, n_periods]
     merged = merged[(merged["period_offset"] >= 0) & (merged["period_offset"] <= n_periods)]
@@ -212,9 +207,7 @@ def build_retention_matrix(
 
     # Unique active customers per cohort per period
     active = (
-        merged.groupby(["cohort", "period_offset"])[customer_id_column]
-        .nunique()
-        .reset_index(name="active_customers")
+        merged.groupby(["cohort", "period_offset"])[customer_id_column].nunique().reset_index(name="active_customers")
     )
 
     # Pivot to matrix
@@ -319,17 +312,11 @@ def compute_revenue_per_user(
     )
     merged["first_transaction_date"] = pd.to_datetime(merged["first_transaction_date"])
 
-    merged["period_offset"] = _compute_period_offset(
-        merged[date_column], merged["first_transaction_date"], granularity
-    )
+    merged["period_offset"] = _compute_period_offset(merged[date_column], merged["first_transaction_date"], granularity)
     merged = merged[(merged["period_offset"] >= 0) & (merged["period_offset"] <= n_periods)]
 
     # Total revenue per cohort per period
-    rev_agg = (
-        merged.groupby(["cohort", "period_offset"])[amount_column]
-        .sum()
-        .reset_index(name="total_revenue")
-    )
+    rev_agg = merged.groupby(["cohort", "period_offset"])[amount_column].sum().reset_index(name="total_revenue")
 
     # Cohort sizes (total customers, not just active ones)
     cohort_sizes = cohort_assignments.groupby("cohort")[customer_id_column].nunique()
@@ -467,7 +454,8 @@ def run_cohort_pipeline(
 
     # 2. Assign cohorts
     cohort_assignments = assign_cohorts(
-        transactions, dimension=dimension,
+        transactions,
+        dimension=dimension,
     )
 
     # 3. Build retention matrix

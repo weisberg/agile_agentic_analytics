@@ -20,13 +20,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class BounceRateTrend:
@@ -69,6 +69,7 @@ class DeliverabilityReport:
 # Bounce rate trend analysis
 # ---------------------------------------------------------------------------
 
+
 def compute_bounce_rate_trends(
     sends_csv_path: Path,
     window_days: int = 30,
@@ -98,10 +99,15 @@ def compute_bounce_rate_trends(
     # Determine bounce type column presence
     has_bounce_type = "bounce_type" in df.columns
 
-    daily = df.groupby("date").agg(
-        sent_count=("delivered", "size"),
-        total_bounced=("bounced", "sum"),
-    ).reset_index().sort_values("date")
+    daily = (
+        df.groupby("date")
+        .agg(
+            sent_count=("delivered", "size"),
+            total_bounced=("bounced", "sum"),
+        )
+        .reset_index()
+        .sort_values("date")
+    )
 
     if has_bounce_type:
         hard = df[df["bounce_type"] == "hard"].groupby("date")["bounced"].sum().rename("hard_bounced")
@@ -131,23 +137,22 @@ def compute_bounce_rate_trends(
 
     results: list[BounceRateTrend] = []
     for _, row in daily.iterrows():
-        is_spike = bool(
-            row["rolling_avg"] > 0
-            and row["total_bounce_rate"] >= spike_multiplier * row["rolling_avg"]
-        )
+        is_spike = bool(row["rolling_avg"] > 0 and row["total_bounce_rate"] >= spike_multiplier * row["rolling_avg"])
         severity = None
         if is_spike:
             severity = classify_spike_severity(row["total_bounce_rate"])
 
-        results.append(BounceRateTrend(
-            date=str(row["date"]),
-            hard_bounce_rate=float(row["hard_bounce_rate"]),
-            soft_bounce_rate=float(row["soft_bounce_rate"]),
-            total_bounce_rate=float(row["total_bounce_rate"]),
-            sent_count=int(row["sent_count"]),
-            is_spike=is_spike,
-            spike_severity=severity,
-        ))
+        results.append(
+            BounceRateTrend(
+                date=str(row["date"]),
+                hard_bounce_rate=float(row["hard_bounce_rate"]),
+                soft_bounce_rate=float(row["soft_bounce_rate"]),
+                total_bounce_rate=float(row["total_bounce_rate"]),
+                sent_count=int(row["sent_count"]),
+                is_spike=is_spike,
+                spike_severity=severity,
+            )
+        )
 
     return results
 
@@ -190,6 +195,7 @@ def classify_spike_severity(
 # Authentication record validation
 # ---------------------------------------------------------------------------
 
+
 def _dns_txt_lookup(qname: str) -> list[str]:
     """Perform a DNS TXT lookup, returning a list of TXT record strings.
 
@@ -197,6 +203,7 @@ def _dns_txt_lookup(qname: str) -> list[str]:
     """
     try:
         import dns.resolver
+
         answers = dns.resolver.resolve(qname, "TXT")
         records: list[str] = []
         for rdata in answers:
@@ -205,8 +212,7 @@ def _dns_txt_lookup(qname: str) -> list[str]:
         return records
     except ImportError:
         raise ImportError(
-            "dns.resolver (dnspython) is required for authentication validation. "
-            "Install with: pip install dnspython"
+            "dns.resolver (dnspython) is required for authentication validation. Install with: pip install dnspython"
         )
     except Exception:
         return []
@@ -242,7 +248,9 @@ def validate_spf_record(domain: str) -> AuthenticationResult:
     if len(spf_records) == 0:
         result.is_valid = False
         result.issues.append("No SPF record found for domain.")
-        result.recommendations.append("Create a TXT record with an SPF policy (e.g., 'v=spf1 include:_spf.google.com ~all').")
+        result.recommendations.append(
+            "Create a TXT record with an SPF policy (e.g., 'v=spf1 include:_spf.google.com ~all')."
+        )
         return result
 
     if len(spf_records) > 1:
@@ -342,6 +350,7 @@ def validate_dkim_record(domain: str, selector: str) -> AuthenticationResult:
     # Check key length (approximate from base64-encoded key)
     # Base64 encodes 3 bytes into 4 characters. The key includes ASN.1 headers (~30 bytes overhead).
     import base64
+
     try:
         key_bytes = base64.b64decode(tags["p"])
         key_bits = (len(key_bytes) - 30) * 8  # approximate, subtract ASN.1 overhead
@@ -416,9 +425,7 @@ def validate_dmarc_record(domain: str) -> AuthenticationResult:
     # Check policy
     policy = tags.get("p", "").lower()
     if policy == "none":
-        result.issues.append(
-            "DMARC policy is 'none' (monitoring only). This does not enforce authentication."
-        )
+        result.issues.append("DMARC policy is 'none' (monitoring only). This does not enforce authentication.")
         result.recommendations.append(
             "Progress DMARC policy to 'quarantine' or 'reject' after reviewing aggregate reports."
         )
@@ -434,7 +441,9 @@ def validate_dmarc_record(domain: str) -> AuthenticationResult:
     # Check subdomain policy
     if "sp" not in tags:
         result.issues.append("No subdomain policy (sp) specified. Subdomains will inherit the main policy.")
-        result.recommendations.append("Set 'sp=quarantine' or 'sp=reject' explicitly if subdomains are used for sending.")
+        result.recommendations.append(
+            "Set 'sp=quarantine' or 'sp=reject' explicitly if subdomains are used for sending."
+        )
 
     # Check for forensic report address (optional but recommended)
     if "ruf" not in tags:
@@ -486,6 +495,7 @@ def validate_all_authentication(
 # Blocklist checking
 # ---------------------------------------------------------------------------
 
+
 def check_blocklists(
     sending_ips: list[str],
     blocklist_servers: list[str] | None = None,
@@ -531,6 +541,7 @@ def check_blocklists(
                 # Also try A record lookup
                 try:
                     import dns.resolver
+
                     dns.resolver.resolve(query, "A")
                     listed = True
                     detail = txt_records[0] if txt_records else "Listed (no detail available)"
@@ -542,12 +553,14 @@ def check_blocklists(
                 # DNS lookup failure means not listed (NXDOMAIN)
                 pass
 
-            results.append({
-                "ip": ip,
-                "blocklist": blocklist,
-                "listed": listed,
-                "detail": detail,
-            })
+            results.append(
+                {
+                    "ip": ip,
+                    "blocklist": blocklist,
+                    "listed": listed,
+                    "detail": detail,
+                }
+            )
 
     return results
 
@@ -555,6 +568,7 @@ def check_blocklists(
 # ---------------------------------------------------------------------------
 # Report generation
 # ---------------------------------------------------------------------------
+
 
 def generate_deliverability_report(
     sends_csv_path: Path,

@@ -246,9 +246,11 @@ def engineer_behavioral_features(
 
     # Activity velocity: week-over-week change (last 7d vs prior 7d)
     recent_7d = activities[activities["days_before_scoring"] <= 7].groupby("lead_id").size()
-    prior_7d = activities[
-        (activities["days_before_scoring"] > 7) & (activities["days_before_scoring"] <= 14)
-    ].groupby("lead_id").size()
+    prior_7d = (
+        activities[(activities["days_before_scoring"] > 7) & (activities["days_before_scoring"] <= 14)]
+        .groupby("lead_id")
+        .size()
+    )
     recent_7d = recent_7d.reindex(lead_ids, fill_value=0)
     prior_7d = prior_7d.reindex(lead_ids, fill_value=0)
     features["activity_velocity"] = recent_7d - prior_7d
@@ -260,9 +262,7 @@ def engineer_behavioral_features(
 
     # High-intent signal flag
     high_intent = activities[activities["activity_type"].isin(high_intent_types)]
-    features["high_intent_flag"] = (
-        high_intent.groupby("lead_id").size().reindex(lead_ids, fill_value=0).clip(upper=1)
-    )
+    features["high_intent_flag"] = high_intent.groupby("lead_id").size().reindex(lead_ids, fill_value=0).clip(upper=1)
 
     features = features.fillna(0)
     return features
@@ -884,9 +884,7 @@ def compute_shap_values(
         shap_vals = explainer.shap_values(X)
     else:
         # Fallback to KernelExplainer
-        predict_fn = (
-            model.predict_proba if hasattr(model, "predict_proba") else model.predict
-        )
+        predict_fn = model.predict_proba if hasattr(model, "predict_proba") else model.predict
         explainer = shap.KernelExplainer(predict_fn, background)
         shap_vals = explainer.shap_values(X)
 
@@ -926,11 +924,13 @@ def get_top_features(
 
     results = []
     for idx in indices:
-        results.append({
-            "feature": feature_names[idx],
-            "mean_abs_shap": float(mean_abs[idx]),
-            "direction": "positive" if mean_signed[idx] >= 0 else "negative",
-        })
+        results.append(
+            {
+                "feature": feature_names[idx],
+                "mean_abs_shap": float(mean_abs[idx]),
+                "direction": "positive" if mean_signed[idx] >= 0 else "negative",
+            }
+        )
     return results
 
 
@@ -972,12 +972,16 @@ def explain_lead_score(
 
     top_factors = []
     for idx in top_indices:
-        top_factors.append({
-            "feature": feature_names[idx],
-            "value": float(lead_features.iloc[idx]) if np.isscalar(lead_features.iloc[idx]) else str(lead_features.iloc[idx]),
-            "shap_contribution": float(lead_shap[idx]),
-            "direction": "positive" if lead_shap[idx] >= 0 else "negative",
-        })
+        top_factors.append(
+            {
+                "feature": feature_names[idx],
+                "value": float(lead_features.iloc[idx])
+                if np.isscalar(lead_features.iloc[idx])
+                else str(lead_features.iloc[idx]),
+                "shap_contribution": float(lead_shap[idx]),
+                "direction": "positive" if lead_shap[idx] >= 0 else "negative",
+            }
+        )
 
     return {
         "lead_id": lead_id,
@@ -1124,20 +1128,20 @@ def aggregate_to_account_scores(
     """
     grouped = lead_scores.groupby(account_field)["score"]
 
-    account_df = pd.DataFrame({
-        "account_id": grouped.max().index,
-        "max_score": grouped.max().values,
-        "mean_score": grouped.mean().values,
-        "contact_count": grouped.count().values,
-    })
+    account_df = pd.DataFrame(
+        {
+            "account_id": grouped.max().index,
+            "max_score": grouped.max().values,
+            "mean_score": grouped.mean().values,
+            "contact_count": grouped.count().values,
+        }
+    )
 
     # Account propensity: weighted combination favoring max score
     # Higher contact count provides a modest boost
     contact_boost = np.log1p(account_df["contact_count"].values) / np.log1p(10)
     account_df["account_propensity"] = (
-        0.6 * account_df["max_score"]
-        + 0.3 * account_df["mean_score"]
-        + 0.1 * contact_boost
+        0.6 * account_df["max_score"] + 0.3 * account_df["mean_score"] + 0.1 * contact_boost
     ).clip(0, 1)
 
     return account_df
@@ -1190,18 +1194,22 @@ def generate_lead_scores_output(
 
         factors = []
         for idx in top_idx:
-            factors.append({
-                "feature": feature_names[idx],
-                "value": float(X_clean.iloc[i, idx]),
-                "shap_contribution": float(lead_shap[idx]),
-                "direction": "positive" if lead_shap[idx] >= 0 else "negative",
-            })
+            factors.append(
+                {
+                    "feature": feature_names[idx],
+                    "value": float(X_clean.iloc[i, idx]),
+                    "shap_contribution": float(lead_shap[idx]),
+                    "direction": "positive" if lead_shap[idx] >= 0 else "negative",
+                }
+            )
 
-        lead_records.append({
-            "lead_id": str(lead_id),
-            "score": float(scores[i]),
-            "top_factors": factors,
-        })
+        lead_records.append(
+            {
+                "lead_id": str(lead_id),
+                "score": float(scores[i]),
+                "top_factors": factors,
+            }
+        )
 
     output = {
         "model_type": type(model).__name__,

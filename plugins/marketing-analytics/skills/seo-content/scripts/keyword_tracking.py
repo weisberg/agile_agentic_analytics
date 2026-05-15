@@ -24,7 +24,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field, asdict
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 from typing import Any, Literal
 
@@ -131,9 +131,8 @@ def compute_rolling_averages(
 
     for metric in metrics:
         col_name = f"{metric}_rolling_{window_days}d"
-        df[col_name] = (
-            df.groupby(["query", "page"])[metric]
-            .transform(lambda s: s.rolling(window=window_days, min_periods=1).mean())
+        df[col_name] = df.groupby(["query", "page"])[metric].transform(
+            lambda s: s.rolling(window=window_days, min_periods=1).mean()
         )
 
     logger.info(
@@ -204,9 +203,7 @@ def detect_position_changes(
 
     movers: list[KeywordMover] = []
     for _, row in significant.iterrows():
-        direction: Literal["improved", "declined"] = (
-            "improved" if row["position_change"] > 0 else "declined"
-        )
+        direction: Literal["improved", "declined"] = "improved" if row["position_change"] > 0 else "declined"
         movers.append(
             KeywordMover(
                 query=row["query"],
@@ -253,12 +250,8 @@ def identify_new_keywords(
     current_df = df[df["date"] >= current_start]
     lookback_df = df[(df["date"] >= lookback_start) & (df["date"] <= lookback_end)]
 
-    current_keys = set(
-        current_df.groupby(["query", "page"]).groups.keys()
-    )
-    lookback_keys = set(
-        lookback_df.groupby(["query", "page"]).groups.keys()
-    ) if len(lookback_df) > 0 else set()
+    current_keys = set(current_df.groupby(["query", "page"]).groups.keys())
+    lookback_keys = set(lookback_df.groupby(["query", "page"]).groups.keys()) if len(lookback_df) > 0 else set()
 
     new_keys = current_keys - lookback_keys
 
@@ -311,20 +304,14 @@ def identify_lost_keywords(
     current_df = df[df["date"] >= current_start]
     lookback_df = df[(df["date"] >= lookback_start) & (df["date"] <= lookback_end)]
 
-    current_keys = set(
-        current_df.groupby(["query", "page"]).groups.keys()
-    ) if len(current_df) > 0 else set()
-    lookback_keys = set(
-        lookback_df.groupby(["query", "page"]).groups.keys()
-    ) if len(lookback_df) > 0 else set()
+    current_keys = set(current_df.groupby(["query", "page"]).groups.keys()) if len(current_df) > 0 else set()
+    lookback_keys = set(lookback_df.groupby(["query", "page"]).groups.keys()) if len(lookback_df) > 0 else set()
 
     lost_keys = lookback_keys - current_keys
 
     lost_keywords: list[KeywordMover] = []
     for query, page in lost_keys:
-        subset = lookback_df[
-            (lookback_df["query"] == query) & (lookback_df["page"] == page)
-        ]
+        subset = lookback_df[(lookback_df["query"] == query) & (lookback_df["page"] == page)]
         lost_keywords.append(
             KeywordMover(
                 query=query,
@@ -480,13 +467,15 @@ def identify_organic_paid_overlap(
     for _, row in overlap.iterrows():
         # Flag keywords ranking in top 3 organically as savings opportunities
         savings_opportunity = row["organic_position"] <= 3.0
-        results.append({
-            "query": row["query"],
-            "organic_position": round(float(row["organic_position"]), 2),
-            "organic_clicks": float(row["organic_clicks"]),
-            "organic_impressions": float(row["organic_impressions"]),
-            "estimated_savings_opportunity": savings_opportunity,
-        })
+        results.append(
+            {
+                "query": row["query"],
+                "organic_position": round(float(row["organic_position"]), 2),
+                "organic_clicks": float(row["organic_clicks"]),
+                "organic_impressions": float(row["organic_impressions"]),
+                "estimated_savings_opportunity": savings_opportunity,
+            }
+        )
 
     results.sort(key=lambda r: r["organic_clicks"], reverse=True)
     logger.info("Found %d organic/paid keyword overlaps", len(results))
@@ -596,18 +585,14 @@ def run_keyword_tracking(
     df = compute_rolling_averages(df, window_days=rolling_window_days)
 
     # 3. Detect position changes
-    movers = detect_position_changes(
-        df, threshold=position_change_threshold
-    )
+    movers = detect_position_changes(df, threshold=position_change_threshold)
 
     # 4. Identify new and lost keywords
     new_keywords = identify_new_keywords(df)
     lost_keywords = identify_lost_keywords(df)
 
     # 5. Compute trends
-    trends = compute_keyword_trends(
-        df, min_impressions=min_impressions, window_days=rolling_window_days
-    )
+    trends = compute_keyword_trends(df, min_impressions=min_impressions, window_days=rolling_window_days)
 
     # 6. Organic/paid overlap
     overlap = identify_organic_paid_overlap(df, paid_keywords_path)
@@ -628,9 +613,7 @@ def run_keyword_tracking(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Keyword position tracking and trend analysis"
-    )
+    parser = argparse.ArgumentParser(description="Keyword position tracking and trend analysis")
     parser.add_argument("--input", default="workspace/raw/search_console.csv")
     parser.add_argument("--output", default="workspace/analysis/keyword_performance.json")
     parser.add_argument("--paid-keywords", default=None, help="Path to paid keyword CSV")

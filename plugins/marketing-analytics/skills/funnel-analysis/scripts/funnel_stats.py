@@ -183,6 +183,12 @@ def wilson_score_interval(
 
     lower = max(0.0, center - margin)
     upper = min(1.0, center + margin)
+    # Snap near-boundary floats to exact 0/1 — k=0 should give lower=0 exactly,
+    # not 3e-18, which breaks downstream equality checks and looks ugly in reports.
+    if lower < 1e-12:
+        lower = 0.0
+    if upper > 1 - 1e-12:
+        upper = 1.0
 
     return WilsonInterval(
         point_estimate=p_hat,
@@ -260,26 +266,26 @@ def compute_funnel_stats(
                 for p in [25, 50, 75, 90]:
                     time_percentiles[p] = float(np.percentile(times_arr, p))
 
-        stages.append(StageStats(
-            stage_index=i,
-            stage_name=funnel_result.steps[i],
-            entered=entered,
-            converted=converted,
-            dropped=dropped,
-            conversion_rate=conversion_ci,
-            drop_off_rate=drop_off_ci,
-            median_time_to_next=median_time,
-            time_to_next_percentiles=time_percentiles,
-        ))
+        stages.append(
+            StageStats(
+                stage_index=i,
+                stage_name=funnel_result.steps[i],
+                entered=entered,
+                converted=converted,
+                dropped=dropped,
+                conversion_rate=conversion_ci,
+                drop_off_rate=drop_off_ci,
+                median_time_to_next=median_time,
+                time_to_next_percentiles=time_percentiles,
+            )
+        )
 
     # Overall conversion
     total_entered = funnel_result.total_entered
     total_completed = funnel_result.total_completed
 
     if total_entered > 0:
-        overall_ci = wilson_score_interval(
-            total_completed, total_entered, confidence_level
-        )
+        overall_ci = wilson_score_interval(total_completed, total_entered, confidence_level)
     else:
         overall_ci = WilsonInterval(0.0, 0.0, 0.0, confidence_level, 0, 0)
 
@@ -348,14 +354,16 @@ def compute_time_to_convert(
         n_observed = len(observed_times)
 
         if n_observed == 0:
-            results.append({
-                "from_stage": i,
-                "to_stage": i + 1,
-                "median_seconds": None,
-                "percentiles": {p: None for p in percentiles},
-                "n_observed": 0,
-                "n_censored": n_censored,
-            })
+            results.append(
+                {
+                    "from_stage": i,
+                    "to_stage": i + 1,
+                    "median_seconds": None,
+                    "percentiles": {p: None for p in percentiles},
+                    "n_observed": 0,
+                    "n_censored": n_censored,
+                }
+            )
             continue
 
         times_arr = np.array(sorted(observed_times))
@@ -387,7 +395,7 @@ def compute_time_to_convert(
                 if risk_set <= 0:
                     break
 
-                survival *= (1 - events_at_t / risk_set)
+                survival *= 1 - events_at_t / risk_set
                 km_times.append(float(t))
                 km_survival.append(survival)
                 events_processed += events_at_t
@@ -414,14 +422,16 @@ def compute_time_to_convert(
                 pct_results[p] = float(np.percentile(times_arr, p))
             median_seconds = float(np.median(times_arr))
 
-        results.append({
-            "from_stage": i,
-            "to_stage": i + 1,
-            "median_seconds": median_seconds,
-            "percentiles": pct_results,
-            "n_observed": n_observed,
-            "n_censored": n_censored,
-        })
+        results.append(
+            {
+                "from_stage": i,
+                "to_stage": i + 1,
+                "median_seconds": median_seconds,
+                "percentiles": pct_results,
+                "n_observed": n_observed,
+                "n_censored": n_censored,
+            }
+        )
 
     return results
 
@@ -465,20 +475,18 @@ def chi_squared_comparison(
     if cohort_a_total < 0 or cohort_b_total < 0:
         raise ValueError("Total counts must be non-negative")
     if cohort_a_converted > cohort_a_total:
-        raise ValueError(
-            f"Cohort A converted ({cohort_a_converted}) > total ({cohort_a_total})"
-        )
+        raise ValueError(f"Cohort A converted ({cohort_a_converted}) > total ({cohort_a_total})")
     if cohort_b_converted > cohort_b_total:
-        raise ValueError(
-            f"Cohort B converted ({cohort_b_converted}) > total ({cohort_b_total})"
-        )
+        raise ValueError(f"Cohort B converted ({cohort_b_converted}) > total ({cohort_b_total})")
 
     # Build 2x2 contingency table
     # [[converted_A, not_converted_A], [converted_B, not_converted_B]]
-    table = np.array([
-        [cohort_a_converted, cohort_a_total - cohort_a_converted],
-        [cohort_b_converted, cohort_b_total - cohort_b_converted],
-    ])
+    table = np.array(
+        [
+            [cohort_a_converted, cohort_a_total - cohort_a_converted],
+            [cohort_b_converted, cohort_b_total - cohort_b_converted],
+        ]
+    )
 
     # Determine whether to use Yates correction: check expected cell counts
     row_totals = table.sum(axis=1)
@@ -518,7 +526,7 @@ def chi_squared_comparison(
         cohort_b_rate=rate_b,
         chi_squared_statistic=float(chi2_stat),
         p_value=float(p_value),
-        significant=p_value < alpha,
+        significant=bool(p_value < alpha),
         relative_difference=relative_diff,
     )
 
@@ -647,21 +655,19 @@ def rank_bottlenecks(
             revenue_proximity = 1.0 / distance_to_end
 
         # Composite score with configurable exponents
-        composite = (
-            (drop_off ** weight_dropoff)
-            * (volume ** weight_volume_exp)
-            * (revenue_proximity ** weight_proximity)
-        )
+        composite = (drop_off**weight_dropoff) * (volume**weight_volume_exp) * (revenue_proximity**weight_proximity)
 
-        scores.append(BottleneckScore(
-            stage_index=i,
-            stage_name=stage.stage_name,
-            drop_off_rate=drop_off,
-            volume=volume,
-            revenue_proximity=revenue_proximity,
-            composite_score=composite,
-            rank=0,  # Will be assigned after sorting
-        ))
+        scores.append(
+            BottleneckScore(
+                stage_index=i,
+                stage_name=stage.stage_name,
+                drop_off_rate=drop_off,
+                volume=volume,
+                revenue_proximity=revenue_proximity,
+                composite_score=composite,
+                rank=0,  # Will be assigned after sorting
+            )
+        )
 
     # Sort by composite score descending
     scores.sort(key=lambda s: s.composite_score, reverse=True)
@@ -746,9 +752,7 @@ def save_funnel_stats(
                 "conversion_rate": _wilson_to_dict(s.conversion_rate),
                 "drop_off_rate": _wilson_to_dict(s.drop_off_rate),
                 "median_time_to_next": s.median_time_to_next,
-                "time_to_next_percentiles": {
-                    str(k): v for k, v in s.time_to_next_percentiles.items()
-                },
+                "time_to_next_percentiles": {str(k): v for k, v in s.time_to_next_percentiles.items()},
             }
             for s in funnel_stats.stages
         ],
@@ -762,18 +766,9 @@ if __name__ == "__main__":
     import sys
     from build_funnel import FunnelResult, UserFunnelResult
 
-    funnel_results_path = (
-        sys.argv[1] if len(sys.argv) > 1
-        else "workspace/analysis/funnel_results.json"
-    )
-    bottleneck_output_path = (
-        sys.argv[2] if len(sys.argv) > 2
-        else "workspace/analysis/bottleneck_ranking.json"
-    )
-    stats_output_path = (
-        sys.argv[3] if len(sys.argv) > 3
-        else "workspace/analysis/funnel_stats.json"
-    )
+    funnel_results_path = sys.argv[1] if len(sys.argv) > 1 else "workspace/analysis/funnel_results.json"
+    bottleneck_output_path = sys.argv[2] if len(sys.argv) > 2 else "workspace/analysis/bottleneck_ranking.json"
+    stats_output_path = sys.argv[3] if len(sys.argv) > 3 else "workspace/analysis/funnel_stats.json"
 
     # Load FunnelResult from JSON
     with open(funnel_results_path, "r") as f:
@@ -808,9 +803,10 @@ if __name__ == "__main__":
     save_bottleneck_ranking(bottlenecks, bottleneck_output_path)
 
     print(f"Funnel stats computed for '{funnel_stats.funnel_name}'")
-    print(f"Overall conversion: {funnel_stats.overall_conversion.point_estimate:.2%} "
-          f"[{funnel_stats.overall_conversion.lower:.2%}, "
-          f"{funnel_stats.overall_conversion.upper:.2%}]")
+    print(
+        f"Overall conversion: {funnel_stats.overall_conversion.point_estimate:.2%} "
+        f"[{funnel_stats.overall_conversion.lower:.2%}, "
+        f"{funnel_stats.overall_conversion.upper:.2%}]"
+    )
     if bottlenecks:
-        print(f"Top bottleneck: {bottlenecks[0].stage_name} "
-              f"(score: {bottlenecks[0].composite_score:.2f})")
+        print(f"Top bottleneck: {bottlenecks[0].stage_name} (score: {bottlenecks[0].composite_score:.2f})")

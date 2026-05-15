@@ -51,10 +51,9 @@ def _chi_square_p_value(statistic: float, degrees_of_freedom: int) -> float:
     if degrees_of_freedom <= 0:
         return 1.0
     # Wilson-Hilferty approximation keeps us dependency-light.
-    z_score = (
-        ((statistic / degrees_of_freedom) ** (1 / 3))
-        - (1 - 2 / (9 * degrees_of_freedom))
-    ) / math.sqrt(2 / (9 * degrees_of_freedom))
+    z_score = (((statistic / degrees_of_freedom) ** (1 / 3)) - (1 - 2 / (9 * degrees_of_freedom))) / math.sqrt(
+        2 / (9 * degrees_of_freedom)
+    )
     return 1 - NormalDist().cdf(z_score)
 
 
@@ -81,8 +80,7 @@ def run_proportion_z_test(
     z_stat = (p_treatment - p_control) / standard_error
     unpooled_se = math.sqrt(
         max(
-            (p_control * (1 - p_control) / control_total)
-            + (p_treatment * (1 - p_treatment) / treatment_total),
+            (p_control * (1 - p_control) / control_total) + (p_treatment * (1 - p_treatment) / treatment_total),
             1e-12,
         )
     )
@@ -131,7 +129,9 @@ def run_t_test(
     diff = treatment_mean - control_mean
 
     if equal_variance:
-        pooled_variance = (((n_control - 1) * control_var) + ((n_treatment - 1) * treatment_var)) / max(n_control + n_treatment - 2, 1)
+        pooled_variance = (((n_control - 1) * control_var) + ((n_treatment - 1) * treatment_var)) / max(
+            n_control + n_treatment - 2, 1
+        )
         standard_error = math.sqrt(max(pooled_variance * ((1 / n_control) + (1 / n_treatment)), 1e-12))
         degrees_of_freedom = float(n_control + n_treatment - 2)
         test_type = TestType.T_TEST

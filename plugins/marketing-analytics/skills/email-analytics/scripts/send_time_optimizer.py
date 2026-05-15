@@ -17,18 +17,18 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-import numpy as np
 import pandas as pd
 
 
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class HeatmapCell:
@@ -81,6 +81,7 @@ class SendTimeReport:
 # ---------------------------------------------------------------------------
 # Heatmap generation
 # ---------------------------------------------------------------------------
+
 
 def build_engagement_heatmap(
     sends_csv_path: Path,
@@ -146,10 +147,14 @@ def build_engagement_heatmap(
     df["hour"] = df["normalized_time"].apply(lambda x: x.hour)
 
     # Aggregate by day-of-week and hour
-    grouped = df.groupby(["dow", "hour"]).agg(
-        total_delivered=("delivered", "sum"),
-        total_clicks=("clicked", "sum"),
-    ).reset_index()
+    grouped = (
+        df.groupby(["dow", "hour"])
+        .agg(
+            total_delivered=("delivered", "sum"),
+            total_clicks=("clicked", "sum"),
+        )
+        .reset_index()
+    )
 
     # Build all 168 cells
     cells: list[HeatmapCell] = []
@@ -168,14 +173,16 @@ def build_engagement_heatmap(
                 ctdr = 0.0
                 sufficient = False
 
-            cells.append(HeatmapCell(
-                day_of_week=dow,
-                hour_of_day=hour,
-                total_delivered=delivered,
-                total_clicks=clicks,
-                ctdr=round(ctdr, 4),
-                sample_size_sufficient=sufficient,
-            ))
+            cells.append(
+                HeatmapCell(
+                    day_of_week=dow,
+                    hour_of_day=hour,
+                    total_delivered=delivered,
+                    total_clicks=clicks,
+                    ctdr=round(ctdr, 4),
+                    sample_size_sufficient=sufficient,
+                )
+            )
 
     heatmap = SegmentHeatmap(
         segment_id="all",
@@ -264,10 +271,14 @@ def build_segment_heatmaps(
     heatmaps: list[SegmentHeatmap] = []
 
     for (seg_id, seg_name), seg_group in merged.groupby(["segment_id", "segment_name"]):
-        grouped = seg_group.groupby(["dow", "hour"]).agg(
-            total_delivered=("delivered", "sum"),
-            total_clicks=("clicked", "sum"),
-        ).reset_index()
+        grouped = (
+            seg_group.groupby(["dow", "hour"])
+            .agg(
+                total_delivered=("delivered", "sum"),
+                total_clicks=("clicked", "sum"),
+            )
+            .reset_index()
+        )
 
         cells: list[HeatmapCell] = []
         for dow in range(7):
@@ -285,14 +296,16 @@ def build_segment_heatmaps(
                     ctdr = 0.0
                     sufficient = False
 
-                cells.append(HeatmapCell(
-                    day_of_week=dow,
-                    hour_of_day=hour,
-                    total_delivered=delivered,
-                    total_clicks=clicks,
-                    ctdr=round(ctdr, 4),
-                    sample_size_sufficient=sufficient,
-                ))
+                cells.append(
+                    HeatmapCell(
+                        day_of_week=dow,
+                        hour_of_day=hour,
+                        total_delivered=delivered,
+                        total_clicks=clicks,
+                        ctdr=round(ctdr, 4),
+                        sample_size_sufficient=sufficient,
+                    )
+                )
 
         heatmap = SegmentHeatmap(
             segment_id=str(seg_id),
@@ -310,6 +323,7 @@ def build_segment_heatmaps(
 # ---------------------------------------------------------------------------
 # Top window identification
 # ---------------------------------------------------------------------------
+
 
 def identify_top_windows(
     heatmap: SegmentHeatmap,
@@ -354,13 +368,15 @@ def identify_top_windows(
 
         # Only include if lift meets minimum threshold
         if lift >= min_ctdr_lift or len(results) == 0:
-            results.append({
-                "day_of_week": cell.day_of_week,
-                "hour_of_day": cell.hour_of_day,
-                "ctdr": round(cell.ctdr, 4),
-                "lift_vs_average": round(lift, 4),
-                "sample_size": cell.total_delivered,
-            })
+            results.append(
+                {
+                    "day_of_week": cell.day_of_week,
+                    "hour_of_day": cell.hour_of_day,
+                    "ctdr": round(cell.ctdr, 4),
+                    "lift_vs_average": round(lift, 4),
+                    "sample_size": cell.total_delivered,
+                }
+            )
 
     return results
 
@@ -368,6 +384,7 @@ def identify_top_windows(
 # ---------------------------------------------------------------------------
 # Multi-region timezone handling
 # ---------------------------------------------------------------------------
+
 
 def normalize_send_times(
     send_times: list[str],
@@ -455,12 +472,14 @@ def generate_per_timezone_recommendations(
                     hours=window["hour_of_day"],
                 )
                 alt_converted = alt_dt.astimezone(recipient_tz)
-                alternatives.append({
-                    "day_of_week": alt_converted.weekday(),
-                    "hour_of_day": alt_converted.hour,
-                    "ctdr": window["ctdr"],
-                    "lift_vs_average": window.get("lift_vs_average", 0.0),
-                })
+                alternatives.append(
+                    {
+                        "day_of_week": alt_converted.weekday(),
+                        "hour_of_day": alt_converted.hour,
+                        "ctdr": window["ctdr"],
+                        "lift_vs_average": window.get("lift_vs_average", 0.0),
+                    }
+                )
 
             # Determine confidence level based on sample size
             sample_size = best_window.get("sample_size", 0)
@@ -471,16 +490,18 @@ def generate_per_timezone_recommendations(
             else:
                 confidence = "low"
 
-            recommendations.append(SendTimeRecommendation(
-                segment_id=heatmap.segment_id,
-                segment_name=heatmap.segment_name,
-                recommended_day=rec_day,
-                recommended_hour=rec_hour,
-                expected_ctdr=best_window["ctdr"],
-                confidence_level=confidence,
-                timezone=tz_str,
-                alternative_windows=alternatives,
-            ))
+            recommendations.append(
+                SendTimeRecommendation(
+                    segment_id=heatmap.segment_id,
+                    segment_name=heatmap.segment_name,
+                    recommended_day=rec_day,
+                    recommended_hour=rec_hour,
+                    expected_ctdr=best_window["ctdr"],
+                    confidence_level=confidence,
+                    timezone=tz_str,
+                    alternative_windows=alternatives,
+                )
+            )
 
     return recommendations
 
@@ -488,6 +509,7 @@ def generate_per_timezone_recommendations(
 # ---------------------------------------------------------------------------
 # Report generation
 # ---------------------------------------------------------------------------
+
 
 def generate_send_time_report(
     sends_csv_path: Path,
@@ -560,16 +582,18 @@ def generate_send_time_report(
                 for w in hm.top_windows[1:]
             ]
 
-            recommendations.append(SendTimeRecommendation(
-                segment_id=hm.segment_id,
-                segment_name=hm.segment_name,
-                recommended_day=best["day_of_week"],
-                recommended_hour=best["hour_of_day"],
-                expected_ctdr=best["ctdr"],
-                confidence_level=confidence,
-                timezone=hm.timezone or "UTC",
-                alternative_windows=alternatives,
-            ))
+            recommendations.append(
+                SendTimeRecommendation(
+                    segment_id=hm.segment_id,
+                    segment_name=hm.segment_name,
+                    recommended_day=best["day_of_week"],
+                    recommended_hour=best["hour_of_day"],
+                    expected_ctdr=best["ctdr"],
+                    confidence_level=confidence,
+                    timezone=hm.timezone or "UTC",
+                    alternative_windows=alternatives,
+                )
+            )
 
     # 4. Overall best window
     overall_best = None

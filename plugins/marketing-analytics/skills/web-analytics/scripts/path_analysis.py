@@ -12,7 +12,6 @@ Dependencies:
 
 from __future__ import annotations
 
-import heapq
 import json
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, field
@@ -245,9 +244,7 @@ def build_transition_matrix(
     for state, transitions in counts.items():
         total = sum(transitions.values())
         if total > 0:
-            transition_matrix[state] = {
-                page: count / total for page, count in transitions.items()
-            }
+            transition_matrix[state] = {page: count / total for page, count in transitions.items()}
 
     return transition_matrix
 
@@ -311,9 +308,7 @@ def find_top_conversion_paths(
 
     # Each beam entry: (neg_log_prob, path_pages, current_state)
     # Using neg log probability for the heap (min-heap gives highest prob).
-    beam: list[tuple[float, list[str], tuple[str, ...]]] = [
-        (0.0, [], start_state)
-    ]
+    beam: list[tuple[float, list[str], tuple[str, ...]]] = [(0.0, [], start_state)]
     completed: list[tuple[float, list[str]]] = []
 
     max_path_length = 50  # Safety limit.
@@ -393,9 +388,7 @@ def _count_path_sessions(
     for idx, np_ in enumerate(nav_paths):
         np_.session_count = path_total.get(idx, 0)
         total = path_total.get(idx, 0)
-        np_.conversion_rate = (
-            path_converted.get(idx, 0) / total if total > 0 else 0.0
-        )
+        np_.conversion_rate = path_converted.get(idx, 0) / total if total > 0 else 0.0
 
     return nav_paths
 
@@ -547,15 +540,11 @@ def detect_dead_ends(
         if page in config.terminal_pages:
             continue
 
-        avg_steps = _compute_avg_steps_to_conversion(
-            transition_matrix, page, config.order
-        )
+        avg_steps = _compute_avg_steps_to_conversion(transition_matrix, page, config.order)
         proximity_weight = 1.0 / (1.0 + avg_steps) if avg_steps is not None else 0.0
         weighted_exit_rate = exit_rate * proximity_weight
 
-        removal = compute_removal_effect(
-            transition_matrix, page, baseline_conv, config.order
-        )
+        removal = compute_removal_effect(transition_matrix, page, baseline_conv, config.order)
 
         dead_ends.append(
             PageAnalysis(
@@ -645,11 +634,7 @@ def detect_loops(
             continue
 
         cr_with = sessions_with_loop_converted / sessions_with_loop
-        cr_without = (
-            sessions_without_loop_converted / sessions_without_loop
-            if sessions_without_loop > 0
-            else 0.0
-        )
+        cr_without = sessions_without_loop_converted / sessions_without_loop if sessions_without_loop > 0 else 0.0
 
         # Z-test for difference in proportions.
         n1 = sessions_with_loop
@@ -717,9 +702,7 @@ def run_path_analysis(
     transition_matrix = build_transition_matrix(sessions, config.order)
 
     # Find top conversion paths.
-    top_paths = find_top_conversion_paths(
-        transition_matrix, config.beam_width, config.top_k_paths, config.order
-    )
+    top_paths = find_top_conversion_paths(transition_matrix, config.beam_width, config.top_k_paths, config.order)
     top_paths = _count_path_sessions(sessions, top_paths)
 
     # Compute baseline conversion probability.
@@ -746,27 +729,24 @@ def run_path_analysis(
         exits = exit_counts.get(page, 0)
         exit_rate = exits / views if views > 0 else 0.0
 
-        avg_steps = _compute_avg_steps_to_conversion(
-            transition_matrix, page, config.order
-        )
+        avg_steps = _compute_avg_steps_to_conversion(transition_matrix, page, config.order)
         proximity_weight = 1.0 / (1.0 + avg_steps) if avg_steps is not None else 0.0
         weighted_exit_rate = exit_rate * proximity_weight
 
-        removal = compute_removal_effect(
-            transition_matrix, page, baseline_conv, config.order
-        )
+        removal = compute_removal_effect(transition_matrix, page, baseline_conv, config.order)
 
-        exit_rate_threshold = float(
-            np.percentile(
-                [exit_counts.get(p, 0) / view_counts.get(p, 1) for p in all_pages],
-                config.exit_rate_percentile,
+        exit_rate_threshold = (
+            float(
+                np.percentile(
+                    [exit_counts.get(p, 0) / view_counts.get(p, 1) for p in all_pages],
+                    config.exit_rate_percentile,
+                )
             )
-        ) if all_pages else 0.0
-
-        is_dead = (
-            exit_rate >= exit_rate_threshold
-            and page not in config.terminal_pages
+            if all_pages
+            else 0.0
         )
+
+        is_dead = exit_rate >= exit_rate_threshold and page not in config.terminal_pages
 
         page_analyses.append(
             PageAnalysis(

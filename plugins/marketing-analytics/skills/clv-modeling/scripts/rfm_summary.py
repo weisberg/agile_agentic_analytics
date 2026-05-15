@@ -60,10 +60,7 @@ def load_transactions(
     required = {customer_col, date_col, amount_col}
     missing = required - set(df.columns)
     if missing:
-        raise ValueError(
-            f"Missing required columns: {missing}. "
-            f"Available columns: {list(df.columns)}"
-        )
+        raise ValueError(f"Missing required columns: {missing}. Available columns: {list(df.columns)}")
 
     # Rename to standardized names
     rename_map = {
@@ -120,15 +117,10 @@ def validate_transactions(transactions: pd.DataFrame) -> dict[str, any]:
     """
     now = pd.Timestamp.now()
 
-    duplicate_count = int(
-        transactions.duplicated(subset=["customer_id", "date", "amount"]).sum()
-    )
+    duplicate_count = int(transactions.duplicated(subset=["customer_id", "date", "amount"]).sum())
     negative_amount_count = int((transactions["amount"] <= 0).sum())
     future_date_count = int((transactions["date"] > now).sum())
-    missing_value_counts = {
-        col: int(transactions[col].isna().sum())
-        for col in ["customer_id", "date", "amount"]
-    }
+    missing_value_counts = {col: int(transactions[col].isna().sum()) for col in ["customer_id", "date", "amount"]}
 
     total_transactions = len(transactions)
     unique_customers = transactions["customer_id"].nunique()
@@ -140,12 +132,7 @@ def validate_transactions(transactions: pd.DataFrame) -> dict[str, any]:
         str(max_date.date()) if pd.notna(max_date) else None,
     )
 
-    total_issues = (
-        duplicate_count
-        + negative_amount_count
-        + future_date_count
-        + sum(missing_value_counts.values())
-    )
+    total_issues = duplicate_count + negative_amount_count + future_date_count + sum(missing_value_counts.values())
 
     return {
         "duplicate_count": duplicate_count,
@@ -237,22 +224,13 @@ def build_rfm_summary(
         # and compute mean amount on the remaining (repeat) transactions
         txns_sorted = transactions.sort_values(["customer_id", "date"])
         # Mark the first transaction per customer
-        txns_sorted["_is_first"] = ~txns_sorted.duplicated(
-            subset=["customer_id"], keep="first"
-        )
+        txns_sorted["_is_first"] = ~txns_sorted.duplicated(subset=["customer_id"], keep="first")
         repeat_txns = txns_sorted[~txns_sorted["_is_first"]]
-        repeat_monetary = (
-            repeat_txns.groupby("customer_id")["amount"].mean().rename("monetary_value")
-        )
+        repeat_monetary = repeat_txns.groupby("customer_id")["amount"].mean().rename("monetary_value")
         rfm = rfm.merge(repeat_monetary, on="customer_id", how="left")
         # Customers with frequency == 0 will have NaN monetary_value (correct)
     else:
-        all_monetary = (
-            transactions.groupby("customer_id")["amount"]
-            .mean()
-            .rename("monetary_value")
-            .reset_index()
-        )
+        all_monetary = transactions.groupby("customer_id")["amount"].mean().rename("monetary_value").reset_index()
         rfm = rfm.merge(all_monetary, on="customer_id", how="left")
 
     return rfm
@@ -305,8 +283,8 @@ def print_rfm_diagnostics(rfm: pd.DataFrame) -> None:
     print("RFM Summary Diagnostics")
     print("=" * 60)
     print(f"Total customers:      {total_customers:,}")
-    print(f"Repeat purchasers:    {repeat_purchasers:,} ({100*repeat_purchasers/total_customers:.1f}%)")
-    print(f"One-time purchasers:  {one_time:,} ({100*one_time/total_customers:.1f}%)")
+    print(f"Repeat purchasers:    {repeat_purchasers:,} ({100 * repeat_purchasers / total_customers:.1f}%)")
+    print(f"One-time purchasers:  {one_time:,} ({100 * one_time / total_customers:.1f}%)")
     print()
 
     print("Frequency (repeat purchases):")

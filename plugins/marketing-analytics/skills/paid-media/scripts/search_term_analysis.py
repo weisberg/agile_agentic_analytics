@@ -62,8 +62,20 @@ def load_search_terms(
     pandas = _require_pandas()
     frame = pandas.read_csv(file_path)
     mapping = {
-        "google": {"Search term": "search_term", "Campaign ID": "campaign_id", "Ad group ID": "ad_group_id", "Cost": "spend", "Conversions": "conversions"},
-        "microsoft": {"search query": "search_term", "campaign id": "campaign_id", "ad group id": "ad_group_id", "spend": "spend", "conversions": "conversions"},
+        "google": {
+            "Search term": "search_term",
+            "Campaign ID": "campaign_id",
+            "Ad group ID": "ad_group_id",
+            "Cost": "spend",
+            "Conversions": "conversions",
+        },
+        "microsoft": {
+            "search query": "search_term",
+            "campaign id": "campaign_id",
+            "ad group id": "ad_group_id",
+            "spend": "spend",
+            "conversions": "conversions",
+        },
     }
     frame = frame.rename(columns=mapping.get(platform, {}))
     for column in ("search_term", "campaign_id", "ad_group_id", "impressions", "clicks", "spend", "conversions"):
@@ -79,7 +91,11 @@ def flag_zero_conversion_terms(
     min_impressions: int = DEFAULT_MIN_IMPRESSIONS,
     min_spend: Decimal = DEFAULT_MIN_SPEND,
 ) -> "pd.DataFrame":
-    return df[(df["conversions"].astype(float) <= 0) & (df["impressions"].astype(int) >= min_impressions) & (df["spend"].apply(_to_decimal) >= min_spend)].copy()
+    return df[
+        (df["conversions"].astype(float) <= 0)
+        & (df["impressions"].astype(int) >= min_impressions)
+        & (df["spend"].apply(_to_decimal) >= min_spend)
+    ].copy()
 
 
 def flag_high_cpa_terms(
@@ -89,7 +105,9 @@ def flag_high_cpa_terms(
 ) -> "pd.DataFrame":
     working = df.copy()
     working["cpa"] = working.apply(
-        lambda row: (_to_decimal(row["spend"]) / Decimal(str(int(row["conversions"])))) if int(row["conversions"]) > 0 else None,
+        lambda row: (
+            (_to_decimal(row["spend"]) / Decimal(str(int(row["conversions"])))) if int(row["conversions"]) > 0 else None
+        ),
         axis=1,
     )
     threshold = campaign_avg_cpa * Decimal(str(cpa_multiplier))

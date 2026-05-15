@@ -21,7 +21,6 @@ import logging
 import re
 import unicodedata
 from collections import Counter
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -45,19 +44,69 @@ ROLLING_WINDOW_DAYS: int = 28
 # ---------------------------------------------------------------------------
 
 _POSITIVE_KEYWORDS: set[str] = {
-    "love", "great", "amazing", "awesome", "excellent", "fantastic",
-    "wonderful", "best", "happy", "good", "thank", "thanks", "beautiful",
-    "perfect", "brilliant", "outstanding", "impressive", "recommend",
-    "excited", "enjoy", "joy", "delighted", "superb", "incredible",
-    "positive", "pleased", "glad", "appreciate", "bravo", "win",
+    "love",
+    "great",
+    "amazing",
+    "awesome",
+    "excellent",
+    "fantastic",
+    "wonderful",
+    "best",
+    "happy",
+    "good",
+    "thank",
+    "thanks",
+    "beautiful",
+    "perfect",
+    "brilliant",
+    "outstanding",
+    "impressive",
+    "recommend",
+    "excited",
+    "enjoy",
+    "joy",
+    "delighted",
+    "superb",
+    "incredible",
+    "positive",
+    "pleased",
+    "glad",
+    "appreciate",
+    "bravo",
+    "win",
 }
 
 _NEGATIVE_KEYWORDS: set[str] = {
-    "hate", "terrible", "awful", "worst", "bad", "horrible", "disgusting",
-    "disappointing", "poor", "angry", "sad", "fail", "scam", "fraud",
-    "broken", "useless", "annoying", "pathetic", "waste", "ugly",
-    "complaint", "unhappy", "furious", "disaster", "nightmare", "boycott",
-    "shame", "unacceptable", "trash", "toxic",
+    "hate",
+    "terrible",
+    "awful",
+    "worst",
+    "bad",
+    "horrible",
+    "disgusting",
+    "disappointing",
+    "poor",
+    "angry",
+    "sad",
+    "fail",
+    "scam",
+    "fraud",
+    "broken",
+    "useless",
+    "annoying",
+    "pathetic",
+    "waste",
+    "ugly",
+    "complaint",
+    "unhappy",
+    "furious",
+    "disaster",
+    "nightmare",
+    "boycott",
+    "shame",
+    "unacceptable",
+    "trash",
+    "toxic",
 }
 
 
@@ -91,15 +140,12 @@ def load_model(model_name: str = DEFAULT_MODEL) -> Any:
         return model, tokenizer
     except ImportError as exc:
         logger.warning(
-            "transformers/torch not available (%s). "
-            "Falling back to keyword-based sentiment.",
+            "transformers/torch not available (%s). Falling back to keyword-based sentiment.",
             exc,
         )
         return None, None
     except Exception as exc:
-        raise RuntimeError(
-            f"Failed to load model '{model_name}': {exc}"
-        ) from exc
+        raise RuntimeError(f"Failed to load model '{model_name}': {exc}") from exc
 
 
 def preprocess_text(text: str) -> str:
@@ -133,9 +179,7 @@ def preprocess_text(text: str) -> str:
     text = text.replace("\u201c", '"').replace("\u201d", '"')
 
     # Replace URLs with [URL] token
-    text = re.sub(
-        r"https?://\S+|www\.\S+", "[URL]", text
-    )
+    text = re.sub(r"https?://\S+|www\.\S+", "[URL]", text)
 
     # Normalize @mentions to @user
     text = re.sub(r"@\w+", "@user", text)
@@ -267,13 +311,15 @@ def classify_sentiment(
             else:
                 label = "uncertain"
 
-            results.append({
-                "sentiment_label": label,
-                "sentiment_score": max_prob,
-                "negative_prob": neg_prob,
-                "neutral_prob": neu_prob,
-                "positive_prob": pos_prob,
-            })
+            results.append(
+                {
+                    "sentiment_label": label,
+                    "sentiment_score": max_prob,
+                    "negative_prob": neg_prob,
+                    "neutral_prob": neu_prob,
+                    "positive_prob": pos_prob,
+                }
+            )
 
     logger.info("Classified sentiment for %d texts", len(results))
     return results
@@ -311,9 +357,7 @@ def compute_daily_sentiment_index(
     # Compute directional weight for weighted index
     direction_map = {"positive": 1.0, "neutral": 0.0, "negative": -1.0, "uncertain": 0.0}
     df["_direction"] = df["sentiment_label"].map(direction_map).fillna(0.0)
-    df["_weighted_score"] = df["_direction"] * df.get(
-        "sentiment_score", pd.Series(0.5, index=df.index)
-    )
+    df["_weighted_score"] = df["_direction"] * df.get("sentiment_score", pd.Series(0.5, index=df.index))
 
     daily = (
         df.groupby("_date")
@@ -330,15 +374,12 @@ def compute_daily_sentiment_index(
     )
 
     # Simple sentiment index
-    daily["sentiment_index"] = (
-        (daily["positive_count"] - daily["negative_count"])
-        / daily["total_mentions"].replace(0, np.nan)
+    daily["sentiment_index"] = (daily["positive_count"] - daily["negative_count"]) / daily["total_mentions"].replace(
+        0, np.nan
     )
 
     # Weighted sentiment index
-    daily["weighted_sentiment_index"] = (
-        daily["_weighted_sum"] / daily["total_mentions"].replace(0, np.nan)
-    )
+    daily["weighted_sentiment_index"] = daily["_weighted_sum"] / daily["total_mentions"].replace(0, np.nan)
 
     daily = daily.drop(columns=["_weighted_sum"])
     daily["date"] = pd.to_datetime(daily["date"])
@@ -388,16 +429,10 @@ def detect_crisis_signals(
 
     # Compute rolling statistics (shift by 1 to exclude current day)
     df["rolling_mean"] = (
-        df["negative_count"]
-        .shift(1)
-        .rolling(window=rolling_window, min_periods=max(1, rolling_window // 4))
-        .mean()
+        df["negative_count"].shift(1).rolling(window=rolling_window, min_periods=max(1, rolling_window // 4)).mean()
     )
     df["rolling_std"] = (
-        df["negative_count"]
-        .shift(1)
-        .rolling(window=rolling_window, min_periods=max(1, rolling_window // 4))
-        .std()
+        df["negative_count"].shift(1).rolling(window=rolling_window, min_periods=max(1, rolling_window // 4)).std()
     )
 
     alerts: list[dict[str, Any]] = []
@@ -421,14 +456,16 @@ def detect_crisis_signals(
         else:
             continue
 
-        alerts.append({
-            "date": str(row["date"].date()) if hasattr(row["date"], "date") else str(row["date"]),
-            "severity": severity,
-            "negative_count": int(row["negative_count"]),
-            "rolling_mean": round(float(r_mean), 2),
-            "rolling_std": round(float(r_std), 2),
-            "z_score": round(float(z_score), 2),
-        })
+        alerts.append(
+            {
+                "date": str(row["date"].date()) if hasattr(row["date"], "date") else str(row["date"]),
+                "severity": severity,
+                "negative_count": int(row["negative_count"]),
+                "rolling_mean": round(float(r_mean), 2),
+                "rolling_std": round(float(r_std), 2),
+                "z_score": round(float(z_score), 2),
+            }
+        )
 
     logger.info("Detected %d crisis signals", len(alerts))
     return alerts
@@ -510,18 +547,22 @@ def extract_trending_themes(
             matching = df[df[text_column].fillna("").str.contains(kw, case=False, na=False)]
             avg_sent = 0.0
             if "sentiment_score" in matching.columns and "sentiment_label" in matching.columns:
-                direction = matching["sentiment_label"].map(
-                    {"positive": 1, "neutral": 0, "negative": -1, "uncertain": 0}
-                ).fillna(0)
+                direction = (
+                    matching["sentiment_label"]
+                    .map({"positive": 1, "neutral": 0, "negative": -1, "uncertain": 0})
+                    .fillna(0)
+                )
                 avg_sent = float((direction * matching["sentiment_score"].fillna(0.5)).mean())
 
-            themes.append({
-                "theme_id": i,
-                "keywords": [kw],
-                "mention_count": len(matching),
-                "avg_sentiment": round(avg_sent, 3),
-                "trend_direction": "stable",
-            })
+            themes.append(
+                {
+                    "theme_id": i,
+                    "keywords": [kw],
+                    "mention_count": len(matching),
+                    "avg_sentiment": round(avg_sent, 3),
+                    "trend_direction": "stable",
+                }
+            )
         return themes
 
     # Assign clusters to original df rows (only non-empty)
@@ -540,12 +581,14 @@ def extract_trending_themes(
         # Average sentiment
         avg_sent = 0.0
         if "sentiment_score" in cluster_df.columns and "sentiment_label" in cluster_df.columns:
-            direction = cluster_df["sentiment_label"].map(
-                {"positive": 1, "neutral": 0, "negative": -1, "uncertain": 0}
-            ).fillna(0)
-            avg_sent = float(
-                (direction * cluster_df["sentiment_score"].fillna(0.5)).mean()
-            ) if mention_count > 0 else 0.0
+            direction = (
+                cluster_df["sentiment_label"]
+                .map({"positive": 1, "neutral": 0, "negative": -1, "uncertain": 0})
+                .fillna(0)
+            )
+            avg_sent = (
+                float((direction * cluster_df["sentiment_score"].fillna(0.5)).mean()) if mention_count > 0 else 0.0
+            )
 
         # Trend direction: compare first half vs second half mention volume
         trend = "stable"
@@ -559,13 +602,15 @@ def extract_trending_themes(
             elif second_half < first_half * 0.7:
                 trend = "declining"
 
-        themes.append({
-            "theme_id": i,
-            "keywords": top_kw,
-            "mention_count": mention_count,
-            "avg_sentiment": round(avg_sent, 3),
-            "trend_direction": trend,
-        })
+        themes.append(
+            {
+                "theme_id": i,
+                "keywords": top_kw,
+                "mention_count": mention_count,
+                "avg_sentiment": round(avg_sent, 3),
+                "trend_direction": trend,
+            }
+        )
 
     themes.sort(key=lambda x: x["mention_count"], reverse=True)
     logger.info("Extracted %d trending themes", len(themes))
@@ -642,10 +687,7 @@ def enrich_crisis_context(
         word_counts = Counter(all_words)
         # Remove very common words
         stop_words = {"this", "that", "with", "from", "have", "been", "they", "their", "were", "will", "your"}
-        common_themes = [
-            w for w, _ in word_counts.most_common(20)
-            if w not in stop_words
-        ][:10]
+        common_themes = [w for w, _ in word_counts.most_common(20) if w not in stop_words][:10]
 
     # Affected platforms
     affected_platforms: dict[str, int] = {}
@@ -697,9 +739,11 @@ def generate_sentiment_report(
     total_negative = int(daily_sentiment["negative_count"].sum()) if "negative_count" in daily_sentiment.columns else 0
     total_neutral = int(daily_sentiment["neutral_count"].sum()) if "neutral_count" in daily_sentiment.columns else 0
 
-    avg_sentiment_index = float(
-        daily_sentiment["sentiment_index"].mean()
-    ) if "sentiment_index" in daily_sentiment.columns and not daily_sentiment.empty else 0.0
+    avg_sentiment_index = (
+        float(daily_sentiment["sentiment_index"].mean())
+        if "sentiment_index" in daily_sentiment.columns and not daily_sentiment.empty
+        else 0.0
+    )
 
     # Convert daily sentiment to records for JSON
     daily_records = daily_sentiment.to_dict(orient="records")

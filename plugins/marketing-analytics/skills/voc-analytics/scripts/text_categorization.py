@@ -23,9 +23,8 @@ import argparse
 import json
 import logging
 import re
-import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Optional
@@ -38,6 +37,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ThemeClassification:
@@ -108,49 +108,147 @@ DEFAULT_THEME_TAXONOMY: list[str] = [
 # Keyword mapping for fallback classification when LLM is unavailable
 _KEYWORD_THEME_MAP: dict[str, list[str]] = {
     "Product Quality": [
-        "product", "quality", "feature", "functionality", "reliable",
-        "reliability", "performance", "broken", "defect", "bug",
+        "product",
+        "quality",
+        "feature",
+        "functionality",
+        "reliable",
+        "reliability",
+        "performance",
+        "broken",
+        "defect",
+        "bug",
     ],
     "Customer Service": [
-        "service", "support", "agent", "representative", "helpdesk",
-        "help", "responsive", "rude", "friendly", "resolution",
+        "service",
+        "support",
+        "agent",
+        "representative",
+        "helpdesk",
+        "help",
+        "responsive",
+        "rude",
+        "friendly",
+        "resolution",
     ],
     "Pricing & Value": [
-        "price", "pricing", "cost", "expensive", "cheap", "value",
-        "fee", "billing", "charge", "afford", "money", "worth",
+        "price",
+        "pricing",
+        "cost",
+        "expensive",
+        "cheap",
+        "value",
+        "fee",
+        "billing",
+        "charge",
+        "afford",
+        "money",
+        "worth",
     ],
     "Digital Experience": [
-        "app", "website", "online", "digital", "mobile", "ui", "ux",
-        "interface", "usability", "navigate", "login", "portal",
+        "app",
+        "website",
+        "online",
+        "digital",
+        "mobile",
+        "ui",
+        "ux",
+        "interface",
+        "usability",
+        "navigate",
+        "login",
+        "portal",
     ],
     "Onboarding": [
-        "onboarding", "setup", "started", "getting started", "sign up",
-        "signup", "registration", "welcome", "initial", "first time",
+        "onboarding",
+        "setup",
+        "started",
+        "getting started",
+        "sign up",
+        "signup",
+        "registration",
+        "welcome",
+        "initial",
+        "first time",
     ],
     "Communication": [
-        "email", "notification", "communicate", "communication",
-        "update", "inform", "message", "letter", "newsletter",
+        "email",
+        "notification",
+        "communicate",
+        "communication",
+        "update",
+        "inform",
+        "message",
+        "letter",
+        "newsletter",
     ],
     "Trust & Security": [
-        "trust", "security", "safe", "privacy", "fraud", "protect",
-        "data", "breach", "transparent", "transparency", "secure",
+        "trust",
+        "security",
+        "safe",
+        "privacy",
+        "fraud",
+        "protect",
+        "data",
+        "breach",
+        "transparent",
+        "transparency",
+        "secure",
     ],
     "Speed & Efficiency": [
-        "speed", "fast", "slow", "wait", "delay", "efficient",
-        "efficiency", "quick", "turnaround", "processing", "time",
+        "speed",
+        "fast",
+        "slow",
+        "wait",
+        "delay",
+        "efficient",
+        "efficiency",
+        "quick",
+        "turnaround",
+        "processing",
+        "time",
     ],
 }
 
 # Simple sentiment keywords for fallback
 _POSITIVE_KEYWORDS = [
-    "great", "excellent", "amazing", "love", "wonderful", "fantastic",
-    "happy", "good", "best", "awesome", "pleased", "satisfied",
-    "helpful", "easy", "perfect", "outstanding", "impressed",
+    "great",
+    "excellent",
+    "amazing",
+    "love",
+    "wonderful",
+    "fantastic",
+    "happy",
+    "good",
+    "best",
+    "awesome",
+    "pleased",
+    "satisfied",
+    "helpful",
+    "easy",
+    "perfect",
+    "outstanding",
+    "impressed",
 ]
 _NEGATIVE_KEYWORDS = [
-    "bad", "terrible", "awful", "horrible", "worst", "hate", "angry",
-    "disappointed", "frustrating", "poor", "useless", "difficult",
-    "annoying", "slow", "broken", "rude", "unhappy", "dissatisfied",
+    "bad",
+    "terrible",
+    "awful",
+    "horrible",
+    "worst",
+    "hate",
+    "angry",
+    "disappointed",
+    "frustrating",
+    "poor",
+    "useless",
+    "difficult",
+    "annoying",
+    "slow",
+    "broken",
+    "rude",
+    "unhappy",
+    "dissatisfied",
 ]
 
 
@@ -175,22 +273,16 @@ def load_theme_taxonomy(taxonomy_path: Optional[Path] = None) -> list[str]:
 
     taxonomy_path = Path(taxonomy_path)
     if not taxonomy_path.exists():
-        raise FileNotFoundError(
-            f"Taxonomy file not found: {taxonomy_path}"
-        )
+        raise FileNotFoundError(f"Taxonomy file not found: {taxonomy_path}")
 
     with open(taxonomy_path, "r") as f:
         data = json.load(f)
 
     if not isinstance(data, list):
-        raise ValueError(
-            f"Taxonomy file must contain a JSON array, got {type(data).__name__}."
-        )
+        raise ValueError(f"Taxonomy file must contain a JSON array, got {type(data).__name__}.")
     for item in data:
         if not isinstance(item, str):
-            raise ValueError(
-                f"All taxonomy entries must be strings, got {type(item).__name__}: {item!r}"
-            )
+            raise ValueError(f"All taxonomy entries must be strings, got {type(item).__name__}: {item!r}")
 
     return data
 
@@ -198,6 +290,7 @@ def load_theme_taxonomy(taxonomy_path: Optional[Path] = None) -> list[str]:
 # ---------------------------------------------------------------------------
 # Keyword-based fallback classification
 # ---------------------------------------------------------------------------
+
 
 def _fallback_classify_single(
     respondent_id: str,
@@ -214,19 +307,23 @@ def _fallback_classify_single(
         matched = sum(1 for kw in keywords if kw in text_lower)
         if matched > 0:
             confidence = min(0.4 + matched * 0.15, 0.85)
-            themes.append(ThemeClassification(
-                theme_name=theme_name,
-                is_predefined=True,
-                confidence=round(confidence, 2),
-            ))
+            themes.append(
+                ThemeClassification(
+                    theme_name=theme_name,
+                    is_predefined=True,
+                    confidence=round(confidence, 2),
+                )
+            )
 
     # If no themes matched, assign a generic theme
     if not themes:
-        themes.append(ThemeClassification(
-            theme_name="General Feedback",
-            is_predefined=False,
-            confidence=0.3,
-        ))
+        themes.append(
+            ThemeClassification(
+                theme_name="General Feedback",
+                is_predefined=False,
+                confidence=0.3,
+            )
+        )
 
     # Sentiment detection via keywords
     pos_count = sum(1 for kw in _POSITIVE_KEYWORDS if kw in text_lower)
@@ -262,6 +359,7 @@ def _fallback_classify_single(
 # LLM-based classification
 # ---------------------------------------------------------------------------
 
+
 def build_classification_prompt(
     responses: list[dict[str, str]],
     taxonomy: list[str],
@@ -292,7 +390,7 @@ def build_classification_prompt(
         "  - is_predefined: boolean indicating if the theme is from the predefined list\n"
         "  - confidence: float 0.0-1.0 indicating classification confidence\n"
         "- sentiment: object with:\n"
-        "  - polarity: one of \"positive\", \"neutral\", \"negative\"\n"
+        '  - polarity: one of "positive", "neutral", "negative"\n'
         "  - intensity: float 0.0-1.0 (0 = barely detectable, 1 = very strong)\n"
         "  - mixed: boolean, true if response contains conflicting sentiment\n"
         "- language: ISO 639-1 code of the detected language\n\n"
@@ -302,9 +400,7 @@ def build_classification_prompt(
     # Format the batch of responses for the user message
     response_lines = []
     for r in responses:
-        response_lines.append(
-            f"[{r['respondent_id']}]: {r['response_text']}"
-        )
+        response_lines.append(f"[{r['respondent_id']}]: {r['response_text']}")
     responses_block = "\n".join(response_lines)
 
     taxonomy_str = ", ".join(taxonomy)
@@ -352,10 +448,7 @@ def call_llm_classification(
     try:
         import anthropic
     except ImportError:
-        raise RuntimeError(
-            "anthropic package is not installed. "
-            "Install with: pip install anthropic"
-        )
+        raise RuntimeError("anthropic package is not installed. Install with: pip install anthropic")
 
     client_kwargs: dict[str, Any] = {}
     if api_key:
@@ -402,14 +495,11 @@ def call_llm_classification(
         parsed = json.loads(raw_text)
     except json.JSONDecodeError as exc:
         raise RuntimeError(
-            f"Failed to parse LLM response as JSON: {exc}\n"
-            f"Raw response (first 500 chars): {raw_text[:500]}"
+            f"Failed to parse LLM response as JSON: {exc}\nRaw response (first 500 chars): {raw_text[:500]}"
         ) from exc
 
     if not isinstance(parsed, list):
-        raise RuntimeError(
-            f"Expected a JSON array from LLM, got {type(parsed).__name__}."
-        )
+        raise RuntimeError(f"Expected a JSON array from LLM, got {type(parsed).__name__}.")
 
     return parsed
 
@@ -447,18 +537,22 @@ def parse_llm_response(
                 is_predefined = bool(t.get("is_predefined", False))
                 confidence = float(t.get("confidence", 0.5))
                 confidence = max(0.0, min(1.0, confidence))
-                themes.append(ThemeClassification(
-                    theme_name=theme_name,
-                    is_predefined=is_predefined,
-                    confidence=round(confidence, 2),
-                ))
+                themes.append(
+                    ThemeClassification(
+                        theme_name=theme_name,
+                        is_predefined=is_predefined,
+                        confidence=round(confidence, 2),
+                    )
+                )
 
             if not themes:
-                themes.append(ThemeClassification(
-                    theme_name="Uncategorized",
-                    is_predefined=False,
-                    confidence=0.0,
-                ))
+                themes.append(
+                    ThemeClassification(
+                        theme_name="Uncategorized",
+                        is_predefined=False,
+                        confidence=0.0,
+                    )
+                )
 
             # Parse sentiment
             raw_sentiment = entry.get("sentiment", {})
@@ -466,7 +560,8 @@ def parse_llm_response(
             if polarity not in ("positive", "neutral", "negative"):
                 logger.warning(
                     "Invalid polarity '%s' for %s, defaulting to neutral.",
-                    polarity, rid,
+                    polarity,
+                    rid,
                 )
                 polarity = "neutral"
             intensity = float(raw_sentiment.get("intensity", 0.5))
@@ -484,18 +579,21 @@ def parse_llm_response(
 
             response_text = response_texts.get(rid, "")
 
-            results.append(ResponseClassification(
-                respondent_id=rid,
-                response_text=response_text,
-                themes=themes,
-                sentiment=sentiment,
-                language=language,
-            ))
+            results.append(
+                ResponseClassification(
+                    respondent_id=rid,
+                    response_text=response_text,
+                    themes=themes,
+                    sentiment=sentiment,
+                    language=language,
+                )
+            )
 
         except Exception as exc:
             logger.warning(
                 "Failed to parse classification entry: %s. Error: %s",
-                entry, exc,
+                entry,
+                exc,
             )
             continue
 
@@ -505,6 +603,7 @@ def parse_llm_response(
 # ---------------------------------------------------------------------------
 # Batch processing
 # ---------------------------------------------------------------------------
+
 
 def extract_open_text_responses(df: pd.DataFrame) -> list[dict[str, str]]:
     """Extract open-text responses from the survey DataFrame.
@@ -520,22 +619,19 @@ def extract_open_text_responses(df: pd.DataFrame) -> list[dict[str, str]]:
         List of dicts, each with "respondent_id" and "response_text" keys.
     """
     # Filter to rows that have non-empty text responses
-    text_df = df[
-        df["response"].notna()
-        & (df["response"].astype(str).str.strip() != "")
-    ].copy()
+    text_df = df[df["response"].notna() & (df["response"].astype(str).str.strip() != "")].copy()
 
     # Exclude rows where response is purely numeric (likely score-only rows)
-    text_df = text_df[
-        ~text_df["response"].astype(str).str.strip().str.match(r"^\d+\.?\d*$")
-    ]
+    text_df = text_df[~text_df["response"].astype(str).str.strip().str.match(r"^\d+\.?\d*$")]
 
     responses = []
     for _, row in text_df.iterrows():
-        responses.append({
-            "respondent_id": str(row["respondent_id"]),
-            "response_text": str(row["response"]).strip(),
-        })
+        responses.append(
+            {
+                "respondent_id": str(row["respondent_id"]),
+                "response_text": str(row["response"]).strip(),
+            }
+        )
 
     return responses
 
@@ -572,9 +668,7 @@ def classify_responses_in_batches(
     use_fallback = False
 
     # Build response text lookup
-    response_texts = {
-        r["respondent_id"]: r["response_text"] for r in responses
-    }
+    response_texts = {r["respondent_id"]: r["response_text"] for r in responses}
 
     for batch_idx in range(total_batches):
         start = batch_idx * batch_size
@@ -583,14 +677,18 @@ def classify_responses_in_batches(
 
         logger.info(
             "Processing batch %d/%d (%d responses)",
-            batch_idx + 1, total_batches, len(batch),
+            batch_idx + 1,
+            total_batches,
+            len(batch),
         )
 
         if use_fallback:
             # Use keyword-based fallback for remaining batches
             for r in batch:
                 classification = _fallback_classify_single(
-                    r["respondent_id"], r["response_text"], taxonomy,
+                    r["respondent_id"],
+                    r["response_text"],
+                    taxonomy,
                 )
                 all_classifications.append(classification)
             continue
@@ -602,11 +700,11 @@ def classify_responses_in_batches(
             try:
                 messages = build_classification_prompt(batch, taxonomy)
                 raw_results = call_llm_classification(
-                    messages, model=model, api_key=api_key,
+                    messages,
+                    model=model,
+                    api_key=api_key,
                 )
-                batch_texts = {
-                    r["respondent_id"]: r["response_text"] for r in batch
-                }
+                batch_texts = {r["respondent_id"]: r["response_text"] for r in batch}
                 parsed = parse_llm_response(raw_results, batch_texts)
                 all_classifications.extend(parsed)
 
@@ -615,12 +713,13 @@ def classify_responses_in_batches(
                 for r in batch:
                     if r["respondent_id"] not in returned_ids:
                         logger.warning(
-                            "LLM did not return classification for %s, "
-                            "using fallback.",
+                            "LLM did not return classification for %s, using fallback.",
                             r["respondent_id"],
                         )
                         fallback = _fallback_classify_single(
-                            r["respondent_id"], r["response_text"], taxonomy,
+                            r["respondent_id"],
+                            r["response_text"],
+                            taxonomy,
                         )
                         all_classifications.append(fallback)
 
@@ -631,7 +730,9 @@ def classify_responses_in_batches(
             except RuntimeError as exc:
                 logger.warning(
                     "Batch %d attempt %d failed: %s",
-                    batch_idx + 1, attempt + 1, exc,
+                    batch_idx + 1,
+                    attempt + 1,
+                    exc,
                 )
                 if attempt < max_retries - 1:
                     wait = 2 ** (attempt + 1)
@@ -642,19 +743,19 @@ def classify_responses_in_batches(
             consecutive_failures += 1
             logger.warning(
                 "Batch %d failed after %d retries. Using keyword fallback.",
-                batch_idx + 1, max_retries,
+                batch_idx + 1,
+                max_retries,
             )
             for r in batch:
                 fallback = _fallback_classify_single(
-                    r["respondent_id"], r["response_text"], taxonomy,
+                    r["respondent_id"],
+                    r["response_text"],
+                    taxonomy,
                 )
                 all_classifications.append(fallback)
 
             if consecutive_failures >= 3:
-                logger.warning(
-                    "3 consecutive batch failures. Switching to keyword "
-                    "fallback for all remaining batches."
-                )
+                logger.warning("3 consecutive batch failures. Switching to keyword fallback for all remaining batches.")
                 use_fallback = True
 
     return all_classifications
@@ -663,6 +764,7 @@ def classify_responses_in_batches(
 # ---------------------------------------------------------------------------
 # Aggregation
 # ---------------------------------------------------------------------------
+
 
 def compute_theme_summaries(
     classifications: list[ResponseClassification],
@@ -689,9 +791,7 @@ def compute_theme_summaries(
     theme_stats: dict[str, dict[str, Any]] = {}
     for c in classifications:
         polarity_sign = (
-            1.0 if c.sentiment.polarity == "positive"
-            else -1.0 if c.sentiment.polarity == "negative"
-            else 0.0
+            1.0 if c.sentiment.polarity == "positive" else -1.0 if c.sentiment.polarity == "negative" else 0.0
         )
         for t in c.themes:
             name = t.theme_name
@@ -782,17 +882,17 @@ def consolidate_emergent_themes(
                 group_pct += theme_b.pct_of_responses
                 used.add(j)
 
-        net_sentiment = (
-            group_sentiment_sum / group_count if group_count > 0 else 0.0
+        net_sentiment = group_sentiment_sum / group_count if group_count > 0 else 0.0
+        merged.append(
+            ThemeSummary(
+                theme_name=theme_a.theme_name,  # Keep the most popular name
+                count=group_count,
+                pct_of_responses=round(group_pct, 1),
+                net_sentiment=round(net_sentiment, 3),
+                is_emergent=True,
+                first_detected=theme_a.first_detected,
+            )
         )
-        merged.append(ThemeSummary(
-            theme_name=theme_a.theme_name,  # Keep the most popular name
-            count=group_count,
-            pct_of_responses=round(group_pct, 1),
-            net_sentiment=round(net_sentiment, 3),
-            is_emergent=True,
-            first_detected=theme_a.first_detected,
-        ))
 
     merged.sort(key=lambda s: s.count, reverse=True)
     return merged
@@ -801,6 +901,7 @@ def consolidate_emergent_themes(
 # ---------------------------------------------------------------------------
 # I/O
 # ---------------------------------------------------------------------------
+
 
 def write_results(result: CategorizationResult, output_path: Path) -> None:
     """Serialize categorization results to JSON.
@@ -834,6 +935,7 @@ def write_results(result: CategorizationResult, output_path: Path) -> None:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     """Parse command-line arguments.
 
@@ -843,9 +945,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     Returns:
         Parsed arguments namespace.
     """
-    parser = argparse.ArgumentParser(
-        description="Extract themes and sentiment from survey open-text."
-    )
+    parser = argparse.ArgumentParser(description="Extract themes and sentiment from survey open-text.")
     parser.add_argument(
         "--input",
         type=Path,

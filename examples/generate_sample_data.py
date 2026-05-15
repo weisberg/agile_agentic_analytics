@@ -26,6 +26,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def write_csv(filename: str, rows: list[dict]) -> None:
     path = os.path.join(DATA_DIR, filename)
     with open(path, "w", newline="") as f:
@@ -63,11 +64,12 @@ def random_timestamp(date_str: str) -> str:
 #    dataset.
 # ---------------------------------------------------------------------------
 
+
 def generate_campaign_spend_google() -> None:
     campaigns = {
         "G-BRAND-001": {"base_spend": 120, "cpc": 1.20, "cvr": 0.08, "aov": 65},
-        "G-PERF-002":  {"base_spend": 200, "cpc": 2.50, "cvr": 0.04, "aov": 85},
-        "G-DISCO-003": {"base_spend": 80,  "cpc": 0.60, "cvr": 0.02, "aov": 45},
+        "G-PERF-002": {"base_spend": 200, "cpc": 2.50, "cvr": 0.04, "aov": 85},
+        "G-DISCO-003": {"base_spend": 80, "cpc": 0.60, "cvr": 0.02, "aov": 45},
     }
     dates = date_range("2025-07-01", 180)
     rows = []
@@ -80,21 +82,24 @@ def generate_campaign_spend_google() -> None:
             impressions = int(clicks / random.uniform(0.02, 0.06))
             conversions = max(0, int(clicks * cfg["cvr"] * random.uniform(0.6, 1.5)))
             revenue = round(conversions * cfg["aov"] * random.uniform(0.8, 1.2), 2)
-            rows.append({
-                "campaign_id": cid,
-                "date": d,
-                "spend": spend,
-                "impressions": impressions,
-                "clicks": clicks,
-                "conversions": conversions,
-                "revenue": revenue,
-            })
+            rows.append(
+                {
+                    "campaign_id": cid,
+                    "date": d,
+                    "spend": spend,
+                    "impressions": impressions,
+                    "clicks": clicks,
+                    "conversions": conversions,
+                    "revenue": revenue,
+                }
+            )
     write_csv("campaign_spend_google.csv", rows)
 
 
 # ---------------------------------------------------------------------------
 # 2. campaign_spend_meta.csv
 # ---------------------------------------------------------------------------
+
 
 def generate_campaign_spend_meta() -> None:
     campaigns = {
@@ -113,21 +118,24 @@ def generate_campaign_spend_meta() -> None:
             impressions = int(clicks / random.uniform(0.008, 0.025))
             conversions = max(0, int(clicks * cfg["cvr"] * random.uniform(0.5, 1.6)))
             revenue = round(conversions * cfg["aov"] * random.uniform(0.7, 1.3), 2)
-            rows.append({
-                "campaign_id": cid,
-                "date": d,
-                "spend": spend,
-                "impressions": impressions,
-                "clicks": clicks,
-                "conversions": conversions,
-                "revenue": revenue,
-            })
+            rows.append(
+                {
+                    "campaign_id": cid,
+                    "date": d,
+                    "spend": spend,
+                    "impressions": impressions,
+                    "clicks": clicks,
+                    "conversions": conversions,
+                    "revenue": revenue,
+                }
+            )
     write_csv("campaign_spend_meta.csv", rows)
 
 
 # ---------------------------------------------------------------------------
 # 3. transactions.csv — 5000 rows, 500 unique customers, 2 years
 # ---------------------------------------------------------------------------
+
 
 def generate_transactions() -> None:
     customer_ids = [f"CUST-{i:04d}" for i in range(1, 501)]
@@ -139,7 +147,7 @@ def generate_transactions() -> None:
     def random_amount() -> float:
         # Pareto-ish distribution bounded [10, 500]
         u = random.random()
-        amount = 10 / (u ** 0.35)  # shape gives nice right skew
+        amount = 10 / (u**0.35)  # shape gives nice right skew
         return round(min(amount, 500), 2)
 
     # Some customers buy more frequently than others
@@ -151,11 +159,13 @@ def generate_transactions() -> None:
         cid = random.choices(customer_ids, weights=[customer_freq_weight[c] for c in customer_ids])[0]
         day_offset = random.randint(0, span_days)
         d = (start + timedelta(days=day_offset)).strftime("%Y-%m-%d")
-        rows.append({
-            "customer_id": cid,
-            "date": d,
-            "amount": random_amount(),
-        })
+        rows.append(
+            {
+                "customer_id": cid,
+                "date": d,
+                "amount": random_amount(),
+            }
+        )
 
     # Sort by date
     rows.sort(key=lambda r: r["date"])
@@ -166,15 +176,23 @@ def generate_transactions() -> None:
 # 4. events.csv — 10000 rows with funnel drop-offs
 # ---------------------------------------------------------------------------
 
+
 def generate_events() -> None:
     """Realistic web-event funnel:
     page_view -> add_to_cart (30%) -> begin_checkout (50%) -> purchase (60%)
     Overall: ~9% of page_views convert to purchase.
     """
     pages = [
-        "/", "/products", "/products/widget-pro", "/products/widget-lite",
-        "/products/widget-max", "/pricing", "/about", "/blog",
-        "/blog/how-to-choose", "/blog/widget-tips",
+        "/",
+        "/products",
+        "/products/widget-pro",
+        "/products/widget-lite",
+        "/products/widget-max",
+        "/pricing",
+        "/about",
+        "/blog",
+        "/blog/how-to-choose",
+        "/blog/widget-tips",
     ]
     checkout_pages = ["/cart", "/checkout", "/checkout/shipping", "/checkout/payment"]
     dates = date_range("2025-10-01", 90)
@@ -187,35 +205,43 @@ def generate_events() -> None:
         d = random.choice(dates)
 
         # Always a page_view
-        rows.append({
-            "user_id": uid,
-            "event_name": "page_view",
-            "timestamp": random_timestamp(d),
-            "page_url": random.choice(pages),
-        })
+        rows.append(
+            {
+                "user_id": uid,
+                "event_name": "page_view",
+                "timestamp": random_timestamp(d),
+                "page_url": random.choice(pages),
+            }
+        )
 
         # Funnel progression with drop-offs
         if random.random() < 0.30:
-            rows.append({
-                "user_id": uid,
-                "event_name": "add_to_cart",
-                "timestamp": random_timestamp(d),
-                "page_url": random.choice(pages[:5]),  # product pages
-            })
-            if random.random() < 0.50:
-                rows.append({
+            rows.append(
+                {
                     "user_id": uid,
-                    "event_name": "begin_checkout",
+                    "event_name": "add_to_cart",
                     "timestamp": random_timestamp(d),
-                    "page_url": "/checkout",
-                })
-                if random.random() < 0.60:
-                    rows.append({
+                    "page_url": random.choice(pages[:5]),  # product pages
+                }
+            )
+            if random.random() < 0.50:
+                rows.append(
+                    {
                         "user_id": uid,
-                        "event_name": "purchase",
+                        "event_name": "begin_checkout",
                         "timestamp": random_timestamp(d),
-                        "page_url": "/checkout/confirmation",
-                    })
+                        "page_url": "/checkout",
+                    }
+                )
+                if random.random() < 0.60:
+                    rows.append(
+                        {
+                            "user_id": uid,
+                            "event_name": "purchase",
+                            "timestamp": random_timestamp(d),
+                            "page_url": "/checkout/confirmation",
+                        }
+                    )
 
     # Sort by timestamp
     rows.sort(key=lambda r: r["timestamp"])
@@ -228,10 +254,14 @@ def generate_events() -> None:
 # 5. email_sends.csv — 2000 rows
 # ---------------------------------------------------------------------------
 
+
 def generate_email_sends() -> None:
     campaign_ids = [
-        "EMAIL-WELCOME-01", "EMAIL-PROMO-02", "EMAIL-WINBACK-03",
-        "EMAIL-NEWSLETTER-04", "EMAIL-ABANDON-05",
+        "EMAIL-WELCOME-01",
+        "EMAIL-PROMO-02",
+        "EMAIL-WINBACK-03",
+        "EMAIL-NEWSLETTER-04",
+        "EMAIL-ABANDON-05",
     ]
     recipient_ids = [f"R-{i:04d}" for i in range(1, 601)]
     dates = date_range("2025-09-01", 120)
@@ -244,16 +274,18 @@ def generate_email_sends() -> None:
         clicked = opened and random.random() < 0.15  # ~3% of all delivered
         converted = clicked and random.random() < 0.17  # ~0.5% of all delivered
 
-        rows.append({
-            "campaign_id": random.choice(campaign_ids),
-            "send_time": random_timestamp(random.choice(dates)),
-            "recipient_id": random.choice(recipient_ids),
-            "delivered": delivered,
-            "bounced": bounced,
-            "opened": opened,
-            "clicked": clicked,
-            "converted": converted,
-        })
+        rows.append(
+            {
+                "campaign_id": random.choice(campaign_ids),
+                "send_time": random_timestamp(random.choice(dates)),
+                "recipient_id": random.choice(recipient_ids),
+                "delivered": delivered,
+                "bounced": bounced,
+                "opened": opened,
+                "clicked": clicked,
+                "converted": converted,
+            }
+        )
 
     rows.sort(key=lambda r: r["send_time"])
     write_csv("email_sends.csv", rows)
@@ -263,13 +295,22 @@ def generate_email_sends() -> None:
 # 6. survey_responses.csv — 500 rows with NPS
 # ---------------------------------------------------------------------------
 
+
 def generate_survey_responses() -> None:
     # NPS distribution skewing toward 8-9 (promoters dominate)
     # Roughly: 10% detractors (0-6), 20% passives (7-8), 70% promoters (9-10)
     nps_weights = {
-        0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 4,
-        7: 10, 8: 15,
-        9: 30, 10: 20,
+        0: 1,
+        1: 1,
+        2: 1,
+        3: 2,
+        4: 2,
+        5: 3,
+        6: 4,
+        7: 10,
+        8: 15,
+        9: 30,
+        10: 20,
     }
     scores = list(nps_weights.keys())
     weights = list(nps_weights.values())
@@ -322,13 +363,15 @@ def generate_survey_responses() -> None:
         else:
             text = random.choice(feedback_templates["low"])
 
-        rows.append({
-            "respondent_id": f"RESP-{i+1:04d}",
-            "nps_score": score,
-            "open_text": text,
-            "segment": random.choice(segments),
-            "timestamp": random_timestamp(random.choice(dates)),
-        })
+        rows.append(
+            {
+                "respondent_id": f"RESP-{i + 1:04d}",
+                "nps_score": score,
+                "open_text": text,
+                "segment": random.choice(segments),
+                "timestamp": random_timestamp(random.choice(dates)),
+            }
+        )
 
     rows.sort(key=lambda r: r["timestamp"])
     write_csv("survey_responses.csv", rows)
@@ -338,37 +381,74 @@ def generate_survey_responses() -> None:
 # 7. search_console.csv — 1000 rows of GSC keyword data
 # ---------------------------------------------------------------------------
 
+
 def generate_search_console() -> None:
     queries = [
-        "marketing analytics tool", "marketing dashboard", "campaign analytics",
-        "customer segmentation software", "clv calculator", "funnel analysis tool",
-        "email marketing analytics", "attribution modeling", "marketing mix model",
-        "ab testing platform", "conversion rate optimization", "cro tool",
-        "paid media analytics", "google ads reporting", "meta ads dashboard",
-        "seo analytics", "content performance tracking", "social media analytics",
-        "marketing roi calculator", "customer lifetime value",
-        "how to calculate clv", "best marketing analytics tools 2025",
-        "marketing analytics for startups", "saas marketing metrics",
-        "ecommerce analytics", "retention analytics", "churn prediction tool",
-        "marketing data warehouse", "campaign performance report",
-        "multi-touch attribution", "first-touch attribution",
-        "incrementality testing", "marketing experimentation",
-        "email deliverability analytics", "nps analysis tool",
-        "voice of customer analytics", "competitive intelligence marketing",
-        "marketing compliance", "gdpr marketing analytics",
-        "marketing automation analytics", "lead scoring model",
-        "ppc analytics", "sem reporting tool", "display ads analytics",
-        "remarketing analytics", "lookalike audience optimization",
-        "landing page optimization", "form conversion rate",
-        "checkout abandonment analysis", "cart abandonment rate",
+        "marketing analytics tool",
+        "marketing dashboard",
+        "campaign analytics",
+        "customer segmentation software",
+        "clv calculator",
+        "funnel analysis tool",
+        "email marketing analytics",
+        "attribution modeling",
+        "marketing mix model",
+        "ab testing platform",
+        "conversion rate optimization",
+        "cro tool",
+        "paid media analytics",
+        "google ads reporting",
+        "meta ads dashboard",
+        "seo analytics",
+        "content performance tracking",
+        "social media analytics",
+        "marketing roi calculator",
+        "customer lifetime value",
+        "how to calculate clv",
+        "best marketing analytics tools 2025",
+        "marketing analytics for startups",
+        "saas marketing metrics",
+        "ecommerce analytics",
+        "retention analytics",
+        "churn prediction tool",
+        "marketing data warehouse",
+        "campaign performance report",
+        "multi-touch attribution",
+        "first-touch attribution",
+        "incrementality testing",
+        "marketing experimentation",
+        "email deliverability analytics",
+        "nps analysis tool",
+        "voice of customer analytics",
+        "competitive intelligence marketing",
+        "marketing compliance",
+        "gdpr marketing analytics",
+        "marketing automation analytics",
+        "lead scoring model",
+        "ppc analytics",
+        "sem reporting tool",
+        "display ads analytics",
+        "remarketing analytics",
+        "lookalike audience optimization",
+        "landing page optimization",
+        "form conversion rate",
+        "checkout abandonment analysis",
+        "cart abandonment rate",
     ]
 
     pages = [
-        "/", "/features", "/pricing", "/blog/clv-guide",
-        "/blog/segmentation-101", "/blog/funnel-optimization",
-        "/blog/attribution-explained", "/blog/ab-testing-guide",
-        "/docs/getting-started", "/docs/api-reference",
-        "/case-studies", "/integrations",
+        "/",
+        "/features",
+        "/pricing",
+        "/blog/clv-guide",
+        "/blog/segmentation-101",
+        "/blog/funnel-optimization",
+        "/blog/attribution-explained",
+        "/blog/ab-testing-guide",
+        "/docs/getting-started",
+        "/docs/api-reference",
+        "/case-studies",
+        "/integrations",
     ]
 
     dates = date_range("2025-10-01", 90)
@@ -384,15 +464,17 @@ def generate_search_console() -> None:
         ctr = round(min(1.0, base_ctr * random.uniform(0.5, 1.5)), 4)
         clicks = max(0, int(impressions * ctr))
 
-        rows.append({
-            "query": query,
-            "page": page,
-            "clicks": clicks,
-            "impressions": impressions,
-            "ctr": ctr,
-            "position": position,
-            "date": random.choice(dates),
-        })
+        rows.append(
+            {
+                "query": query,
+                "page": page,
+                "clicks": clicks,
+                "impressions": impressions,
+                "ctr": ctr,
+                "position": position,
+                "date": random.choice(dates),
+            }
+        )
 
     rows.sort(key=lambda r: r["date"])
     write_csv("search_console.csv", rows)
@@ -401,6 +483,7 @@ def generate_search_console() -> None:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     print("Generating sample datasets...")

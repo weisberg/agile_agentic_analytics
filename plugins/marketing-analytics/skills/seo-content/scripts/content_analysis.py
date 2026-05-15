@@ -30,9 +30,9 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field, asdict
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -254,11 +254,7 @@ def detect_content_decay(
 
     # Aggregate clicks by page and week
     recent_df["week"] = recent_df["date"].dt.to_period("W")
-    weekly = (
-        recent_df.groupby(["page", "week"])
-        .agg(weekly_clicks=("clicks", "sum"))
-        .reset_index()
-    )
+    weekly = recent_df.groupby(["page", "week"]).agg(weekly_clicks=("clicks", "sum")).reset_index()
 
     # Sort weeks for each page
     weekly["week_start"] = weekly["week"].apply(lambda w: w.start_time)
@@ -272,9 +268,7 @@ def detect_content_decay(
                 "title": str(row.get("title", "")),
                 "category": str(row.get("category", "")),
                 "publish_date": (
-                    row["publish_date"].strftime("%Y-%m-%d")
-                    if pd.notna(row.get("publish_date"))
-                    else None
+                    row["publish_date"].strftime("%Y-%m-%d") if pd.notna(row.get("publish_date")) else None
                 ),
             }
 
@@ -306,7 +300,9 @@ def detect_content_decay(
             continue
 
         # Current: last 2 weeks
-        current_clicks = float(clicks_series[-2] + clicks_series[-1]) if len(clicks_series) >= 2 else float(clicks_series[-1])
+        current_clicks = (
+            float(clicks_series[-2] + clicks_series[-1]) if len(clicks_series) >= 2 else float(clicks_series[-1])
+        )
 
         if peak_clicks == 0:
             continue
@@ -395,16 +391,20 @@ def identify_underperformers(
     # Bucket positions into integer ranges and compute average CTR per bucket
     eligible["position_bucket"] = eligible["avg_position"].round(0).clip(1, 100).astype(int)
 
-    position_ctr_curve = (
-        eligible.groupby("position_bucket")["ctr"]
-        .mean()
-        .to_dict()
-    )
+    position_ctr_curve = eligible.groupby("position_bucket")["ctr"].mean().to_dict()
 
     # Fallback CTR curve based on industry benchmarks for positions not in data
     default_ctr_curve = {
-        1: 0.30, 2: 0.15, 3: 0.10, 4: 0.07, 5: 0.05,
-        6: 0.04, 7: 0.03, 8: 0.025, 9: 0.02, 10: 0.015,
+        1: 0.30,
+        2: 0.15,
+        3: 0.10,
+        4: 0.07,
+        5: 0.05,
+        6: 0.04,
+        7: 0.03,
+        8: 0.025,
+        9: 0.02,
+        10: 0.015,
     }
 
     def get_expected_ctr(position: float) -> float:
@@ -506,9 +506,7 @@ def score_content_freshness(
     else:
         traffic_norm = 0.0
 
-    result["update_priority_score"] = (
-        result["freshness_score"] * 0.5 + traffic_norm * 0.5
-    )
+    result["update_priority_score"] = result["freshness_score"] * 0.5 + traffic_norm * 0.5
 
     # Assign priority labels
     def priority_label(score: float) -> str:
@@ -522,8 +520,12 @@ def score_content_freshness(
     result["update_priority"] = result["update_priority_score"].apply(priority_label)
 
     output_cols = [
-        "url", "title", "days_since_publish",
-        "current_monthly_clicks", "freshness_score", "update_priority",
+        "url",
+        "title",
+        "days_since_publish",
+        "current_monthly_clicks",
+        "freshness_score",
+        "update_priority",
     ]
     # Keep only columns that exist
     output_cols = [c for c in output_cols if c in result.columns]
@@ -674,9 +676,7 @@ def run_content_analysis(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Content performance analysis"
-    )
+    parser = argparse.ArgumentParser(description="Content performance analysis")
     parser.add_argument("--gsc-input", default="workspace/raw/search_console.csv")
     parser.add_argument("--inventory", default="workspace/raw/content_inventory.csv")
     parser.add_argument("--web-metrics", default="workspace/processed/web_metrics.json")

@@ -18,13 +18,12 @@ import hashlib
 import json
 import logging
 import uuid
-from dataclasses import asdict, dataclass, field
-from datetime import date, datetime
+from dataclasses import dataclass, field
+from datetime import date
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -147,28 +146,22 @@ _RECOMMENDED_ACTIONS: dict[AlertCategory, str] = {
         "Assess whether competitor is entering a new topic area."
     ),
     AlertCategory.AD_COPY_CHANGE: (
-        "Analyze updated ad copy for new messaging angles, offers, or CTAs. "
-        "Consider A/B testing counter-messaging."
+        "Analyze updated ad copy for new messaging angles, offers, or CTAs. Consider A/B testing counter-messaging."
     ),
     AlertCategory.TRAFFIC_SHIFT: (
-        "Investigate traffic source changes. Check for new backlinks, "
-        "content launches, or paid campaign ramps."
+        "Investigate traffic source changes. Check for new backlinks, content launches, or paid campaign ramps."
     ),
     AlertCategory.PRICING_CHANGE: (
-        "Evaluate pricing competitiveness. Assess impact on win rates "
-        "and consider strategic pricing response."
+        "Evaluate pricing competitiveness. Assess impact on win rates and consider strategic pricing response."
     ),
     AlertCategory.SOV_SHIFT: (
-        "Analyze which channels are driving the SOV shift. "
-        "Prioritize investment in channels where share is declining."
+        "Analyze which channels are driving the SOV shift. Prioritize investment in channels where share is declining."
     ),
     AlertCategory.SOCIAL_SPIKE: (
-        "Monitor for viral content or campaign launches. "
-        "Identify shareable content themes to replicate."
+        "Monitor for viral content or campaign launches. Identify shareable content themes to replicate."
     ),
     AlertCategory.OFFER_CHANGE: (
-        "Review new promotional offers and assess competitive impact. "
-        "Consider matching or differentiating response."
+        "Review new promotional offers and assess competitive impact. Consider matching or differentiating response."
     ),
 }
 
@@ -340,10 +333,7 @@ def detect_new_keyword_targeting(
                         calculate_pct_change(float(len(current_set)), float(len(previous_set))),
                         2,
                     ),
-                    description=(
-                        f"{comp} started ranking for {new_count} new keywords. "
-                        f"Sample: {sample_str}"
-                    ),
+                    description=(f"{comp} started ranking for {new_count} new keywords. Sample: {sample_str}"),
                     detected_date=date.today().isoformat(),
                     data_source="keyword_gap.json",
                     recommended_action=_RECOMMENDED_ACTIONS[AlertCategory.NEW_KEYWORDS],
@@ -372,10 +362,7 @@ def detect_ad_creative_changes(
 
     def _hash_creative(creative: dict[str, Any]) -> str:
         """Create a stable hash of a creative record."""
-        content = "|".join(
-            str(creative.get(k, ""))
-            for k in sorted(["headline", "description", "offer", "url"])
-        )
+        content = "|".join(str(creative.get(k, "")) for k in sorted(["headline", "description", "offer", "url"]))
         return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     all_competitors = set(current_creatives.keys()) | set(previous_creatives.keys())
@@ -408,8 +395,7 @@ def detect_ad_creative_changes(
                         2,
                     ),
                     description=(
-                        f"{comp}: {len(new_creatives)} new ad creatives detected, "
-                        f"{len(removed_creatives)} removed."
+                        f"{comp}: {len(new_creatives)} new ad creatives detected, {len(removed_creatives)} removed."
                     ),
                     detected_date=date.today().isoformat(),
                     data_source="ad_creative_monitoring",
@@ -517,8 +503,8 @@ def load_landscape_data(filepath: Path) -> dict[str, Any]:
             data = json.load(f)
     except FileNotFoundError:
         logger.warning(
-            "Landscape data not found at %s. Returning empty data "
-            "(graceful degradation).", filepath,
+            "Landscape data not found at %s. Returning empty data (graceful degradation).",
+            filepath,
         )
         return {}
 
@@ -566,13 +552,9 @@ def run_alerting(
     # Remove non-competitor meta keys
     meta_keys = {"_raw", "methodology_notes", "analysis_date"}
     if isinstance(current_competitors, dict):
-        current_competitors = {
-            k: v for k, v in current_competitors.items() if k not in meta_keys
-        }
+        current_competitors = {k: v for k, v in current_competitors.items() if k not in meta_keys}
     if isinstance(previous_competitors, dict):
-        previous_competitors = {
-            k: v for k, v in previous_competitors.items() if k not in meta_keys
-        }
+        previous_competitors = {k: v for k, v in previous_competitors.items() if k not in meta_keys}
 
     all_comp_names = set()
     if isinstance(current_competitors, dict):
@@ -581,9 +563,7 @@ def run_alerting(
         all_comp_names |= set(previous_competitors.keys())
 
     # Build threshold lookup by metric name
-    threshold_by_metric: dict[str, AlertThreshold] = {
-        t.metric_name: t for t in thresholds
-    }
+    threshold_by_metric: dict[str, AlertThreshold] = {t.metric_name: t for t in thresholds}
 
     # Metrics to check on each competitor record
     sov_metrics = [
@@ -597,14 +577,8 @@ def run_alerting(
     ]
 
     for comp in all_comp_names:
-        current_entry = (
-            current_competitors.get(comp, {})
-            if isinstance(current_competitors, dict) else {}
-        )
-        previous_entry = (
-            previous_competitors.get(comp, {})
-            if isinstance(previous_competitors, dict) else {}
-        )
+        current_entry = current_competitors.get(comp, {}) if isinstance(current_competitors, dict) else {}
+        previous_entry = previous_competitors.get(comp, {}) if isinstance(previous_competitors, dict) else {}
 
         if not isinstance(current_entry, dict) or not isinstance(previous_entry, dict):
             continue
@@ -644,17 +618,11 @@ def run_alerting(
         if isinstance(c_entry, dict) and "keywords" in c_entry:
             kw_data = c_entry["keywords"]
             if isinstance(kw_data, list):
-                current_kw[comp] = [
-                    (kw.get("keyword", kw) if isinstance(kw, dict) else str(kw))
-                    for kw in kw_data
-                ]
+                current_kw[comp] = [(kw.get("keyword", kw) if isinstance(kw, dict) else str(kw)) for kw in kw_data]
         if isinstance(p_entry, dict) and "keywords" in p_entry:
             kw_data = p_entry["keywords"]
             if isinstance(kw_data, list):
-                previous_kw[comp] = [
-                    (kw.get("keyword", kw) if isinstance(kw, dict) else str(kw))
-                    for kw in kw_data
-                ]
+                previous_kw[comp] = [(kw.get("keyword", kw) if isinstance(kw, dict) else str(kw)) for kw in kw_data]
 
     if current_kw or previous_kw:
         kw_alerts = detect_new_keyword_targeting(current_kw, previous_kw)
@@ -697,9 +665,7 @@ def run_alerting(
         AlertLevel.MEDIUM: 2,
         AlertLevel.LOW: 3,
     }
-    all_alerts.sort(
-        key=lambda a: (severity_order.get(a.alert_level, 99), -abs(a.pct_change))
-    )
+    all_alerts.sort(key=lambda a: (severity_order.get(a.alert_level, 99), -abs(a.pct_change)))
 
     # Build report
     competitors_with_alerts = sorted(set(a.competitor for a in all_alerts))
@@ -730,20 +696,22 @@ def export_alerts(
     """
     alerts_data = []
     for a in report.alerts:
-        alerts_data.append({
-            "alert_id": a.alert_id,
-            "competitor": a.competitor,
-            "category": a.category.value,
-            "alert_level": a.alert_level.value,
-            "metric_name": a.metric_name,
-            "previous_value": a.previous_value,
-            "current_value": a.current_value,
-            "pct_change": a.pct_change,
-            "description": a.description,
-            "detected_date": a.detected_date,
-            "data_source": a.data_source,
-            "recommended_action": a.recommended_action,
-        })
+        alerts_data.append(
+            {
+                "alert_id": a.alert_id,
+                "competitor": a.competitor,
+                "category": a.category.value,
+                "alert_level": a.alert_level.value,
+                "metric_name": a.metric_name,
+                "previous_value": a.previous_value,
+                "current_value": a.current_value,
+                "pct_change": a.pct_change,
+                "description": a.description,
+                "detected_date": a.detected_date,
+                "data_source": a.data_source,
+                "recommended_action": a.recommended_action,
+            }
+        )
 
     output = {
         "analysis_date": report.analysis_date,
@@ -766,9 +734,7 @@ def export_alerts(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Competitive change detection and alerting"
-    )
+    parser = argparse.ArgumentParser(description="Competitive change detection and alerting")
     parser.add_argument(
         "--current-data",
         type=Path,

@@ -10,22 +10,15 @@ import math
 import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 # Make the scripts directory importable.
 _SCRIPTS_DIR = (
-    Path(__file__).resolve().parents[2]
-    / "plugins"
-    / "marketing-analytics"
-    / "skills"
-    / "funnel-analysis"
-    / "scripts"
+    Path(__file__).resolve().parents[2] / "plugins" / "marketing-analytics" / "skills" / "funnel-analysis" / "scripts"
 )
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from funnel_stats import (
-    BottleneckScore,
     FunnelStats,
     StageStats,
     WilsonInterval,
@@ -38,6 +31,7 @@ from funnel_stats import (
 # ---------------------------------------------------------------------------
 # test_wilson_score_interval  -- validates against known values
 # ---------------------------------------------------------------------------
+
 
 class TestWilsonScoreInterval:
     """Validate the Wilson score CI against analytically known values."""
@@ -93,6 +87,7 @@ class TestWilsonScoreInterval:
 # test_wilson_edge_cases  -- 0% and 100% conversion
 # ---------------------------------------------------------------------------
 
+
 class TestWilsonEdgeCases:
     """Edge case handling for boundary proportions."""
 
@@ -143,6 +138,7 @@ class TestWilsonEdgeCases:
 # test_bottleneck_ranking  -- validates scoring formula
 # ---------------------------------------------------------------------------
 
+
 def _make_funnel_stats(stage_data: list[tuple[str, int, int]]) -> FunnelStats:
     """Build a FunnelStats from a list of (name, entered, converted) tuples."""
     stages = []
@@ -150,15 +146,17 @@ def _make_funnel_stats(stage_data: list[tuple[str, int, int]]) -> FunnelStats:
         dropped = entered - converted
         drop_rate = dropped / entered if entered > 0 else 0.0
         conv_rate = converted / entered if entered > 0 else 0.0
-        stages.append(StageStats(
-            stage_index=i,
-            stage_name=name,
-            entered=entered,
-            converted=converted,
-            dropped=dropped,
-            conversion_rate=WilsonInterval(conv_rate, 0, 1, 0.95, entered, converted),
-            drop_off_rate=WilsonInterval(drop_rate, 0, 1, 0.95, entered, dropped),
-        ))
+        stages.append(
+            StageStats(
+                stage_index=i,
+                stage_name=name,
+                entered=entered,
+                converted=converted,
+                dropped=dropped,
+                conversion_rate=WilsonInterval(conv_rate, 0, 1, 0.95, entered, converted),
+                drop_off_rate=WilsonInterval(drop_rate, 0, 1, 0.95, entered, dropped),
+            )
+        )
 
     total_entered = stage_data[0][1] if stage_data else 0
     total_completed = stage_data[-1][2] if stage_data else 0
@@ -177,12 +175,14 @@ class TestBottleneckRanking:
 
     def test_rank_ordering(self):
         """Stage with highest composite score should be rank 1."""
-        fs = _make_funnel_stats([
-            ("Visit", 1000, 800),    # 20% drop-off
-            ("Cart", 800, 400),      # 50% drop-off  <-- worst bottleneck
-            ("Checkout", 400, 350),   # 12.5% drop-off
-            ("Purchase", 350, 350),   # final stage, not ranked
-        ])
+        fs = _make_funnel_stats(
+            [
+                ("Visit", 1000, 800),  # 20% drop-off
+                ("Cart", 800, 400),  # 50% drop-off  <-- worst bottleneck
+                ("Checkout", 400, 350),  # 12.5% drop-off
+                ("Purchase", 350, 350),  # final stage, not ranked
+            ]
+        )
         bottlenecks = rank_bottlenecks(fs)
 
         assert bottlenecks[0].stage_name == "Cart"
@@ -190,11 +190,13 @@ class TestBottleneckRanking:
 
     def test_composite_formula(self):
         """Verify the formula: drop_off * sqrt(volume) * revenue_proximity."""
-        fs = _make_funnel_stats([
-            ("A", 1000, 600),  # drop_off=0.4, volume=1000, prox=1/3
-            ("B", 600, 500),   # drop_off=0.167, volume=600, prox=1/2
-            ("C", 500, 500),   # final stage
-        ])
+        fs = _make_funnel_stats(
+            [
+                ("A", 1000, 600),  # drop_off=0.4, volume=1000, prox=1/3
+                ("B", 600, 500),  # drop_off=0.167, volume=600, prox=1/2
+                ("C", 500, 500),  # final stage
+            ]
+        )
         bottlenecks = rank_bottlenecks(fs)
 
         a_score = bottlenecks[0] if bottlenecks[0].stage_name == "A" else bottlenecks[1]
@@ -209,12 +211,14 @@ class TestBottleneckRanking:
         assert len(bottlenecks) == 0
 
     def test_all_ranks_unique(self):
-        fs = _make_funnel_stats([
-            ("A", 1000, 800),
-            ("B", 800, 500),
-            ("C", 500, 300),
-            ("D", 300, 300),
-        ])
+        fs = _make_funnel_stats(
+            [
+                ("A", 1000, 800),
+                ("B", 800, 500),
+                ("C", 500, 300),
+                ("D", 300, 300),
+            ]
+        )
         bottlenecks = rank_bottlenecks(fs)
         ranks = [b.rank for b in bottlenecks]
         assert ranks == sorted(ranks)
@@ -224,6 +228,7 @@ class TestBottleneckRanking:
 # ---------------------------------------------------------------------------
 # test_chi_squared_comparison
 # ---------------------------------------------------------------------------
+
 
 class TestChiSquaredComparison:
     """Validates significant vs. non-significant differences."""
@@ -279,9 +284,14 @@ class TestChiSquaredComparison:
     def test_validation_errors(self):
         with pytest.raises(ValueError):
             chi_squared_comparison(
-                stage_name="X", stage_index=0,
-                cohort_a_name="A", cohort_a_converted=200, cohort_a_total=100,
-                cohort_b_name="B", cohort_b_converted=50, cohort_b_total=100,
+                stage_name="X",
+                stage_index=0,
+                cohort_a_name="A",
+                cohort_a_converted=200,
+                cohort_a_total=100,
+                cohort_b_name="B",
+                cohort_b_converted=50,
+                cohort_b_total=100,
             )
 
     def test_small_sample_yates_correction(self):

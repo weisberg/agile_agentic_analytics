@@ -65,7 +65,14 @@ def fit_piecewise_regression(
     values = series.astype(float).tolist()
     days = list(range(len(values)))
     if len(values) < 4:
-        return {"breakpoint": 0, "plateau_slope": 0.0, "plateau_intercept": values[0] if values else 0.0, "decay_slope": 0.0, "decay_intercept": values[-1] if values else 0.0, "residual_ss": 0.0}
+        return {
+            "breakpoint": 0,
+            "plateau_slope": 0.0,
+            "plateau_intercept": values[0] if values else 0.0,
+            "decay_slope": 0.0,
+            "decay_intercept": values[-1] if values else 0.0,
+            "residual_ss": 0.0,
+        }
 
     def fit_line(xs: list[int], ys: list[float]) -> tuple[float, float, float]:
         mean_x = sum(xs) / len(xs)
@@ -90,7 +97,14 @@ def fit_piecewise_regression(
         }
         if best is None or candidate["residual_ss"] < best["residual_ss"]:
             best = candidate
-    return best or {"breakpoint": 0, "plateau_slope": 0.0, "plateau_intercept": values[0], "decay_slope": 0.0, "decay_intercept": values[-1], "residual_ss": 0.0}
+    return best or {
+        "breakpoint": 0,
+        "plateau_slope": 0.0,
+        "plateau_intercept": values[0],
+        "decay_slope": 0.0,
+        "decay_intercept": values[-1],
+        "residual_ss": 0.0,
+    }
 
 
 def compute_fatigue_score(
@@ -132,7 +146,9 @@ def generate_recommendation(
     projected_days: Optional[int],
     frequency: Optional[float],
 ) -> str:
-    if fatigue_score > FATIGUE_THRESHOLD_IMMEDIATE or (projected_days is not None and projected_days <= PROJECTION_HORIZON_DAYS):
+    if fatigue_score > FATIGUE_THRESHOLD_IMMEDIATE or (
+        projected_days is not None and projected_days <= PROJECTION_HORIZON_DAYS
+    ):
         return "Rotate immediately."
     if fatigue_score > FATIGUE_THRESHOLD_ROTATE:
         return "Queue replacement creative."

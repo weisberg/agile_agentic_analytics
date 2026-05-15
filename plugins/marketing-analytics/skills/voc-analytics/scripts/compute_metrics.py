@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Optional
@@ -36,6 +35,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ConfidenceInterval:
@@ -77,6 +77,7 @@ class NPSBreakdown:
 # NPS computation
 # ---------------------------------------------------------------------------
 
+
 def classify_nps_responses(
     scores: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -95,10 +96,7 @@ def classify_nps_responses(
     if scores.size == 0:
         raise ValueError("Scores array must not be empty.")
     if np.any((scores < 0) | (scores > 10)):
-        raise ValueError(
-            "All scores must be in the 0-10 range. "
-            f"Found min={scores.min()}, max={scores.max()}."
-        )
+        raise ValueError(f"All scores must be in the 0-10 range. Found min={scores.min()}, max={scores.max()}.")
     is_promoter = scores >= 9
     is_passive = (scores >= 7) & (scores <= 8)
     is_detractor = scores <= 6
@@ -185,9 +183,7 @@ def bootstrap_nps_ci(
     if n_bootstrap < 1000:
         raise ValueError(f"n_bootstrap must be >= 1000, got {n_bootstrap}.")
     if not (0 < confidence_level < 1):
-        raise ValueError(
-            f"confidence_level must be in (0, 1), got {confidence_level}."
-        )
+        raise ValueError(f"confidence_level must be in (0, 1), got {confidence_level}.")
 
     scores = np.asarray(scores)
     n = len(scores)
@@ -196,9 +192,7 @@ def bootstrap_nps_ci(
 
     # Generate bootstrap NPS distribution
     boot_indices = rng.integers(0, n, size=(n_bootstrap, n))
-    boot_nps = np.array([
-        _compute_nps_from_scores(scores[idx]) for idx in boot_indices
-    ])
+    boot_nps = np.array([_compute_nps_from_scores(scores[idx]) for idx in boot_indices])
 
     if method == "bca":
         # Bias-corrected and accelerated bootstrap
@@ -216,12 +210,12 @@ def bootstrap_nps_ci(
         # Acceleration factor a (jackknife)
         jackknife_nps = np.empty(n)
         for i in range(n):
-            jack_sample = np.concatenate([scores[:i], scores[i + 1:]])
+            jack_sample = np.concatenate([scores[:i], scores[i + 1 :]])
             jackknife_nps[i] = _compute_nps_from_scores(jack_sample)
         jack_mean = jackknife_nps.mean()
         jack_diff = jack_mean - jackknife_nps
-        numerator = np.sum(jack_diff ** 3)
-        denominator = 6.0 * (np.sum(jack_diff ** 2)) ** 1.5
+        numerator = np.sum(jack_diff**3)
+        denominator = 6.0 * (np.sum(jack_diff**2)) ** 1.5
         a = numerator / denominator if denominator != 0 else 0.0
 
         # Adjusted percentiles
@@ -261,6 +255,7 @@ def bootstrap_nps_ci(
 # CSAT computation
 # ---------------------------------------------------------------------------
 
+
 def compute_csat(
     scores: np.ndarray,
     scale_max: int = 5,
@@ -286,9 +281,7 @@ def compute_csat(
     if scores.size == 0:
         raise ValueError("Scores array must not be empty.")
     if top_box >= scale_max:
-        raise ValueError(
-            f"top_box ({top_box}) must be less than scale_max ({scale_max})."
-        )
+        raise ValueError(f"top_box ({top_box}) must be less than scale_max ({scale_max}).")
     threshold = scale_max - top_box + 1
     satisfied = np.sum(scores >= threshold)
     return float(satisfied / len(scores) * 100)
@@ -323,10 +316,7 @@ def bootstrap_csat_ci(
     boot_indices = rng.integers(0, n, size=(n_bootstrap, n))
     threshold = scale_max - top_box + 1
 
-    boot_csat = np.array([
-        np.sum(scores[idx] >= threshold) / n * 100
-        for idx in boot_indices
-    ])
+    boot_csat = np.array([np.sum(scores[idx] >= threshold) / n * 100 for idx in boot_indices])
 
     lower = float(np.percentile(boot_csat, alpha / 2 * 100))
     upper = float(np.percentile(boot_csat, (1 - alpha / 2) * 100))
@@ -342,6 +332,7 @@ def bootstrap_csat_ci(
 # ---------------------------------------------------------------------------
 # CES computation
 # ---------------------------------------------------------------------------
+
 
 def compute_ces(scores: np.ndarray) -> float:
     """Compute Customer Effort Score as the arithmetic mean.
@@ -404,6 +395,7 @@ def bootstrap_ces_ci(
 # Orchestration
 # ---------------------------------------------------------------------------
 
+
 def load_survey_data(filepath: Path) -> pd.DataFrame:
     """Load and validate survey response data from CSV.
 
@@ -428,10 +420,7 @@ def load_survey_data(filepath: Path) -> pd.DataFrame:
     required_cols = {"respondent_id", "question_id", "response", "score", "timestamp"}
     missing = required_cols - set(df.columns)
     if missing:
-        raise ValueError(
-            f"Missing required columns: {missing}. "
-            f"Found columns: {list(df.columns)}"
-        )
+        raise ValueError(f"Missing required columns: {missing}. Found columns: {list(df.columns)}")
 
     # Parse timestamps
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -599,7 +588,10 @@ def compute_all_metrics(
         except (ValueError, Exception) as exc:
             logger.warning(
                 "Skipping %s for period=%s, segment=%s: %s",
-                metric_name, period, segment, exc,
+                metric_name,
+                period,
+                segment,
+                exc,
             )
 
     for metric_name, metric_df in metric_configs:
@@ -617,18 +609,13 @@ def compute_all_metrics(
                 _process_group(metric_name, per_df, period=str(per_name))
 
         # By segment x period
-        if (
-            segment_col
-            and period_col
-            and segment_col in metric_df.columns
-            and period_col in metric_df.columns
-        ):
-            for (seg, per), grp_df in metric_df.groupby(
-                [segment_col, period_col]
-            ):
+        if segment_col and period_col and segment_col in metric_df.columns and period_col in metric_df.columns:
+            for (seg, per), grp_df in metric_df.groupby([segment_col, period_col]):
                 _process_group(
-                    metric_name, grp_df,
-                    period=str(per), segment=str(seg),
+                    metric_name,
+                    grp_df,
+                    period=str(per),
+                    segment=str(seg),
                 )
 
     return results
@@ -659,6 +646,7 @@ def write_results(results: list[MetricResult], output_path: Path) -> None:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     """Parse command-line arguments.
 
@@ -668,9 +656,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     Returns:
         Parsed arguments namespace.
     """
-    parser = argparse.ArgumentParser(
-        description="Compute NPS, CSAT, and CES with bootstrap CIs."
-    )
+    parser = argparse.ArgumentParser(description="Compute NPS, CSAT, and CES with bootstrap CIs.")
     parser.add_argument(
         "--input",
         type=Path,
@@ -716,9 +702,7 @@ def main(argv: Optional[list[str]] = None) -> None:
     logger.info("Loading survey data from %s", args.input)
     df = load_survey_data(args.input)
 
-    logger.info(
-        "Computing metrics with %d bootstrap iterations", args.n_bootstrap
-    )
+    logger.info("Computing metrics with %d bootstrap iterations", args.n_bootstrap)
     results = compute_all_metrics(
         df,
         n_bootstrap=args.n_bootstrap,

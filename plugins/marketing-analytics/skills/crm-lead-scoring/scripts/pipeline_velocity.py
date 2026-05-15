@@ -91,13 +91,15 @@ def compute_stage_conversion_rates(
             entered = int((group["_max_stage_idx"] >= i).sum())
             advanced = int((group["_max_stage_idx"] >= i + 1).sum())
             rate = advanced / entered if entered > 0 else 0.0
-            records.append({
-                "from_stage": from_stage,
-                "to_stage": to_stage,
-                "deals_entered": entered,
-                "deals_advanced": advanced,
-                "conversion_rate": round(rate, 4),
-            })
+            records.append(
+                {
+                    "from_stage": from_stage,
+                    "to_stage": to_stage,
+                    "deals_entered": entered,
+                    "deals_advanced": advanced,
+                    "conversion_rate": round(rate, 4),
+                }
+            )
         return records
 
     if period_column and period_column in deals.columns:
@@ -149,13 +151,15 @@ def detect_conversion_anomalies(
             drop_pct = (avg_rate - current_rate) * 100  # percentage points
             if drop_pct > threshold_pct:
                 severity = "critical" if drop_pct > threshold_pct * 2 else "warning"
-                anomalies.append({
-                    "stage": stage,
-                    "current_rate": round(float(current_rate), 4),
-                    "historical_avg": round(float(avg_rate), 4),
-                    "drop_pct": round(float(drop_pct), 2),
-                    "severity": severity,
-                })
+                anomalies.append(
+                    {
+                        "stage": stage,
+                        "current_rate": round(float(current_rate), 4),
+                        "historical_avg": round(float(avg_rate), 4),
+                        "drop_pct": round(float(drop_pct), 2),
+                        "severity": severity,
+                    }
+                )
 
     return anomalies
 
@@ -197,15 +201,17 @@ def compute_deal_cycle_times(
     if "created_date" in won.columns and "close_date" in won.columns:
         overall_days = (won["close_date"] - won["created_date"]).dt.days.dropna()
         if len(overall_days) > 0:
-            results.append({
-                "stage": "overall",
-                "median_days": float(overall_days.median()),
-                "p25_days": float(overall_days.quantile(0.25)),
-                "p75_days": float(overall_days.quantile(0.75)),
-                "p90_days": float(overall_days.quantile(0.90)),
-                "mean_days": float(overall_days.mean()),
-                "deal_count": int(len(overall_days)),
-            })
+            results.append(
+                {
+                    "stage": "overall",
+                    "median_days": float(overall_days.median()),
+                    "p25_days": float(overall_days.quantile(0.25)),
+                    "p75_days": float(overall_days.quantile(0.75)),
+                    "p90_days": float(overall_days.quantile(0.90)),
+                    "mean_days": float(overall_days.mean()),
+                    "deal_count": int(len(overall_days)),
+                }
+            )
 
     # Per-stage cycle times using stage history columns
     for i, stage in enumerate(stage_order):
@@ -223,20 +229,23 @@ def compute_deal_cycle_times(
             stage_days = stage_days[stage_days >= 0]
 
             if len(stage_days) > 0:
-                results.append({
-                    "stage": stage,
-                    "median_days": float(stage_days.median()),
-                    "p25_days": float(stage_days.quantile(0.25)),
-                    "p75_days": float(stage_days.quantile(0.75)),
-                    "p90_days": float(stage_days.quantile(0.90)),
-                    "mean_days": float(stage_days.mean()),
-                    "deal_count": int(len(stage_days)),
-                })
+                results.append(
+                    {
+                        "stage": stage,
+                        "median_days": float(stage_days.median()),
+                        "p25_days": float(stage_days.quantile(0.25)),
+                        "p75_days": float(stage_days.quantile(0.75)),
+                        "p90_days": float(stage_days.quantile(0.90)),
+                        "mean_days": float(stage_days.mean()),
+                        "deal_count": int(len(stage_days)),
+                    }
+                )
 
     if not results:
         # Fallback: return overall based on available data
-        return pd.DataFrame(columns=["stage", "median_days", "p25_days", "p75_days",
-                                      "p90_days", "mean_days", "deal_count"])
+        return pd.DataFrame(
+            columns=["stage", "median_days", "p25_days", "p75_days", "p90_days", "mean_days", "deal_count"]
+        )
 
     return pd.DataFrame(results)
 
@@ -310,17 +319,21 @@ def identify_stalled_deals(
         for idx, d in days_in.items():
             if pd.notna(d) and d > threshold:
                 row = stage_deals.loc[idx]
-                stalled_records.append({
-                    "deal_id": row.get("deal_id", row.get("lead_id", idx)),
-                    "stage": stage,
-                    "days_in_stage": int(d),
-                    "threshold_days": round(threshold, 1),
-                    "amount": float(row.get("amount", 0)),
-                    "owner": str(row.get("owner", "unknown")),
-                })
+                stalled_records.append(
+                    {
+                        "deal_id": row.get("deal_id", row.get("lead_id", idx)),
+                        "stage": stage,
+                        "days_in_stage": int(d),
+                        "threshold_days": round(threshold, 1),
+                        "amount": float(row.get("amount", 0)),
+                        "owner": str(row.get("owner", "unknown")),
+                    }
+                )
 
-    return pd.DataFrame(stalled_records) if stalled_records else pd.DataFrame(
-        columns=["deal_id", "stage", "days_in_stage", "threshold_days", "amount", "owner"]
+    return (
+        pd.DataFrame(stalled_records)
+        if stalled_records
+        else pd.DataFrame(columns=["deal_id", "stage", "days_in_stage", "threshold_days", "amount", "owner"])
     )
 
 
@@ -348,9 +361,7 @@ def compute_cycle_time_by_segment(
         Per-segment statistics: ``segment``, ``median_cycle_days``,
         ``mean_cycle_days``, ``deal_count``, ``win_rate``.
     """
-    closed = deals[
-        deals["outcome"].str.lower().isin(["won", "closed won", "lost", "closed lost", "1", "0"])
-    ].copy()
+    closed = deals[deals["outcome"].str.lower().isin(["won", "closed won", "lost", "closed lost", "1", "0"])].copy()
     closed["cycle_days"] = (closed["close_date"] - closed["created_date"]).dt.days
     closed["is_won"] = closed["outcome"].str.lower().isin(["won", "closed won", "1"])
 
@@ -358,13 +369,15 @@ def compute_cycle_time_by_segment(
     for segment, group in closed.groupby(segment_column):
         won_group = group[group["is_won"]]
         cycle_days = won_group["cycle_days"].dropna()
-        results.append({
-            "segment": segment,
-            "median_cycle_days": float(cycle_days.median()) if len(cycle_days) > 0 else None,
-            "mean_cycle_days": float(cycle_days.mean()) if len(cycle_days) > 0 else None,
-            "deal_count": int(len(group)),
-            "win_rate": round(float(group["is_won"].mean()), 4),
-        })
+        results.append(
+            {
+                "segment": segment,
+                "median_cycle_days": float(cycle_days.median()) if len(cycle_days) > 0 else None,
+                "mean_cycle_days": float(cycle_days.mean()) if len(cycle_days) > 0 else None,
+                "deal_count": int(len(group)),
+                "win_rate": round(float(group["is_won"].mean()), 4),
+            }
+        )
 
     return pd.DataFrame(results)
 
@@ -649,9 +662,22 @@ def compute_velocity_trend(
     deals = deals[deals["_period"].isin(periods_sorted)]
 
     deals["_is_won"] = deals["outcome"].str.lower().isin(["won", "closed won", "1", "true"])
-    deals["_is_closed"] = deals["outcome"].str.lower().isin([
-        "won", "closed won", "lost", "closed lost", "1", "0", "true", "false",
-    ])
+    deals["_is_closed"] = (
+        deals["outcome"]
+        .str.lower()
+        .isin(
+            [
+                "won",
+                "closed won",
+                "lost",
+                "closed lost",
+                "1",
+                "0",
+                "true",
+                "false",
+            ]
+        )
+    )
 
     if "close_date" in deals.columns:
         deals["close_date"] = pd.to_datetime(deals["close_date"], errors="coerce")
@@ -670,14 +696,16 @@ def compute_velocity_trend(
 
         velocity = compute_pipeline_velocity(n_opps, win_rate, avg_deal_size, avg_cycle)
 
-        results.append({
-            "period": p,
-            "n_opportunities": n_opps,
-            "win_rate": round(win_rate, 4),
-            "avg_deal_size": round(avg_deal_size, 2),
-            "avg_cycle_days": round(avg_cycle, 1),
-            "velocity": round(velocity, 2),
-        })
+        results.append(
+            {
+                "period": p,
+                "n_opportunities": n_opps,
+                "win_rate": round(win_rate, 4),
+                "avg_deal_size": round(avg_deal_size, 2),
+                "avg_cycle_days": round(avg_cycle, 1),
+                "velocity": round(velocity, 2),
+            }
+        )
 
     df = pd.DataFrame(results)
 
@@ -730,9 +758,7 @@ def forecast_weighted_revenue(
     # Filter deals expected to close within the window
     if "expected_close_date" in df.columns:
         df["expected_close_date"] = pd.to_datetime(df["expected_close_date"], errors="coerce")
-        in_window = df[
-            (df["expected_close_date"] <= window_end) | df["expected_close_date"].isna()
-        ]
+        in_window = df[(df["expected_close_date"] <= window_end) | df["expected_close_date"].isna()]
     else:
         in_window = df  # Include all if no expected_close_date
 
@@ -937,7 +963,11 @@ def run_pipeline_velocity_analysis(
         lead_to_opp = float(len(opps) / total_leads) if total_leads > 0 else 0.0
 
         gap = compute_pipeline_gap_analysis(
-            revenue_target, weighted["total_weighted"], avg_deal_size, win_rate, lead_to_opp,
+            revenue_target,
+            weighted["total_weighted"],
+            avg_deal_size,
+            win_rate,
+            lead_to_opp,
         )
         coverage["gap_analysis"] = gap
 
@@ -962,8 +992,15 @@ def run_pipeline_velocity_analysis(
 
     # 8. Generate output
     generate_pipeline_metrics_output(
-        conversion_rates, cycle_times, coverage, velocity,
-        velocity_trend, forecast, anomalies, stalled, output_path,
+        conversion_rates,
+        cycle_times,
+        coverage,
+        velocity,
+        velocity_trend,
+        forecast,
+        anomalies,
+        stalled,
+        output_path,
     )
 
     return {

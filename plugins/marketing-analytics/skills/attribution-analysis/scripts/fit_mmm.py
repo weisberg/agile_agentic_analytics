@@ -113,7 +113,9 @@ def validate_data(
     common_dates = spend_dates.intersection(conversion_dates)
     if common_dates.empty:
         errors.append("Spend and conversion data do not overlap on any dates.")
-    diffs = common_dates.to_series().diff().dropna().dt.days if len(common_dates) > 1 else pandas.Series(dtype="float64")
+    diffs = (
+        common_dates.to_series().diff().dropna().dt.days if len(common_dates) > 1 else pandas.Series(dtype="float64")
+    )
     median_diff = diffs.median() if not diffs.empty else 1
     grain = "weekly" if median_diff and median_diff >= 7 else "daily"
 
@@ -183,14 +185,10 @@ def prepare_features(
     spend["date"] = pandas.to_datetime(spend["date"])
     conversions["date"] = pandas.to_datetime(conversions["date"])
 
-    spend = (
-        spend.set_index("date")
-        .groupby("channel")["spend"]
-        .resample(frequency)
-        .sum()
-        .reset_index()
+    spend = spend.set_index("date").groupby("channel")["spend"].resample(frequency).sum().reset_index()
+    pivoted = (
+        spend.pivot_table(index="date", columns="channel", values="spend", aggfunc="sum").fillna(0.0).reset_index()
     )
-    pivoted = spend.pivot_table(index="date", columns="channel", values="spend", aggfunc="sum").fillna(0.0).reset_index()
 
     metric_columns = [column for column in ("conversions", "revenue") if column in conversions.columns]
     target_column = "revenue" if "revenue" in metric_columns else metric_columns[0]
@@ -209,7 +207,11 @@ def prepare_features(
     dataset = dataset.sort_values("date").fillna(method="ffill").fillna(0.0)
 
     y = dataset[target_column].copy()
-    X = dataset.drop(columns=[column for column in ("conversions", "revenue") if column in dataset.columns and column == target_column])
+    X = dataset.drop(
+        columns=[
+            column for column in ("conversions", "revenue") if column in dataset.columns and column == target_column
+        ]
+    )
     return X, y
 
 

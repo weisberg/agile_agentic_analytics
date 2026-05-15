@@ -32,6 +32,14 @@
       "version": "1.0.0",
       "keywords": ["experimentation", "ab-testing", "regulated-finance", "email-incrementality", "sequential-testing", "cuped", "causal-inference", "measurement-governance", "compliance"],
       "license": "MIT"
+    },
+    {
+      "name": "campaign-analysis",
+      "source": "./plugins/campaign-analysis",
+      "description": "Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.",
+      "version": "0.1.0",
+      "keywords": ["campaign-analysis", "campaign-performance", "marketing", "analytics", "measurement", "optimization", "reporting"],
+      "license": "MIT"
     }
   ]
 }

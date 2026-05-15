@@ -1,0 +1,18 @@
+{
+  "name": "campaign-analysis",
+  "description": "Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "license": "MIT",
+  "keywords": [
+    "campaign-analysis",
+    "campaign-performance",
+    "marketing",
+    "analytics",
+    "measurement",
+    "optimization",
+    "reporting"
+  ]
+}

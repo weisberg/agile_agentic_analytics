@@ -2,7 +2,7 @@
 
 ## Documentation Map
 
-This repository includes official Anthropic Claude Code documentation plus a marketing analytics product specification in `docs/`. Treat these files as source material when creating, changing, validating, or extending plugins and skills. The notes below summarize what each document is for and when to consult it.
+This repository includes official Anthropic Claude Code documentation, a marketing analytics product specification, and advanced skill-design notes in `docs/`. Treat these files as source material when creating, changing, validating, or extending plugins and skills. The notes below summarize what each document is for and when to consult it.
 
 | Document | Use It For | Key Sections |
 |----------|------------|--------------|
@@ -12,6 +12,9 @@ This repository includes official Anthropic Claude Code documentation plus a mar
 | `docs/HOOKS_REFERENCE.md` | Hook lifecycle and schema reference. Use this before adding plugin hooks, skill/agent hooks, or project hooks, and whenever a hook needs to block, approve, transform, notify, run async work, call MCP tools, or use prompt/agent-based evaluation. | Lifecycle; hook locations; matcher patterns; handler fields; stdin JSON input; exit-code and JSON output; all event schemas; prompt hooks; agent hooks; async hooks; security best practices; debugging hooks. |
 | `docs/TOOLS_REFERENCE.md` | Claude Code tool names and behavior. Use this when writing tool allow/deny rules, subagent `tools` or `disallowedTools`, hook matchers, permission settings, or tool-aware skill instructions. | Tool name table; permission requirements; Bash cwd/env behavior; LSP behavior; Monitor tool; PowerShell behavior; checking available tools. |
 | `docs/marketing_analytics_skill_specs.md` | Product and implementation specification for the marketing analytics portfolio. Use this when adding, revising, or validating marketing analytics skills, scripts, references, schemas, financial-services behavior, or cross-skill workflows. | SKILL.md format guidance; 15-skill portfolio; priority tiers; portfolio architecture; workspace directory structure; per-skill objectives, trigger descriptions, functional scope, data contracts, scripts, cross-skill integration, financial-services considerations, development guidelines, acceptance criteria; appendices for data contracts and interconnection matrix. |
+| `docs/ADVANCED_SKILLS.md` | Advanced design-pattern reference distilled from the gstack `SKILL.md` corpus. Use this when a skill needs more than basic instructions: routing, evidence gates, AskUserQuestion decisions, review chaining, browser QA, design review, release workflows, memory, safety hooks, or distinctive voice/style. | Core thesis; metadata conventions; generated preamble patterns; AskUserQuestion pattern; voice and prose style; completeness principle; evidence-first workflows; planning/design/browser/review/release/memory/safety patterns; skill-by-skill advanced feature map; authoring checklist. |
+| `templates/skills/COMPONENTS.md` | Index for reusable gstack-style skill and plugin workflow components. Use this before creating or refactoring a skill so the workflow has explicit routing, decision gates, evidence, outputs, safety, and persistence. | Directory structure; 12 type-based catalogs; component ranges 1-101; quick lookup by skill type; links to catalog files under `templates/skills/catalogs/`. |
+| `templates/skills/COMPONENT_SAMPLES.md` | Index for concrete snippets that implement the reusable components. Use this after choosing component types from `COMPONENTS.md` to find inline samples for frontmatter, decision briefs, review tables, evidence manifests, browser flows, release gates, and safety prompts. | Sample catalog index; links to catalog files; each numbered component section embeds its own `Sample`; copy/adapt workflow. |
 
 ### Documentation Usage Rules
 
@@ -20,7 +23,87 @@ This repository includes official Anthropic Claude Code documentation plus a mar
 - Use `docs/HOOKS_REFERENCE.md` before adding hooks or changing hook matchers. Hook event names and matcher semantics are case-sensitive and event-specific.
 - Use `docs/TOOLS_REFERENCE.md` whenever a config references tool names. Tool names in permissions, subagent frontmatter, and hook matchers must match Claude Code's canonical tool names.
 - Use `docs/marketing_analytics_skill_specs.md` as the product requirements document for the `marketing-analytics` plugin. It defines what each skill should do, what files it should read/write, and how skills compose.
+- Use `docs/ADVANCED_SKILLS.md` for advanced skill behavior and style choices before inventing new workflow machinery. It is the narrative companion to the reusable component catalogs in `templates/skills/`.
+- Use `templates/skills/COMPONENTS.md` and `templates/skills/COMPONENT_SAMPLES.md` when authoring skill behavior. The docs in `docs/` define Claude Code packaging and schema rules; the templates define reusable skill workflow patterns.
 - Keep `CLAUDE.md` as the compact operating index. Do not paste entire docs into it; link the relevant doc and summarize the current repo convention.
+
+## Docs Directory Guide
+
+Use the Markdown files in `docs/` as the authoritative reference set for plugin packaging, Claude Code behavior, and the marketing analytics skill portfolio.
+
+### Read Order By Task
+
+| Task | Read First | Then Read | Why |
+|------|------------|-----------|-----|
+| Create a new plugin | `docs/CREATE_PLUGINS.md` | `docs/PLUGINS_REFERENCE.md`, then `templates/skills/COMPONENTS.md` | Start with workflow, confirm manifest/path rules, then choose reusable skill behavior patterns. |
+| Convert standalone `.claude/` config into a plugin | `docs/CREATE_PLUGINS.md` | `docs/PLUGINS_REFERENCE.md` | The create guide covers migration shape; the reference covers cache, path, manifest, and versioning details. |
+| Add or revise a skill | `docs/marketing_analytics_skill_specs.md` for marketing skills, otherwise `docs/ADVANCED_SKILLS.md` | `templates/skills/COMPONENTS.md` and `templates/skills/COMPONENT_SAMPLES.md` | Product specs define scope; advanced docs and templates define workflow quality. |
+| Add a plugin subagent | `docs/CREATE_CUSTOM_SUBAGENTS.md` | `docs/TOOLS_REFERENCE.md`, `docs/PLUGINS_REFERENCE.md` | Subagent docs define frontmatter and delegation behavior; tools and plugin docs define allowed tool names and plugin packaging limits. |
+| Add hooks | `docs/HOOKS_REFERENCE.md` | `docs/TOOLS_REFERENCE.md`, `docs/PLUGINS_REFERENCE.md` | Hook docs define event schemas and decisions; tools and plugin docs prevent bad matcher/action names and path mistakes. |
+| Add MCP, LSP, monitors, settings, or `bin/` helpers | `docs/PLUGINS_REFERENCE.md` | `docs/TOOLS_REFERENCE.md` when tool names or permissions are involved | Plugin reference owns component schemas and path behavior. |
+| Validate allowed tools or permissions | `docs/TOOLS_REFERENCE.md` | `docs/CREATE_CUSTOM_SUBAGENTS.md` for agents, `docs/HOOKS_REFERENCE.md` for hooks | Tool names must be canonical in skills, agents, hooks, and permissions. |
+| Build the marketing analytics plugin portfolio | `docs/marketing_analytics_skill_specs.md` | `docs/ADVANCED_SKILLS.md`, `templates/skills/COMPONENTS.md` | The product spec defines the 15-skill system; the advanced skill docs define execution quality and reusable workflow machinery. |
+
+### File Roles
+
+| File | Role In This Repo |
+|------|-------------------|
+| `docs/CREATE_PLUGINS.md` | Practical "how do I make a plugin?" guide. Use for first-pass structure, local testing, adding skills/agents/hooks/MCP/LSP/monitors/settings, and standalone-to-plugin migration. |
+| `docs/PLUGINS_REFERENCE.md` | Deep schema and runtime reference. Use when exact manifest fields, path rules, cache behavior, install scopes, CLI commands, `userConfig`, `${CLAUDE_PLUGIN_ROOT}`, or `${CLAUDE_PLUGIN_DATA}` matter. |
+| `docs/CREATE_CUSTOM_SUBAGENTS.md` | Subagent guide. Use for agent frontmatter, delegation descriptions, scoped tools, model/effort choices, foreground/background behavior, context management, and examples. |
+| `docs/HOOKS_REFERENCE.md` | Hook reference. Use for lifecycle events, matcher syntax, command/http/mcp/prompt/agent hooks, stdin JSON, exit codes, async behavior, and blocking/approval decisions. |
+| `docs/TOOLS_REFERENCE.md` | Tool and permission reference. Use for canonical tool names, permission requirements, Bash behavior, LSP behavior, Monitor behavior, and tool availability. |
+| `docs/marketing_analytics_skill_specs.md` | Product requirements for this repository's marketing analytics plugin family. Use for skill objectives, trigger phrases, data contracts, cross-skill dependencies, output paths, financial-services mode, and acceptance criteria. |
+| `docs/ADVANCED_SKILLS.md` | Advanced skill-design reference. Use for gstack-style skill architecture, voice, evidence gates, decision briefs, planning/review/design/browser/QA/release/memory/safety patterns, and authoring checklists. |
+
+### Pairing Rules
+
+- Pair `docs/CREATE_PLUGINS.md` with `docs/PLUGINS_REFERENCE.md` for any plugin work: the first gives the workflow, the second gives the exact rules.
+- Pair `docs/CREATE_CUSTOM_SUBAGENTS.md` with `docs/TOOLS_REFERENCE.md` for agent work: subagents are only reliable when tool restrictions use canonical names.
+- Pair `docs/HOOKS_REFERENCE.md` with `docs/TOOLS_REFERENCE.md` for hook work: hook matchers and tool names are both strict.
+- Pair `docs/marketing_analytics_skill_specs.md` with `templates/skills/catalogs/` when implementing a marketing analytics skill: the spec defines what the skill must do, the catalogs define reusable execution patterns.
+- Pair `docs/ADVANCED_SKILLS.md` with `templates/skills/COMPONENTS.md` when designing new skill workflows: `ADVANCED_SKILLS.md` explains the style and philosophy, while the component catalogs provide reusable pieces and samples.
+
+## Skill And Plugin Component Templates
+
+The reusable skill architecture lives under `templates/skills/`. Treat these files as the local pattern library for creating or improving skills inside plugins.
+
+### Directory
+
+| Path | Purpose |
+|------|---------|
+| `templates/skills/COMPONENTS.md` | Main index for the component catalog. Start here to choose the right type-based catalog. |
+| `templates/skills/COMPONENT_SAMPLES.md` | Sample-focused index. Use it when you already know which component type you need and want copy-pasteable snippets. |
+| `templates/skills/catalogs/*.md` | The actual type-based catalogs. Each numbered component section contains context, reusable guidance, and an embedded sample. |
+
+### Catalogs
+
+| Catalog | Components | Use It For |
+|---------|------------|------------|
+| `01-core-runtime.md` | 1-15 | Skill metadata, runtime preambles, plan-mode safety, decision briefs, first-run prompts, routing, artifact sync, context recovery, voice, completeness, checkpoints, repo ownership, search-before-building, and completion status. |
+| `02-planning-strategy.md` | 16-25 | Planning workflows, base branch detection, system audits, prerequisite offers, review modes, premise challenge, alternatives, expansion control, strategy artifacts, spec review loops, and implementation timelines. |
+| `03-review-rubrics.md` | 26-36 | Architecture, errors, security, data edges, code quality, tests, performance, observability, deployment, long-term trajectory, and UX rubrics. |
+| `04-output-governance.md` | 37-46 | Outside voices, cross-model tensions, required outputs, failure registries, TODO proposals, completion summaries, review logs, dashboards, plan-file reports, and review chaining. |
+| `05-orchestration-evidence.md` | 47-53 | Specialist role contracts, tool capability budgets, multi-skill orchestration, auto-decision audit trails, question tuning, evidence packs, and baseline/trend records. |
+| `06-browser-automation.md` | 54-59 | Browser daemon workflows, snapshot refs, untrusted content boundaries, auth handoff, cookie bridges, browser-skill host binding, and skillification. |
+| `07-design-systems.md` | 60-66 | Live design evidence, taste memory, variant boards, AI-slop detection, UI state matrices, design artifact promotion, and live HTML preview. |
+| `08-qa-performance.md` | 67-72 | Route inference, browser QA fix loops, test bootstrap, health scoring, performance budgets, and canary monitoring. |
+| `09-review-fix-security-investigation.md` | 73-80 | Clean working trees, atomic commits, fix-first classification, scope drift, specialist review, security confidence gates, incident response, root-cause investigation, and three-strike reassessment. |
+| `10-release-deploy-docs.md` | 81-87 | Release pipelines, test failure ownership, version queues, changelog voice, deployment discovery, rollback gates, and documentation sync. |
+| `11-memory-semantic-retro.md` | 88-92 | Context checkpoints, learning registries, semantic memory trust, semantic search guidance, and retrospective analytics. |
+| `12-safety-utility-setup.md` | 93-101 | Destructive-command preflights, edit boundaries, guard mode, scoped pair-agent access, cross-model benchmarks, browser-rendered PDFs, inline upgrades, setup wizards, and artifact path taxonomy. |
+
+### Authoring Workflow
+
+- For plugin packaging, manifests, component paths, hook schemas, agent frontmatter, and Claude Code behavior, use the official docs in `docs/`.
+- For the skill's actual operating behavior, choose reusable components from `templates/skills/catalogs/`.
+- Start most skills with `01-core-runtime.md`; then add the domain catalog that matches the skill type.
+- Use `05-orchestration-evidence.md` when a plugin skill coordinates multiple phases, delegates to other skills, records decisions, or needs auditable evidence.
+- Use `06-browser-automation.md`, `07-design-systems.md`, and `08-qa-performance.md` for skills that inspect rendered pages, run QA, generate previews, or verify visual behavior.
+- Use `09-review-fix-security-investigation.md` and `10-release-deploy-docs.md` for review, fix, security, ship, deploy, and documentation workflows.
+- Use `11-memory-semantic-retro.md` and `12-safety-utility-setup.md` for persistent memory, retrospectives, setup flows, and safety guardrails.
+- Copy samples only as starting points. Preserve or adapt each component's context paragraph so the sample still explains where and how it should be used, then adapt tool names, file paths, artifact paths, decision gates, and allowed actions to the target plugin and skill.
+- Do not paste whole catalogs into a skill. Compose the smallest set of components that gives the skill clear routing, evidence, user control, verification, and completion status.
 
 ## Plugin Authoring Rules
 

@@ -278,6 +278,17 @@ Artifact: analyses/<dir>
 
 Two to four sentences. The interpretation is the plain-English summary from Step 6. The sensitivity sentence names the two or three things that would change the conclusion — outlier handling, CUPED inclusion, censoring window, post-hoc segments.
 
+### 4. A Decision Quality section — separate from Results
+
+This skill exists to produce numbers, not decisions, but the readout MUST include a Decision Quality section so the downstream decision is not made by "resulting" — judging the test purely by whether the primary metric moved. See `docs/THINKING_IN_BETS.md` for the full framework. The section answers:
+
+- **Was the hypothesis unchanged from pre-registration?** If the test was pre-registered (Step 0), point at the artifact and confirm the hypothesis text is unchanged. If the hypothesis was rewritten after seeing data, say so explicitly — it is a process flag regardless of how the numbers look.
+- **Was the primary metric unchanged?** A "winning" secondary metric is not a win. If the team is tempted to swap in a secondary, label it as a post-hoc, exploratory finding.
+- **Was the pre-committed decision rule followed?** Quote the ship / iterate / hold / kill rule from the design, then state which branch the observed result triggers. Do not invent a new rule at readout.
+- **Were post-hoc segment cuts flagged as exploratory?** Any segment cut not pre-specified is exploratory by definition and cannot drive the ship decision. Report them with that label so a reader can't mistake them for confirmed effects.
+- **Disconfirming evidence considered?** Name the two or three signals the design said would update the team *against* the idea — and state whether they appeared.
+- **Resulting check (the dangerous cell).** If the recommendation is to ship despite a guardrail breach, or to kill despite a successful primary outcome, the readout MUST include a written justification per `resulting_check.decision_against_pre_registered_rule` in `docs/THINKING_IN_BETS.md`. A "lucky win" with a weak process is the failure mode the readout exists to catch; do not let it pass silently.
+
 ---
 
 ## When to delegate to the `experiment-statistician` sub-agent

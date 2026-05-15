@@ -99,6 +99,8 @@ For each of these, check the design doc vs. the analysis:
 
 If the design directory has a `changelog.md`, summarize any post-launch edits and whether they pre-date or post-date data unblinding. Post-unblinding edits to OEC, guardrails, or decision criteria are a 🔴 finding and the report should say so, not hide it.
 
+The pre-registration reconciliation above is the report's first defense against "resulting" — judging the test purely by whether the primary metric moved. The second defense is the **Decision Quality** section described below (under *Report Structure*). Both sections are required for any test that touched regulated, high-trust, or customer-facing content. See `docs/THINKING_IN_BETS.md` for the canonical framework and the 2×2 of (good/bad outcome × good/bad process) — the "lucky win" cell (good outcome, weak process) is the one the report exists to call out explicitly rather than letting the team treat it as license to ship more of the same.
+
 ---
 
 ## Report Structure

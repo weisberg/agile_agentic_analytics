@@ -51,8 +51,11 @@ Start with `../../references/notebook-source-map.md`; then load the smallest sou
 | `../../references/notebook/24. Temporal Dynamics of Experiment Data_ Early, Middle, and Late Signals.md` | early, middle, and late signals answer different questions. |
 | `../../references/notebook/15. Experimentation Metrics That Align with Business Strategy.md` | metrics must map to business strategy and decision value. |
 | `../../references/notebook/16. Communicating Experiment Results to Senior Stakeholders.md` | decision communication should build calibrated belief, not certainty theater. |
+| `../../../../docs/THINKING_IN_BETS.md` | canonical decision-quality framework. The readout schema in that doc (results + decision_quality + resulting_check + next_bet) is the structure this skill produces. Use the 2×2 (good/bad outcome × good/bad process) to keep the readout honest, especially in the "lucky win" cell. |
 
 Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
+
+This skill exists to prevent "resulting" — judging a decision purely by its outcome. Every readout MUST produce a **Decision Quality** section, distinct from the Results section, that checks: was the hypothesis unchanged from pre-registration, was the primary metric unchanged, was the pre-committed decision rule followed, were post-hoc segment cuts flagged as exploratory, and was disconfirming evidence considered? A statistically significant primary metric is NOT sufficient to recommend ship — the guardrails (including compliance defects and content staleness), the pre-mortem mitigations, and the decision-quality checks must all clear. When the team is tempted to ship despite a guardrail breach, or to kill despite a successful primary outcome, the readout must include a written `resulting_check.decision_against_pre_registered_rule` justification per `docs/THINKING_IN_BETS.md`.
 
 ## Trigger And Scope Contract
 

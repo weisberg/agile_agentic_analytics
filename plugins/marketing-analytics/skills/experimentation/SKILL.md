@@ -16,6 +16,8 @@ description: >
 Statistical experiment design, CUPED variance reduction, sequential testing,
 and causal analysis.
 
+**Decision-quality companion.** This skill produces the numbers; the *decision* about whether to ship requires the framework in `docs/THINKING_IN_BETS.md`. Every design produced here in a regulated or high-trust workspace MUST include a pre-registration block (hypothesis, primary metric, MDE, guardrails, decision rule, advocate ≠ judge, pre-mortem, maintenance plan), and every readout MUST include a Decision Quality section so the team does not "result" — judge the decision purely by whether the primary metric moved. See that doc for the templates and the (good/bad outcome × good/bad process) 2×2 that keeps the "lucky win" cell honest.
+
 | Property       | Value                                                          |
 | :------------- | :------------------------------------------------------------- |
 | Skill ID       | experimentation                                                |

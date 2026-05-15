@@ -49,8 +49,11 @@ Start with `../../references/notebook-source-map.md`; then load the smallest sou
 | `../../references/notebook/03m. The Role of Null Results in Mature Experimentation Programs.md` | learning systems must capture null and negative results. |
 | `../../references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` | safe first experiments earn the right to scale. |
 | `../../references/notebook/01. Experimentation in Regulated Finance.md` | regulated experimentation must integrate risk management and independent validation. |
+| `../../../../docs/THINKING_IN_BETS.md` | canonical decision-quality framework. The operating model this skill produces is the institutional machinery that makes the framework's principles real: pre-registration files, separation of advocate and judge, accountable review boards, null-results capture, and the post-hoc check against "resulting". |
 
 Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
+
+An operating model produced by this skill MUST encode three concrete artifacts of decision-quality discipline drawn from `docs/THINKING_IN_BETS.md`: (1) a **pre-registration requirement** with named owners for the schema fields (hypothesis, primary metric, MDE, guardrails including compliance defects and content staleness, decision rule), enforced at design intake; (2) **separation of advocate (marketing / product) from judge (analytics / risk / legal)** as a decision right, not a politeness — the same person should not own both the campaign and the decision to ship; and (3) a **post-launch decision-quality review** that judges the process independently of the outcome, including explicit checks for "lucky win" cases where the result was good but the process was weak. Operating models that propose a review board without these three artifacts are governance theater and should be rejected.
 
 ## Trigger And Scope Contract
 

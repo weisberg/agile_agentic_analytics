@@ -48,8 +48,11 @@ Start with `../../references/notebook-source-map.md`; then load the smallest sou
 | `../../references/notebook/18. Legal and Compliance Considerations in Marketing Experiments.md` | legal constraints, disclosures, advice boundaries, fairness, recordkeeping, and privacy are design inputs. |
 | `../../references/notebook/22. Designing “Safe First Experiments” in High-Trust Organizations.md` | safe first experiments need reversible scope, guardrails, kill switches, and trust-building sequencing. |
 | `../../references/notebook/14. Building an Experimentation Operating Model.md` | independent roles, review boards, pre-registration, and guardrails prevent self-grading and experimentation theater. |
+| `../../../../docs/THINKING_IN_BETS.md` | canonical decision-quality framework for regulated marketing and experimentation: frame designs as bets under uncertainty, pre-register hypothesis + decision rule, run a pre-mortem, separate advocate from judge, avoid "resulting" at readout. Use the pre-registration template from this doc for every design artifact in a high-trust workspace. |
 
 Do not cite the notebook generically. Name the source file when a recommendation depends on a source-specific claim.
+
+A design produced by this skill for a regulated or high-trust workspace MUST include a pre-registration block matching the schema in `docs/THINKING_IN_BETS.md`: hypothesis, single primary metric with MDE, leading indicators, guardrails (including `compliance_defects: 0` and a `content_staleness_days` cap when sourced claims are involved), audience and randomization unit, duration logic, an explicit ship/iterate/hold/kill decision rule, accountability with a named advocate **separate from** the named judge, a pre-mortem listing failure modes with likelihood/impact/mitigation, and a maintenance plan with content owner, refresh cadence, and takedown triggers. A design without a pre-mortem and an explicit decision rule is incomplete and should not be approved by `experiment-decision-review` downstream.
 
 ## Trigger And Scope Contract
 

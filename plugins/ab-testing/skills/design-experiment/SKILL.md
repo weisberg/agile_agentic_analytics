@@ -243,7 +243,7 @@ Tailor the exact thresholds to the test, but keep them this concrete. "Ship if i
 
 ### Step 13 — Compliance and review checkpoints
 
-For financial services (Vanguard) and other regulated contexts, embed these before launch — not at readout:
+For regulated, high-trust contexts (financial services, advised products, healthcare, regulated insurance), embed these before launch — not at readout:
 
 - **Compliance review of both arms.** A winning variant that's not approvable cannot ship; both arms must be approvable individually.
 - **Fair-balance and disclosure parity.** Required disclosures must appear with matched prominence in both arms.
@@ -251,6 +251,16 @@ For financial services (Vanguard) and other regulated contexts, embed these befo
 - **Privacy review.** If exposure events log new PII, route through privacy review before launch.
 
 For non-regulated contexts, replace with the team's launch-review checklist.
+
+### Step 13a — Pre-mortem and decision-rule pre-commitment
+
+Before the design is signed off, run a pre-mortem and lock the decision rule. This is the antidote to "resulting" — the failure mode where a team judges a decision by its outcome rather than by the quality of the reasoning. See `docs/THINKING_IN_BETS.md` for the full framework; the minimum a regulated design must include is:
+
+- **Pre-mortem.** "Six months from now, this test is considered a mistake. What happened?" List failure modes (reputational, compliance, content staleness, segment asymmetry, amplification of unwanted behavior) with likelihood, impact, and a mitigation per mode.
+- **Disconfirming evidence.** Name two or three signals that would actively make us update *against* the idea — not just the absence of a positive primary metric.
+- **Decision rule** (ship / iterate / hold / kill) locked before launch and named alongside the primary metric. The analysis skill at readout will check the result against this exact rule.
+- **Advocate vs. judge.** Name the person or team championing the test (advocate) separately from the person or team who decides whether it ships (judge). For regulated workspaces, they must be different.
+- **Maintenance plan.** If the test ships, who owns ongoing content accuracy, what is the refresh cadence, and what triggers an immediate takedown? Content correctness is an ongoing operational obligation, not a one-time launch task.
 
 ### Step 14 — Operational metadata
 

@@ -283,6 +283,15 @@ See `references/methodology.md` for deeper coverage of:
 
 ---
 
+## Decision quality — judge the process, not just the result
+
+A campaign that moved balances is not automatically a good decision, and a campaign that didn't is not automatically a bad one. In regulated, high-trust contexts the cost of a wrong call is not bounded by a flat test result — it includes customer confusion, compliance exposure, and trust erosion. The full framework lives in `docs/THINKING_IN_BETS.md`; the minimum a readout produced by this skill MUST include:
+
+- **Was the campaign pre-registered?** Was there a hypothesis, a primary metric, an MDE, and an explicit ship/hold/kill/iterate decision rule locked before launch? If not, the readout says so on the cover — the rest of the analysis is descriptive context, not a decision artifact.
+- **Avoid resulting.** A "win" on the value metric is not sufficient on its own. The readout must check whether guardrails (complaints, support contacts, compliance defects, content staleness) cleared and whether the result triggered the pre-committed decision rule. If the team is tempted to ship more of the same despite weak process — the "lucky win" cell of the 2×2 in `docs/THINKING_IN_BETS.md` — the readout calls it out explicitly rather than letting it pass.
+- **Separation of advocate and judge.** The person or team who owned the campaign should not also be the one who decides whether the program continues. For high-trust workspaces, this is a hard requirement, not a courtesy.
+- **Next bet.** The readout ends with a single paragraph on what changed the team's belief and what the next test should be. A null result that exposes a weak hypothesis cheaply is a successful decision — record it that way.
+
 ## Financial services note
 
 If the workspace is tagged as financial services and the report includes

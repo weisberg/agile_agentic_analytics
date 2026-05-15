@@ -316,6 +316,17 @@ See `references/methodology.md` for deeper coverage of:
 
 ---
 
+## Decision quality — judge the process, not just the result
+
+A high conversion rate is not automatically a good decision and a low one is not automatically a bad one. The full framework lives in `docs/THINKING_IN_BETS.md`; for a cross-sell readout in a regulated, high-trust workspace the readout MUST address:
+
+- **Pre-registration.** Was the attribution window, the eligibility rule, the primary metric (conversion rate or value per eligible), the MDE, and the ship/hold/kill rule locked before launch? Choosing the attribution window or the headline metric *after* seeing data is the most common form of "resulting" in cross-sell analysis — the readout should disclose the choice's timing on the cover.
+- **Avoid resulting.** A statistically significant conversion lift is not a ship signal on its own. The readout must confirm the guardrails (complaints, compliance defects, cannibalization of internal substitutes, content staleness on sourced product claims) cleared and that the result triggered the pre-committed decision rule.
+- **Cannibalization as a guardrail.** Cross-sell campaigns are especially vulnerable to looking successful while shifting customers across internal products rather than growing the relationship. If the cannibalization check is missing or weak, the readout flags the decision as **provisional**, not green-lit.
+- **Separation of advocate and judge.** The campaign owner does not also decide whether the program scales. For regulated workspaces this is a hard requirement.
+- **Maintenance plan.** Product comparison claims and disclosure language age — fast, in many cases. If the campaign is recommended for scale, the readout names a content owner, a refresh cadence, and the takedown triggers. A scale recommendation without a maintenance plan is incomplete.
+- **Next bet.** End with one paragraph on what changed the team's belief and what the next test should be. A null result that cleanly invalidates a weak hypothesis is a successful decision — record it that way.
+
 ## Financial services note
 
 Cross-sell campaigns frequently promote investment or credit products subject to

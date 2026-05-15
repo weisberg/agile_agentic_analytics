@@ -90,9 +90,7 @@ def holdout_comparison(treated: np.ndarray, holdout: np.ndarray) -> dict:
     }
 
 
-def segment_breakdown(
-    metric_df: pd.DataFrame, holdout_ids: Optional[set]
-) -> pd.DataFrame:
+def segment_breakdown(metric_df: pd.DataFrame, holdout_ids: Optional[set]) -> pd.DataFrame:
     seg_cols = [c for c in metric_df.columns if c.startswith("segment_")]
     if not seg_cols:
         return pd.DataFrame()

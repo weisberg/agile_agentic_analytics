@@ -53,9 +53,7 @@ def apply_eligibility(
 ) -> tuple[pd.DataFrame, int]:
     if prior_holdings is None:
         return arm_df, 0
-    holders = set(
-        prior_holdings.loc[prior_holdings["product_code"] == target_product, "customer_id"]
-    )
+    holders = set(prior_holdings.loc[prior_holdings["product_code"] == target_product, "customer_id"])
     before = len(arm_df)
     eligible = arm_df[~arm_df["customer_id"].isin(holders)].copy()
     return eligible, before - len(eligible)
@@ -77,9 +75,7 @@ def attach_conversion(
         arm["anchor_date"] = pd.to_datetime(arm["treatment_date"])
     else:
         if campaign_anchor_date is None:
-            raise ValueError(
-                "holdout has no treatment_date; pass --campaign-start to anchor the window"
-            )
+            raise ValueError("holdout has no treatment_date; pass --campaign-start to anchor the window")
         arm["anchor_date"] = campaign_anchor_date
 
     merged = arm.merge(opens, on="customer_id", how="left")
@@ -87,8 +83,10 @@ def attach_conversion(
     in_window = delta.between(0, attribution_window_days)
     merged["converted"] = in_window.fillna(False)
 
-    funded_col = "funded_balance" if "funded_balance" in merged.columns else (
-        "first_period_revenue" if "first_period_revenue" in merged.columns else None
+    funded_col = (
+        "funded_balance"
+        if "funded_balance" in merged.columns
+        else ("first_period_revenue" if "first_period_revenue" in merged.columns else None)
     )
     if funded_col:
         merged["funded_value"] = np.where(merged["converted"], merged[funded_col].fillna(0), 0.0)
@@ -96,9 +94,8 @@ def attach_conversion(
         merged["funded_value"] = np.nan
 
     # one row per customer — take max (handles duplicate open rows safely)
-    grouped = (
-        merged.groupby("customer_id", as_index=False)
-        .agg(converted=("converted", "max"), funded_value=("funded_value", "max"))
+    grouped = merged.groupby("customer_id", as_index=False).agg(
+        converted=("converted", "max"), funded_value=("funded_value", "max")
     )
     # re-attach segment columns from the arm file
     seg_cols = [c for c in arm.columns if c.startswith("segment_")]
@@ -124,15 +121,11 @@ def bootstrap_diff_rate(
     nt, nh = len(t_conv), len(h_conv)
     diffs = np.empty(n_boot)
     for i in range(n_boot):
-        diffs[i] = (
-            t_conv[rng.integers(0, nt, nt)].mean() - h_conv[rng.integers(0, nh, nh)].mean()
-        )
+        diffs[i] = t_conv[rng.integers(0, nt, nt)].mean() - h_conv[rng.integers(0, nh, nh)].mean()
     return float(np.quantile(diffs, 0.025)), float(np.quantile(diffs, 0.975))
 
 
-def bootstrap_diff_mean(
-    t: np.ndarray, h: np.ndarray, n_boot: int = 5000, seed: int = 7
-) -> tuple[float, float]:
+def bootstrap_diff_mean(t: np.ndarray, h: np.ndarray, n_boot: int = 5000, seed: int = 7) -> tuple[float, float]:
     rng = np.random.default_rng(seed)
     nt, nh = len(t), len(h)
     diffs = np.empty(n_boot)
@@ -205,9 +198,7 @@ def holdout_tests(t_df: pd.DataFrame, h_df: pd.DataFrame) -> dict:
     return out
 
 
-def segment_breakdown(
-    treated_df: pd.DataFrame, holdout_df: Optional[pd.DataFrame]
-) -> pd.DataFrame:
+def segment_breakdown(treated_df: pd.DataFrame, holdout_df: Optional[pd.DataFrame]) -> pd.DataFrame:
     seg_cols = [c for c in treated_df.columns if c.startswith("segment_")]
     if not seg_cols:
         return pd.DataFrame()
@@ -274,8 +265,8 @@ def build_report(summary: dict) -> str:
         )
         if tests:
             lines.append(
-                f"- Absolute lift: {tests['absolute_lift_pp']*100:.2f} pp, "
-                f"95% CI [{tests['absolute_lift_ci_95'][0]*100:.2f}, {tests['absolute_lift_ci_95'][1]*100:.2f}] pp"
+                f"- Absolute lift: {tests['absolute_lift_pp'] * 100:.2f} pp, "
+                f"95% CI [{tests['absolute_lift_ci_95'][0] * 100:.2f}, {tests['absolute_lift_ci_95'][1] * 100:.2f}] pp"
             )
             if tests.get("relative_lift") is not None:
                 lines.append(f"- Relative lift: {tests['relative_lift']:.1%}")
@@ -285,12 +276,8 @@ def build_report(summary: dict) -> str:
     if "value_per_eligible_mean" in t:
         lines.append(f"- Value per eligible (treated): {t['value_per_eligible_mean']:,.2f}")
         if "funded_value_per_converter_mean" in t:
-            lines.append(
-                f"- Mean funded per converter (treated): {t['funded_value_per_converter_mean']:,.2f}"
-            )
-            lines.append(
-                f"- Median funded per converter (treated): {t['funded_value_per_converter_median']:,.2f}"
-            )
+            lines.append(f"- Mean funded per converter (treated): {t['funded_value_per_converter_mean']:,.2f}")
+            lines.append(f"- Median funded per converter (treated): {t['funded_value_per_converter_median']:,.2f}")
         lines.append(f"- Total funded (treated): {t['total_funded_value']:,.2f}")
         if h and "value_per_eligible_mean" in h:
             lines.append(f"- Value per eligible (holdout): {h['value_per_eligible_mean']:,.2f}")
@@ -348,9 +335,7 @@ def main() -> None:
     if holdout_raw is not None:
         overlap = set(treated_raw["customer_id"]) & set(holdout_raw["customer_id"])
         if overlap:
-            raise ValueError(
-                f"{len(overlap)} customers appear in both treated and holdout — fix the input data"
-            )
+            raise ValueError(f"{len(overlap)} customers appear in both treated and holdout — fix the input data")
 
     treated_elig, t_excl = apply_eligibility(treated_raw, prior, args.target_product)
     if holdout_raw is not None:
@@ -358,13 +343,9 @@ def main() -> None:
     else:
         holdout_elig, h_excl = None, 0
 
-    treated_conv = attach_conversion(
-        treated_elig, product_opens, args.target_product, args.attribution_window, anchor
-    )
+    treated_conv = attach_conversion(treated_elig, product_opens, args.target_product, args.attribution_window, anchor)
     holdout_conv = (
-        attach_conversion(
-            holdout_elig, product_opens, args.target_product, args.attribution_window, anchor
-        )
+        attach_conversion(holdout_elig, product_opens, args.target_product, args.attribution_window, anchor)
         if holdout_elig is not None
         else None
     )

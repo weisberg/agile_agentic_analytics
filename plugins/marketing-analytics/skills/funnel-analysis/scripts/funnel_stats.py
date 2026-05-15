@@ -526,7 +526,7 @@ def chi_squared_comparison(
         cohort_b_rate=rate_b,
         chi_squared_statistic=float(chi2_stat),
         p_value=float(p_value),
-        significant=p_value < alpha,
+        significant=bool(p_value < alpha),
         relative_difference=relative_diff,
     )
 

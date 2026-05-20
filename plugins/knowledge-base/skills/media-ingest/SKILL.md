@@ -34,6 +34,14 @@ writes_pages: true
 - Extract entities, quotes, claims, and reusable concepts.
 - Index, validate, and route to specialized skills when needed.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py raw-source-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+
+
 ## Output Format
 
 - MEDIA INGESTED

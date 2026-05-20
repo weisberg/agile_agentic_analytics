@@ -32,6 +32,14 @@ writes_pages: false
 - Answer with citations, confidence, and a freshness delta.
 - Offer follow-up ingestion only when new source material is required.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py query`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark`
+
+
 ## Output Format
 
 - KB ANSWER

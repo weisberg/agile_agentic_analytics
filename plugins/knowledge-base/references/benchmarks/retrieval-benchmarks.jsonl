@@ -1,0 +1,6 @@
+{"query":"Acme renewal risk unresolved owner dashboard","expected_ids":["companies/acme-example","meetings/2026-05-01-alice-acme"],"mode":"metadata","notes":"Company and meeting should both surface for renewal risk."}
+{"query":"decision quality evidence owner alternatives review date","expected_ids":["concepts/decision-quality"],"mode":"metadata","notes":"Concept page should answer decision quality framing."}
+{"query":"open tasks by owner SQL dashboard query","expected_ids":["queries/open-tasks"],"mode":"metadata","notes":"Sidecar-documented SQL query should be retrievable."}
+{"query":"strategic reading do avoid watch Acme","expected_ids":["projects/acme-strategic-reading"],"mode":"metadata","notes":"Strategic reading report should be discoverable by output vocabulary."}
+{"query":"synthetic article agent operations source citations","expected_ids":["sources/article-agent-ops"],"mode":"metadata","notes":"Source page should be findable through article/source metadata."}
+{"query":"Alice Example buyer meeting timeline","expected_ids":["people/alice-example"],"mode":"metadata","notes":"Person page should resolve from attendee and timeline cues."}

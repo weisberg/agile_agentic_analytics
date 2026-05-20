@@ -31,6 +31,14 @@ writes_pages: false
 - Run upstream ledger and KB terminology checks when imported skills are involved.
 - Summarize failures, warnings, and remediation actions.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check`
+
+
 ## Output Format
 
 - KB HEALTH

@@ -8,6 +8,17 @@ description: >
   validating stale or broken KB state, searching vault metadata, hydrating
   source assets, assembling retrieval context, or federated lookup across
   multiple vault roots.
+triggers:
+  - "vaultli"
+  - "validate knowledge base vault"
+  - "index KB vault"
+  - "search vault metadata"
+  - "assemble vault context"
+tools:
+  - exec
+  - read
+  - write
+mutating: true
 ---
 
 # vaultli

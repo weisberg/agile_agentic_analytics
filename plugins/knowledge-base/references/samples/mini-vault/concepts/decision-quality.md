@@ -5,7 +5,7 @@ description: Synthetic concept page for evaluating whether a team makes explicit
 category: concept
 tags: [sample, decisions]
 status: active
-related: [companies/acme-example]
+related: [companies/acme-example, projects/acme-strategic-reading, sources/article-agent-ops]
 ---
 
 # Decision Quality
@@ -17,4 +17,3 @@ Decision quality improves when owners, evidence, alternatives, and review dates 
 ## Evidence
 
 - Acme Example's renewal-risk example depends on visible ownership and unresolved action tracking. [Source: Meeting "Alice Acme Renewal Review", 2026-05-01]
-

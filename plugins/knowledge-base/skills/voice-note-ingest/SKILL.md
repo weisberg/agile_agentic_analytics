@@ -33,6 +33,14 @@ writes_pages: true
 - Create timeline entries and back-links for notable entities.
 - Run privacy and citation checks.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+
+
 ## Output Format
 
 - VOICE NOTE INGESTED

@@ -5,12 +5,16 @@ artifacts. Keep it current when issues are closed or reopened.
 
 ## Portfolio
 
-- #30 Resolver: `skills/resolver/SKILL.md`, `plugin-manager` routing JSONL audit.
-- #31 Query skill: `skills/query/SKILL.md`, `references/retrieval-and-benchmarks.md`.
+- #30 Resolver: `skills/resolver/SKILL.md`, `references/routing-eval.jsonl`,
+  and `scripts/kb_ops.py resolver-check`.
+- #31 Query skill: `skills/query/SKILL.md`, `references/retrieval-and-benchmarks.md`,
+  `references/benchmarks/retrieval-benchmarks.jsonl`, and `scripts/kb_ops.py query`.
 - #32 Signal detector: `skills/signal-detector/SKILL.md`, `skills/originals/SKILL.md`.
 - #33 Enrich: `skills/enrich/SKILL.md`, `skills/conflict-resolution/SKILL.md`.
-- #34 Citation fixer: `skills/citation-fixer/SKILL.md`, page/source schemas.
-- #35 Frontmatter guard: `skills/frontmatter-guard/SKILL.md`, `vaultli` validation.
+- #34 Citation fixer: `skills/citation-fixer/SKILL.md`, page/source schemas,
+  and `scripts/kb_ops.py citation-audit`.
+- #35 Frontmatter guard: `skills/frontmatter-guard/SKILL.md`, `vaultli`
+  validation, and `scripts/kb_ops.py frontmatter-audit`.
 - #36 Filing rules: `skills/filing-rules/SKILL.md`, `references/schemas/page-types.md`.
 - #37 Article enrichment: `skills/article-enrichment/SKILL.md`, raw source reference.
 - #38 Meeting ingestion: `skills/meeting-ingestion/SKILL.md`, sample meeting fixture.
@@ -31,10 +35,14 @@ artifacts. Keep it current when issues are closed or reopened.
 - #52 Publish: `skills/publish/SKILL.md`, privacy/security reference.
 - #53 PDF export: `skills/pdf-export/SKILL.md`, publish/privacy gate.
 - #54 Webhook transforms: `skills/webhook-transforms/SKILL.md`,
-  `references/schemas/integration-contracts.md`.
-- #55 Cron scheduler: `skills/cron-scheduler/SKILL.md`, `references/automation.md`.
-- #56 Background jobs: `skills/background-jobs/SKILL.md`, checkpoints and batch rules.
-- #57 Health: `skills/health/SKILL.md`, `plugin-manager:plugin-health` audit.
+  `references/schemas/integration-contracts.md`, `references/examples/source-event.json`,
+  and `scripts/kb_ops.py normalize-event`.
+- #55 Cron scheduler: `skills/cron-scheduler/SKILL.md`, `references/automation.md`,
+  `references/examples/weekly-kb-health.yaml`, and `scripts/kb_ops.py validate-schedule`.
+- #56 Background jobs: `skills/background-jobs/SKILL.md`, checkpoints and batch
+  rules, and `scripts/kb_ops.py checkpoint`.
+- #57 Health: `skills/health/SKILL.md`, `plugin-manager:plugin-health` audit,
+  and `scripts/kb_ops.py dashboard`.
 - #58 Conformance tests: `tests/test_plugins/`, `tests/test_knowledge_base/`.
 - #59 Quality gate: `skills/quality-gate/SKILL.md`,
   `plugin-manager:plugin-quality-gate`.
@@ -43,19 +51,23 @@ artifacts. Keep it current when issues are closed or reopened.
 - #61 Generated artifact hygiene: `plugins/knowledge-base/.gitignore`,
   plugin audit generated-artifact check, removed ignored caches/targets.
 - #62 Raw source: `skills/raw-source/SKILL.md`,
-  `references/raw-source-storage.md`.
+  `references/raw-source-storage.md`, and `scripts/kb_ops.py raw-source-audit`.
 - #63 Source router: `skills/source-router/SKILL.md`.
 - #64 Search modes: `skills/search-modes/SKILL.md`,
   `references/retrieval-and-benchmarks.md`.
-- #65 Graph ops: `skills/graph-ops/SKILL.md`, relationship sections in schemas.
+- #65 Graph ops: `skills/graph-ops/SKILL.md`, relationship sections in schemas,
+  and `scripts/kb_ops.py graph-audit`.
 - #66 Schemas: `references/schemas/page-types.md`,
-  `references/schemas/integration-contracts.md`.
+  `references/schemas/integration-contracts.md`, and `references/templates/`.
 - #67 Privacy/security: `skills/privacy-security/SKILL.md`,
-  `references/privacy-and-security.md`.
+  `references/privacy-and-security.md`, and `scripts/kb_ops.py privacy-audit`.
 - #68 Agents: `agents/kb-curator.md`, `agents/kb-researcher.md`,
-  `agents/kb-ops-auditor.md`.
+  `agents/kb-ops-auditor.md`, `agents/kb-librarian.md`,
+  `agents/kb-ingestion-operator.md`, `agents/kb-citation-auditor.md`,
+  `agents/kb-retrieval-specialist.md`, `agents/kb-enrichment-analyst.md`,
+  and `agents/vaultli-maintainer.md`.
 - #69 Context checkpoint: `skills/context-checkpoint/SKILL.md`,
-  `plugin-manager:plugin-work-checkpoint`.
+  `plugin-manager:plugin-work-checkpoint`, and `scripts/kb_ops.py checkpoint`.
 - #70 Browser ingest: `skills/browser-ingest/SKILL.md`.
 - #71 Sample vault: `references/samples/mini-vault/`,
   `references/samples/walkthrough.md`.
@@ -63,10 +75,12 @@ artifacts. Keep it current when issues are closed or reopened.
   `references/release-upgrade.md`, `plugin-manager:plugin-release`.
 - #73 Upstream sync: `plugins/plugin-manager/skills/upstream-skill-harvest/`,
   `references/upstream-sources.md`.
-- #74 Dashboard: `skills/dashboard/SKILL.md`.
-- #75 Maintenance: `skills/maintenance/SKILL.md`.
+- #74 Dashboard: `skills/dashboard/SKILL.md` and `scripts/kb_ops.py dashboard`.
+- #75 Maintenance: `skills/maintenance/SKILL.md` and
+  `scripts/kb_ops.py maintenance-plan`.
 - #76 Setup: `skills/setup/SKILL.md`, sample vault quickstart.
-- #77 Graph query: `skills/graph-ops/SKILL.md`, retrieval benchmark reference.
+- #77 Graph query: `skills/graph-ops/SKILL.md`, retrieval benchmark reference,
+  and `scripts/kb_ops.py graph-audit`.
 - #78 Integration contracts: `skills/integration-contracts/SKILL.md`,
   integration schema reference.
 - #79 Devex review: `skills/devex-review/SKILL.md`,
@@ -81,8 +95,11 @@ Before closing the issue set, run:
 
 ```bash
 python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin knowledge-base --json
+python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check
+python3 plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark --root plugins/knowledge-base/references/samples/mini-vault
+python3 plugins/knowledge-base/scripts/kb_ops.py dashboard --root plugins/knowledge-base/references/samples/mini-vault
 python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin plugin-manager --strict-sections --json
-uv run --no-project --with pytest --with numpy --with pandas pytest tests/test_plugins tests/test_knowledge_base
+uv run --no-project --with pytest --with numpy --with pandas --with pyyaml pytest tests/test_plugins tests/test_knowledge_base
 ```
 
 All three commands should pass with zero plugin-health warnings for the

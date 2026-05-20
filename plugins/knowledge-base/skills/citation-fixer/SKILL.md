@@ -33,6 +33,13 @@ writes_pages: true
 - Flag unverifiable claims with TODO review notes.
 - Run `vaultli validate` after edits.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+
+
 ## Output Format
 
 - CITATION AUDIT

@@ -437,31 +437,18 @@ If a plan fails the last item, it isn't a plan — it's notes.
 
 Catch these in your own drafts.
 
-1. **The wishlist plan.** Every PRD requirement → one task, one file, no
-   dependencies, no validation. Looks tidy, executes badly.
-2. **The hero task.** A single task labeled "implement the feature" or
-   "refactor the module." Almost always 5–15 tasks pretending to be one.
-3. **The trust-fall gate.** "Phase 2 done when feature works." Define "works."
-4. **Bundle-of-everything.** Every task points at the whole repo. The agent
-   skims and confabulates. Minimize per §8.
-5. **Test-after.** Acceptance tests written after the implementation task. Use
-   validation-first ordering: write/spec the test as part of the *prior* task or
-   as a foundation task.
-6. **Sub-agent cargo cult.** Naming sub-agents that don't exist or that don't
-   add value over the generalist. If the only specialist behavior is "knows
-   slightly more about Postgres," you don't need a specialist.
-7. **No human gates anywhere.** Even fully agentic plans need humans at
-   irreversible boundaries (production deploy, schema migration, public comms).
-8. **No agentic failure modes named.** A risk register that could have been
-   written before agents existed isn't doing its job.
-9. **Phase 0 skipped.** "We already know the answers." Then the plan should
-   *show* the answers in §1's assumptions, not assume them silently.
-10. **Frozen plan.** No replanning protocol, no decision log, no `[CHANGED]`
-    discipline. Plans that can't update become fiction inside a week.
-11. **Open-questions amnesia.** PRD had 8 open questions; plan has 0. Where did
-    they go? Probably into Phase 1 implicitly. Make them explicit Phase 0 tasks.
-12. **Eval as afterthought.** Eval harness arrives in Phase 4. By then the model
-    of "what good looks like" has already drifted. Build eval in Phase 1.
+1. **The wishlist plan.** One task per requirement, no dependencies, no validation.
+2. **The hero task.** "Implement the feature" hides 5-15 real tasks.
+3. **The trust-fall gate.** "Done when it works" is not falsifiable.
+4. **Bundle-of-everything.** Whole-repo context makes agents skim and confabulate.
+5. **Test-after.** Acceptance tests arrive after implementation instead of before.
+6. **Sub-agent cargo cult.** Specialist labels add no value over the generalist.
+7. **No human gates.** Irreversible ops still need human checkpoints.
+8. **No agentic failure modes.** The risk register could have been written in 2020.
+9. **Phase 0 skipped.** Assumptions move silently into build work.
+10. **Frozen plan.** No replanning protocol, decision log, or `[CHANGED]` discipline.
+11. **Open-questions amnesia.** PRD questions vanish instead of becoming Phase 0 tasks.
+12. **Eval as afterthought.** Eval arrives after the model of quality has drifted.
 
 ---
 
@@ -489,44 +476,7 @@ When the skill is invoked:
 
 ---
 
-## 16. A Worked Mini-Example (Schematic)
-
-PRD requirement excerpt:
-> **R3.** Power users can export all historical reports in their account as a
-> single ZIP of CSVs within 5 minutes for accounts up to 100k reports.
-
-Bad plan:
-> **Task:** Implement export. *Owner:* Claude. *Done when:* it works.
-
-Better plan:
-> **T-1.2 — Define export job contract.** Type: schema. Blast: contained.
-> Spec: write `schemas/export_job.json` with fields `{job_id, account_id,
-> requested_at, status, artifact_url, error}`. Acceptance: schema validates
-> against three example payloads in `tests/fixtures/export_job/`.
->
-> **T-2.1 — Implement export worker (happy path).** Type: code. Depends on:
-> T-1.2. Spec: consumes a job message, streams report rows from `reports`
-> table to a temp dir as CSVs (one per report type), zips, uploads to S3,
-> updates job row. Bundle: `services/worker/`, `schemas/export_job.json`,
-> `db/reports.sql`, *and nothing else*. Acceptance: integration test
-> `pytest -k export_happy_path` passes against a 1k-report fixture in <30s.
->
-> **T-2.2 — Implement export worker (error paths).** Depends on T-2.1. Spec:
-> handle `S3UploadFailed`, `RowStreamTimeout`, `JobCancelled`. Each emits a
-> typed error in the job row. Acceptance: three error-path tests green.
->
-> **T-3.1 — Scale test to 100k reports.** Depends on T-2.2. Acceptance: end-to-end
-> latency p95 < 5 minutes on staging fixture; memory < 512MB; no S3 throttle.
->
-> **Phase 2 gate:** all three tests above green AND a reviewer crosswalks T-2.1
-> and T-2.2 against R3 and confirms behavior matches the PRD literal text.
-
-Notice how the better version closes the spec gap, gives the agent a small
-bundle, and bakes in error-path verification rather than discovering it in QA.
-
----
-
-## 17. When to Push Back
+## 16. When to Push Back
 
 This skill is allowed and expected to push back when:
 

@@ -120,7 +120,9 @@ def plugin_dirs(repo_root: Path, selected: str | None) -> list[Path]:
     return sorted(path for path in plugins_root.iterdir() if (path / ".claude-plugin/plugin.json").exists())
 
 
-def add_check(report: PluginReport, name: str, status: str, path: Path, message: str, action: str | None = None) -> None:
+def add_check(
+    report: PluginReport, name: str, status: str, path: Path, message: str, action: str | None = None
+) -> None:
     report.checks.append(Check(name=name, status=status, path=str(path), message=message, action=action))
 
 
@@ -160,7 +162,9 @@ def audit_manifest(plugin_dir: Path, report: PluginReport) -> dict[str, Any] | N
     return manifest
 
 
-def audit_marketplace(plugin_dir: Path, report: PluginReport, entries: dict[str, dict[str, Any]], marketplace_error: str | None) -> None:
+def audit_marketplace(
+    plugin_dir: Path, report: PluginReport, entries: dict[str, dict[str, Any]], marketplace_error: str | None
+) -> None:
     marketplace_path = plugin_dir.parents[1] / ".claude-plugin/marketplace.json"
     if marketplace_error:
         add_check(report, "marketplace-json", "fail", marketplace_path, marketplace_error, "Fix marketplace JSON.")
@@ -333,8 +337,7 @@ def ignored_by_plugin(path: Path, plugin_dir: Path, patterns: list[str]) -> bool
             if rel == f"{prefix}/{suffix}" or (rel.startswith(f"{prefix}/") and rel.endswith(f"/{suffix}")):
                 return True
             if directory_only and (
-                rel.startswith(f"{prefix}/{suffix}/")
-                or (rel.startswith(f"{prefix}/") and f"/{suffix}/" in rel)
+                rel.startswith(f"{prefix}/{suffix}/") or (rel.startswith(f"{prefix}/") and f"/{suffix}/" in rel)
             ):
                 return True
 
@@ -377,7 +380,13 @@ def audit_generated_artifacts(plugin_dir: Path, report: PluginReport) -> None:
         add_check(report, "generated-artifact", "pass", plugin_dir, "No generated artifact directories found.")
 
 
-def audit_plugin(repo_root: Path, plugin_dir: Path, entries: dict[str, dict[str, Any]], marketplace_error: str | None, strict_sections: bool) -> PluginReport:
+def audit_plugin(
+    repo_root: Path,
+    plugin_dir: Path,
+    entries: dict[str, dict[str, Any]],
+    marketplace_error: str | None,
+    strict_sections: bool,
+) -> PluginReport:
     report = PluginReport(name=plugin_dir.name, path=str(plugin_dir))
 
     if not plugin_dir.exists():
@@ -396,7 +405,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--plugin", help="Audit one plugin by directory name.")
-    parser.add_argument("--strict-sections", action="store_true", help="Require Contract, Process, Output Format, and Anti-Patterns sections.")
+    parser.add_argument(
+        "--strict-sections",
+        action="store_true",
+        help="Require Contract, Process, Output Format, and Anti-Patterns sections.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON.")
     return parser
 

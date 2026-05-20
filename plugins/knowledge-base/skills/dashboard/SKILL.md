@@ -32,6 +32,13 @@ writes_pages: true
 - Write dashboard report with trends, blockers, and next actions.
 - Link to detailed JSON where available.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+
+
 ## Output Format
 
 - KB DASHBOARD

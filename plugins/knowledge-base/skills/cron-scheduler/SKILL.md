@@ -29,6 +29,13 @@ writes_pages: true
 - Write a self-contained prompt with expected output.
 - Add health and checkpoint behavior for long jobs.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py validate-schedule`
+
+
 ## Output Format
 
 - KB SCHEDULE

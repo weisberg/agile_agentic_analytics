@@ -34,6 +34,13 @@ writes_pages: true
 - Answer graph queries with path, edge type, source, and confidence.
 - Run health checks for orphans and dead links.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py graph-audit`
+
+
 ## Output Format
 
 - GRAPH OPS

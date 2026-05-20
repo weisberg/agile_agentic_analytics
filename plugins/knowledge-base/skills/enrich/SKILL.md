@@ -35,6 +35,14 @@ writes_pages: true
 - Run citation and back-link checks.
 - Index and validate file-based vaults with `vaultli`.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py graph-audit`
+
+
 ## Output Format
 
 - ENRICHED

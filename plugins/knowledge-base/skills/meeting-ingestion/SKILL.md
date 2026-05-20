@@ -35,6 +35,15 @@ writes_pages: true
 - Update attendee/company timelines and back-links.
 - Run citation and graph integrity checks.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py graph-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py raw-source-audit`
+
+
 ## Output Format
 
 - MEETING INGESTED

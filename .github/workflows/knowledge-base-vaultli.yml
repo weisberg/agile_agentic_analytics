@@ -40,6 +40,12 @@ jobs:
           PYTHONPATH=plugins/knowledge-base python -m vaultli --json validate --root plugins/knowledge-base/references/samples/mini-vault
           PYTHONPATH=plugins/knowledge-base python -m vaultli --json search --tag renewal-risk --root plugins/knowledge-base/references/samples/mini-vault --limit 3
 
+      - name: Run deterministic KB operating checks
+        run: |
+          python plugins/knowledge-base/scripts/kb_ops.py resolver-check
+          python plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark --root plugins/knowledge-base/references/samples/mini-vault
+          python plugins/knowledge-base/scripts/kb_ops.py dashboard --root plugins/knowledge-base/references/samples/mini-vault
+
       - name: Run plugin health audits
         run: |
           python plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin knowledge-base --json

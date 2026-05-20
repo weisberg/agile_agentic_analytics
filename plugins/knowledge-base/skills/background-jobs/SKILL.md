@@ -32,6 +32,14 @@ writes_pages: true
 - Validate citations, frontmatter, graph links, and indexes.
 - Summarize progress and remaining work.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py checkpoint`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+
+
 ## Output Format
 
 - BACKGROUND JOB

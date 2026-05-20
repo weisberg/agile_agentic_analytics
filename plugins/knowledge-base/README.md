@@ -19,6 +19,25 @@ The plugin ships 50 skills that cover the full KB lifecycle.
 | Tool | Path | Use Cases |
 | --- | --- | --- |
 | `vaultli` | `vaultli/` via `bin/vaultli` | File-based KB setup, YAML frontmatter, sidecar docs for non-markdown assets, `INDEX.jsonl` rebuilds, validation, metadata search, context assembly, and federated vault lookup. |
+| `kb_ops.py` | `scripts/kb_ops.py` | Deterministic resolver checks, retrieval benchmarks, frontmatter/citation/graph/raw-source/privacy audits, dashboards, maintenance plans, event normalization, schedule validation, and resumable checkpoints. |
+
+## Deterministic KB Ops
+
+The SKILL.md files describe workflows; `scripts/kb_ops.py` is the repeatable
+operating harness behind them. Use it in CI, local debugging, or agent runs:
+
+```bash
+python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check
+python3 plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark \
+  --root plugins/knowledge-base/references/samples/mini-vault
+python3 plugins/knowledge-base/scripts/kb_ops.py dashboard \
+  --root plugins/knowledge-base/references/samples/mini-vault
+python3 plugins/knowledge-base/scripts/kb_ops.py maintenance-plan \
+  --root plugins/knowledge-base/references/samples/mini-vault
+```
+
+The harness intentionally emits JSON so plugin-manager, CI, and future agents
+can route on exact failures instead of parsing prose.
 
 ## Agents
 
@@ -27,6 +46,12 @@ The plugin ships 50 skills that cover the full KB lifecycle.
 | `kb-curator` | Maintain page quality, citations, filing, back-links, and schema-aligned page edits. |
 | `kb-researcher` | Compare current facts and primary sources against existing KB context. |
 | `kb-ops-auditor` | Audit plugin health, vault health, generated artifacts, releases, and operational workflows. |
+| `kb-librarian` | Maintain taxonomy, templates, resolver fixtures, naming, and sample vault structure. |
+| `kb-ingestion-operator` | Run ingestion batches with raw-source preservation, privacy gates, and checkpoints. |
+| `kb-citation-auditor` | Audit factual claims, citations, source manifests, quotes, and publication readiness. |
+| `kb-retrieval-specialist` | Tune KB search, retrieval benchmarks, source routing, graph expansion, and freshness reporting. |
+| `kb-enrichment-analyst` | Enrich pages with current state, timelines, contradictions, links, and exact originals. |
+| `vaultli-maintainer` | Maintain vaultli CLI parity, sample vault behavior, validation commands, and CI coverage. |
 
 ## References And Fixtures
 
@@ -41,6 +66,10 @@ The plugin ships 50 skills that cover the full KB lifecycle.
 | `references/release-upgrade.md` | Release, versioning, and validation bundle. |
 | `references/upstream-sources.md` | GBrain/GStack import ledger and drift review cadence. |
 | `references/issue-coverage.md` | GitHub issue closeout map for the KB roadmap. |
+| `references/routing-eval.jsonl` | Resolver coverage fixture with at least one realistic intent per skill. |
+| `references/benchmarks/retrieval-benchmarks.jsonl` | Retrieval benchmark queries and expected sample-vault hits. |
+| `references/templates/` | Page templates for people, companies, concepts, meetings, sources, reports, originals, and tasks. |
+| `references/examples/` | Source-envelope and schedule examples for deterministic command tests. |
 | `references/samples/mini-vault/` | Synthetic sample vault with people, companies, concepts, meetings, sources, strategic reading, and non-markdown sidecars. |
 
 ## Structure

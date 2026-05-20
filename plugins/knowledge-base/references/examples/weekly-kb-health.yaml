@@ -1,0 +1,11 @@
+name: weekly-kb-health
+cadence: weekly
+timezone: America/New_York
+quiet_hours:
+  start: "18:00"
+  end: "08:00"
+max_runtime_minutes: 45
+prompt: >
+  Run the knowledge-base dashboard and retrieval benchmark against the configured
+  vault, summarize red and yellow areas, and propose the smallest useful
+  maintenance batch for the next week.

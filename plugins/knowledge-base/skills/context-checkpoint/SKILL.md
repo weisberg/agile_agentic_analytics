@@ -30,6 +30,13 @@ writes_pages: true
 - For restore: load latest relevant checkpoint, verify current state, and resume from next safe batch.
 - Store checkpoints under a KB-local checkpoint path or plugin-manager checkpoint when managing plugin work.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py checkpoint`
+
+
 ## Output Format
 
 - KB CHECKPOINT

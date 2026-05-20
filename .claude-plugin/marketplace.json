@@ -10,6 +10,14 @@
   },
   "plugins": [
     {
+      "name": "plugin-manager",
+      "source": "./plugins/plugin-manager",
+      "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing Claude Code plugins.",
+      "version": "0.1.0",
+      "keywords": ["plugin-manager", "plugin-development", "marketplace", "skills", "validation", "health", "doctor", "quality-gate", "checkpoint", "release", "devex", "publishing", "upstream-sync", "gbrain", "gstack"],
+      "license": "MIT"
+    },
+    {
       "name": "ab-testing",
       "source": "./plugins/ab-testing",
       "description": "Design, analyze, and review A/B tests with statistical rigor",
@@ -46,7 +54,7 @@
       "source": "./plugins/knowledge-base",
       "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
       "version": "0.1.0",
-      "keywords": ["knowledge-base", "knowledge-management", "documentation", "research", "retrieval", "ask-user", "choice-gate", "ingest", "knowledge-ingestion", "source-preservation", "vaultli", "vault", "frontmatter", "sidecars", "indexing", "skillify", "skill-development", "evals", "strategic-reading", "applied-analysis", "playbooks", "workflow"],
+      "keywords": ["knowledge-base", "knowledge-management", "documentation", "research", "retrieval", "ask-user", "choice-gate", "ingest", "knowledge-ingestion", "source-preservation", "vaultli", "vault", "frontmatter", "sidecars", "indexing", "skillify", "skill-development", "evals", "strategic-reading", "applied-analysis", "playbooks", "workflow", "resolver", "query", "graph-ops", "citations", "raw-sources", "privacy", "automation", "sample-vault", "plugin-manager", "upstream-sync"],
       "license": "MIT"
     }
   ]

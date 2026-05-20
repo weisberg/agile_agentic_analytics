@@ -1,0 +1,26 @@
+{
+  "name": "plugin-manager",
+  "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing Claude Code plugins.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "license": "MIT",
+  "keywords": [
+    "plugin-manager",
+    "plugin-development",
+    "marketplace",
+    "skills",
+    "validation",
+    "health",
+    "doctor",
+    "quality-gate",
+    "checkpoint",
+    "publishing",
+    "release",
+    "devex",
+    "upstream-sync",
+    "gbrain",
+    "gstack"
+  ]
+}

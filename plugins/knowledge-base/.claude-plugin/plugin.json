@@ -28,6 +28,16 @@
     "strategic-reading",
     "applied-analysis",
     "playbooks",
-    "workflow"
+    "workflow",
+    "resolver",
+    "query",
+    "graph-ops",
+    "citations",
+    "raw-sources",
+    "privacy",
+    "automation",
+    "sample-vault",
+    "plugin-manager",
+    "upstream-sync"
   ]
 }

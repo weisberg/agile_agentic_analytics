@@ -26,9 +26,11 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `plugins/marketing-analytics/` | Marketing analytics portfolio (`shared/{definitions, schemas, utils}`, `skills/{attribution-analysis, audience-segmentation, clv-modeling, competitive-intel, compliance-review, crm-lead-scoring, email-analytics, experimentation, funnel-analysis, paid-media, reporting, seo-content, social-analytics, voc-analytics, web-analytics}`). |
 | `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
 | `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`). |
+| `plugins/plugin-manager/` | Plugin marketplace maintenance plugin (`skills/{manage-plugins, plugin-devex-review, plugin-health, plugin-quality-gate, plugin-release, plugin-work-checkpoint, upstream-skill-harvest}`). |
+| `plugins/knowledge-base/` | Knowledge base plugin (`agents/`, `references/`, bundled `vaultli/`, and 50 skills for ingestion, retrieval, graph ops, privacy, automation, publishing, and maintenance). |
 | `knowledge/experimentation/` | Knowledge base material for the experimentation plugin. |
 | `examples/` | Worked example workflows (`clv_segmentation_workflow.md`, `funnel_optimization.md`, `quick_start.md`, `generate_sample_data.py`, `data/`). |
-| `tests/` | Pytest suite (`conftest.py`, `fixtures/`, and per-skill test packages: `test_audience_segmentation`, `test_email_analytics`, `test_funnel_analysis`, `test_integration`, `test_voc_analytics`, `test_web_analytics`). |
+| `tests/` | Pytest suite (`conftest.py`, `fixtures/`, plugin tests, knowledge-base tests, and per-skill test packages such as `test_audience_segmentation`, `test_email_analytics`, `test_funnel_analysis`, `test_integration`, `test_voc_analytics`, `test_web_analytics`). |
 
 Note: `.claude/` (local Claude settings) and `plugins/campaign-measurement/` exist locally but are not tracked in git. Top-level `agents/`, `bin/`, `hooks/`, `scripts/`, `skills/` are also untracked — git does not preserve empty directories, so these only appear once they contain files.
 
@@ -142,6 +144,7 @@ The reusable skill architecture lives under `templates/skills/`. Treat these fil
 ### Structure
 
 - Each distributable plugin lives under `plugins/<plugin-name>/`.
+- Maintainer skills that operate on the marketplace or multiple plugins live in `plugins/plugin-manager/skills/<skill-name>/SKILL.md`. Do not add these to an individual target plugin unless they are intended for that plugin's end users.
 - Use `.claude-plugin/plugin.json` for the plugin manifest. If a manifest exists, `name` is the only required field, but this repository should include `description`, `version`, `author`, `license`, and useful `keywords`.
 - Only `plugin.json` belongs inside `.claude-plugin/`. Put components at the plugin root: `skills/`, `commands/`, `agents/`, `hooks/`, `monitors/`, `bin/`, `.mcp.json`, `.lsp.json`, `settings.json`, `output-styles/`, and `themes/`.
 - Prefer `skills/<name>/SKILL.md` for new capabilities. `commands/` is supported for flat Markdown skills, but `skills/` is the recommended layout.
@@ -183,6 +186,36 @@ The reusable skill architecture lives under `templates/skills/`. Treat these fil
 - Version resolution prefers `plugin.json` `version`, then marketplace entry `version`, then git commit SHA. If `version` is set, users only receive updates when it is bumped. Omit explicit versions for fast-moving internal plugins that should update on every commit.
 
 ## Plugins
+
+### plugin-manager
+
+Marketplace maintenance workflows for creating, validating, harvesting, syncing,
+and publishing Claude Code plugins.
+
+| Skill | Description |
+|-------|-------------|
+| **manage-plugins** | Route plugin maintenance work: create/update plugins, inspect manifests, validate packaging, update marketplace entries, and prepare release steps. |
+| **plugin-health** | Run plugin health, conformance, manifest, marketplace, skill frontmatter, routing, and generated-artifact audits. |
+| **plugin-quality-gate** | Run or record cross-model/second-opinion quality gates for high-impact plugin skills. |
+| **plugin-release** | Validate, version, document, and gate plugin releases before commit, push, PR, tag, or publish. |
+| **plugin-work-checkpoint** | Save or restore resumable context for long plugin maintenance work. |
+| **plugin-devex-review** | Review fresh-clone onboarding, README flow, local testing paths, prerequisites, bundled CLIs, and contributor experience. |
+| **upstream-skill-harvest** | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins. |
+
+### knowledge-base
+
+Knowledge management workflows for file-based vaults, ingestion, retrieval,
+graph operations, provenance, privacy, publishing, automation, and maintenance.
+It includes the bundled `vaultli` CLI, three KB agents, sample vault fixtures,
+schema references, and an issue coverage ledger.
+
+| Area | Skills |
+|------|--------|
+| Core operations | `ask-user`, `kb-ops`, `resolver`, `setup`, `health`, `maintenance`, `dashboard`, `vaultli` |
+| Retrieval and graph | `query`, `search-modes`, `source-router`, `graph-ops`, `briefing`, `reports` |
+| Ingestion | `ingest`, `signal-detector`, `article-enrichment`, `meeting-ingestion`, `media-ingest`, `voice-note-ingest`, `browser-ingest`, `raw-source`, `cold-start`, `migrate`, `archive-crawler` |
+| Knowledge work | `enrich`, `citation-fixer`, `frontmatter-guard`, `filing-rules`, `concept-synthesis`, `book-mirror`, `academic-verify`, `current-research`, `strategic-reading`, `originals`, `task-manager` |
+| Governance | `publish`, `pdf-export`, `webhook-transforms`, `cron-scheduler`, `background-jobs`, `context-checkpoint`, `privacy-security`, `quality-gate`, `release-upgrade`, `devex-review`, `integration-contracts`, `conflict-resolution`, `sample-vault`, `skillify` |
 
 ### ab-testing
 

@@ -34,6 +34,14 @@ writes_pages: true
 - Execute in batches with checkpoints and validation.
 - Record redirects, skipped content, and unresolved conflicts.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py frontmatter-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+
+
 ## Output Format
 
 - MIGRATION REPORT

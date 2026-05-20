@@ -33,6 +33,13 @@ writes_pages: true
 - Run `vaultli index` and `vaultli validate`.
 - Report remaining schema exceptions.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py frontmatter-audit`
+
+
 ## Output Format
 
 - FRONTMATTER GUARD

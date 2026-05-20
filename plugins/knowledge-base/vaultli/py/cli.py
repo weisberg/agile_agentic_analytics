@@ -56,14 +56,18 @@ def _build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--scope", default=None, help="Filter by exact scope")
     search_parser.add_argument("--tag", action="append", default=[], help="Require a tag; repeat for AND filtering")
     search_parser.add_argument("--limit", type=int, default=None, help="Limit the number of returned records")
-    search_parser.add_argument("--sort", default=None, help="Sort by id, title, updated, priority, tokens, category, status, or score")
+    search_parser.add_argument(
+        "--sort", default=None, help="Sort by id, title, updated, priority, tokens, category, status, or score"
+    )
     search_parser.add_argument("--order", choices=["asc", "desc"], default="asc")
     search_parser.add_argument("--explain", action="store_true", help="Include match explanation metadata")
     search_parser.add_argument("--semantic", action="store_true", help="Use experimental token-overlap matching")
 
     federated_parser = subparsers.add_parser("federated-search", help="Search multiple vault roots")
     federated_parser.add_argument("query", nargs="?", default=None)
-    federated_parser.add_argument("--vault", action="append", required=True, help="Vault root to search; repeat for multiple")
+    federated_parser.add_argument(
+        "--vault", action="append", required=True, help="Vault root to search; repeat for multiple"
+    )
     federated_parser.add_argument("--limit", type=int, default=None, help="Limit total returned records")
     federated_parser.add_argument("--per-vault-limit", type=int, default=None, help="Limit records per vault")
     federated_parser.add_argument("--sort", default=None, help="Sort within each vault")
@@ -93,7 +97,9 @@ def _build_parser() -> argparse.ArgumentParser:
     context_parser = subparsers.add_parser("context", help="Assemble a deterministic context bundle")
     context_parser.add_argument("query", nargs="?", default=None)
     context_parser.add_argument("--root", default=".")
-    context_parser.add_argument("--id", action="append", dest="ids", default=[], help="Seed with an id; repeat to include multiple")
+    context_parser.add_argument(
+        "--id", action="append", dest="ids", default=[], help="Seed with an id; repeat to include multiple"
+    )
     context_parser.add_argument("--token-budget", type=int, default=None)
     context_parser.add_argument("--related", action="store_true", help="Include related references")
     context_parser.add_argument("--no-dependencies", action="store_true", help="Do not include depends_on references")
@@ -115,8 +121,12 @@ def _build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("--root", default=".")
     ingest_parser.add_argument("--index", action="store_true", help="Rebuild INDEX.jsonl after scaffolding")
     ingest_parser.add_argument("--dry-run", action="store_true", help="Preview writes without changing files")
-    ingest_parser.add_argument("--include", action="append", default=[], help="Glob of relative paths to include; repeatable")
-    ingest_parser.add_argument("--exclude", action="append", default=[], help="Glob of relative paths to exclude; repeatable")
+    ingest_parser.add_argument(
+        "--include", action="append", default=[], help="Glob of relative paths to include; repeatable"
+    )
+    ingest_parser.add_argument(
+        "--exclude", action="append", default=[], help="Glob of relative paths to exclude; repeatable"
+    )
 
     set_parser = subparsers.add_parser("set", help="Set one frontmatter field")
     set_parser.add_argument("target")
@@ -181,8 +191,7 @@ def _print_index_result(result: dict[str, Any], as_json: bool) -> None:
         _print_json({"ok": True, "result": result})
         return
     print(
-        f"indexed={result['indexed']} updated={result['updated']} "
-        f"pruned={result['pruned']} skipped={result['skipped']}"
+        f"indexed={result['indexed']} updated={result['updated']} pruned={result['pruned']} skipped={result['skipped']}"
     )
     for warning in result.get("warnings", []):
         location = warning.get("file", "-")
@@ -351,7 +360,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "set":
-            _print_generic(set_metadata_field(args.target, args.field, args.value, root=args.root, index=args.index), as_json)
+            _print_generic(
+                set_metadata_field(args.target, args.field, args.value, root=args.root, index=args.index), as_json
+            )
             return 0
 
         if args.command == "unset":

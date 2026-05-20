@@ -32,6 +32,13 @@ writes_pages: true
 - Document privacy decisions in page frontmatter or output notes.
 - Require approval before publication or connector export.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+
+
 ## Output Format
 
 - PRIVACY REVIEW

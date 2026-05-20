@@ -33,6 +33,14 @@ writes_pages: true
 - Update KB pages only when source quality and relevance meet the bar.
 - Record freshness and next-review date.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py query`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+
+
 ## Output Format
 
 - FRESHNESS DELTA

@@ -115,10 +115,7 @@ def test_plugin_audit_flags_missing_marketplace_entry(tmp_path: Path) -> None:
     assert result.returncode == 1
     payload = json.loads(result.stdout)
     failures = [
-        check["name"]
-        for plugin in payload["plugins"]
-        for check in plugin["checks"]
-        if check["status"] == "fail"
+        check["name"] for plugin in payload["plugins"] for check in plugin["checks"] if check["status"] == "fail"
     ]
     assert "marketplace-entry" in failures
 
@@ -171,9 +168,5 @@ def test_plugin_audit_accepts_ignored_generated_artifacts(tmp_path: Path) -> Non
     assert result.returncode == 0, result.stdout + result.stderr
     payload = json.loads(result.stdout)
     assert payload["plugins"][0]["warn_count"] == 0
-    generated_checks = [
-        check
-        for check in payload["plugins"][0]["checks"]
-        if check["name"] == "generated-artifact"
-    ]
+    generated_checks = [check for check in payload["plugins"][0]["checks"] if check["name"] == "generated-artifact"]
     assert generated_checks[0]["status"] == "pass"

@@ -5,7 +5,7 @@ description: Synthetic company page used to demonstrate company state, risk trac
 category: company
 tags: [sample, renewal-risk]
 status: active
-related: [people/alice-example, meetings/2026-05-01-alice-acme]
+related: [people/alice-example, meetings/2026-05-01-alice-acme, concepts/decision-quality, projects/acme-strategic-reading]
 ---
 
 # Acme Example
@@ -22,4 +22,3 @@ Acme Example has a synthetic renewal-risk concern tied to unclear operational ow
 
 - [[people/alice-example]]
 - [[concepts/decision-quality]]
-

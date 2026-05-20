@@ -5,7 +5,7 @@ description: Synthetic buyer persona used to demonstrate person pages, meeting t
 category: person
 tags: [sample, buyer]
 status: active
-related: [companies/acme-example]
+related: [companies/acme-example, meetings/2026-05-01-alice-acme]
 ---
 
 # Alice Example
@@ -20,5 +20,4 @@ Alice Example is the synthetic operations lead at Acme Example evaluating whethe
 
 ## Relationships
 
-- Works at [[companies/acme-example]].
-
+- Works at [[companies/acme-example]]. [Source: Sample fixture, 2026-05-20]

@@ -33,6 +33,14 @@ writes_pages: true
 - Queue or perform lightweight updates with citations and back-links.
 - Route exact phrasing to `originals` and conflicts to `conflict-resolution`.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py query`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+
+
 ## Output Format
 
 - SIGNAL DETECTION

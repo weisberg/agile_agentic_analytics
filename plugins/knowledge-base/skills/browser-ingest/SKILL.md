@@ -33,6 +33,15 @@ writes_pages: true
 - Route to article/media/current-research ingestion.
 - Validate citations and raw source preservation.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py normalize-event`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py raw-source-audit`
+
+
 ## Output Format
 
 - BROWSER INGEST

@@ -32,6 +32,15 @@ writes_pages: true
 - Document upgrade notes for existing vaults and commands.
 - Ask before push, PR, tag, or publish.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark`
+
+
 ## Output Format
 
 - KB RELEASE

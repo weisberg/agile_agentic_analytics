@@ -32,6 +32,14 @@ writes_pages: true
 - Run `vaultli init/add/scaffold/index/search/context/validate` where available.
 - Record expected outputs and known environment assumptions.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark`
+
+
 ## Output Format
 
 - SAMPLE VAULT

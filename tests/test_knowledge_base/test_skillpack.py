@@ -62,6 +62,8 @@ def test_generated_skill_portfolio_has_required_shape() -> None:
         assert "description: >-\n" in text
         assert "## Contract\n" in text
         assert "## Workflow\n" in text
+        assert "## Operating System Backing\n" in text
+        assert "scripts/kb_ops.py" in text
         assert "## Output Format\n" in text
         assert "## Anti-Patterns\n" in text
 

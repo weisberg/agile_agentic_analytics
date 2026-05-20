@@ -32,6 +32,14 @@ writes_pages: true
 - For each phase, sample 3-5 items, validate quality, then bulk ingest with checkpoints.
 - Build index, run health audit, and produce setup report.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py frontmatter-audit`
+
+
 ## Output Format
 
 - KB COLD START

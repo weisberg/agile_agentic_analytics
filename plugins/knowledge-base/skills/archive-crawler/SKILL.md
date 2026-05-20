@@ -33,6 +33,14 @@ writes_pages: true
 - Present batches for approval when scope is large.
 - Ingest approved items with raw preservation and validation.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py checkpoint`
+
+
 ## Output Format
 
 - ARCHIVE CRAWL

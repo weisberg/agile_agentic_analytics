@@ -34,6 +34,14 @@ writes_pages: true
 - Write a book mirror page and update related concepts.
 - Preserve quotes within copyright limits and cite source locations.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py query`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+
+
 ## Output Format
 
 - BOOK MIRROR

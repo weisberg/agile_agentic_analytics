@@ -36,6 +36,14 @@ writes_pages: true
 - Rebuild indexes and rerun health.
 - Record remaining manual decisions.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py maintenance-plan`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+
+
 ## Output Format
 
 - KB MAINTENANCE

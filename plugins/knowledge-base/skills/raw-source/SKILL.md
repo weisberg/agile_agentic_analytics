@@ -33,6 +33,13 @@ writes_pages: true
 - Record hash, size, mime type, source URL/path, and access method.
 - Link raw source from the KB page.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py raw-source-audit`
+
+
 ## Output Format
 
 - RAW SOURCE STORED

@@ -31,6 +31,14 @@ writes_pages: true
 - If ambiguous, use `ask-user` with 2-4 options and an escape hatch.
 - Update filing references when a new durable class appears.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py frontmatter-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py graph-audit`
+
+
 ## Output Format
 
 - FILING DECISION

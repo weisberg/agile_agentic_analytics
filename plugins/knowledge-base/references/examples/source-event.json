@@ -1,0 +1,24 @@
+{
+  "title": "Acme Renewal Review Follow-Up",
+  "url": "https://example.com/kb-fixtures/acme-renewal-follow-up",
+  "occurred_at": "2026-05-12T14:30:00Z",
+  "actor": {
+    "name": "Alice Example",
+    "type": "person"
+  },
+  "privacy": {
+    "scope": "sample",
+    "contains_pii": false,
+    "contains_secret": false
+  },
+  "routing": {
+    "primary_subject": "companies/acme-example",
+    "candidate_skill": "meeting-ingestion"
+  },
+  "entities": {
+    "people": ["Alice Example"],
+    "companies": ["Acme Example"],
+    "concepts": ["Decision Quality"]
+  },
+  "text": "Alice asked for owner-visible open tasks before the synthetic renewal review."
+}

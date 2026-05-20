@@ -1,5 +1,6 @@
 ---
 name: ask-user
+version: 1.0.0
 description: >
   Use when a workflow needs to present the user with 2-4 explicit choices and
   wait for their response before proceeding. Trigger on requests or internal
@@ -7,6 +8,12 @@ description: >
   "choice gate", "user decision", destructive operation confirmation,
   ambiguous filing/routing choices, priority triage, or phase gates. This is a
   reusable pattern for other skills that need a human decision before execution.
+triggers:
+  - "present options"
+  - "ask before proceeding"
+  - "choice gate"
+  - "user decision"
+mutating: false
 ---
 
 # Ask User - Choice Gate Pattern

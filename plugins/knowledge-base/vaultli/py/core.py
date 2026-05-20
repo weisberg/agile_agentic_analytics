@@ -255,9 +255,7 @@ def build_index(root: Path | str | None = None, full: bool = False) -> IndexBuil
         if exc.code != "INDEX_MISSING":
             raise
         existing_records = []
-    existing_by_id = {
-        record["id"]: record for record in existing_records if isinstance(record.get("id"), str)
-    }
+    existing_by_id = {record["id"]: record for record in existing_records if isinstance(record.get("id"), str)}
     result = IndexBuildResult(root=str(root_path), full=full)
 
     emitted_ids: set[str] = set()
@@ -391,8 +389,7 @@ def search_index(
         records = [
             record
             for record in records
-            if isinstance(record.get("tags"), list)
-            and expected_tags.issubset(set(record["tags"]))
+            if isinstance(record.get("tags"), list) and expected_tags.issubset(set(record["tags"]))
         ]
 
     if jq_filter:
@@ -528,7 +525,11 @@ def assemble_context(
         raise VaultliError("token budget must be greater than or equal to 0", code="INVALID_TOKEN_BUDGET")
 
     root_path = _resolve_root_hint(root)
-    seed_records = [show_record(doc_id, root=root_path) for doc_id in ids] if ids else search_index(query, root=root_path, limit=limit)
+    seed_records = (
+        [show_record(doc_id, root=root_path) for doc_id in ids]
+        if ids
+        else search_index(query, root=root_path, limit=limit)
+    )
     by_id = {record["id"]: record for record in load_index_records(root_path) if isinstance(record.get("id"), str)}
 
     ordered_ids: list[str] = []
@@ -553,13 +554,15 @@ def assemble_context(
         if token_budget is not None and used_tokens + token_count > token_budget:
             continue
         resolved = resolve_record(doc_id, root=root_path, include_body=True)
-        selected.append({
-            "id": doc_id,
-            "tokens": token_count,
-            "file": resolved["file"],
-            "record": record,
-            "body": resolved.get("body", ""),
-        })
+        selected.append(
+            {
+                "id": doc_id,
+                "tokens": token_count,
+                "file": resolved["file"],
+                "record": record,
+                "body": resolved.get("body", ""),
+            }
+        )
         used_tokens += token_count
         seen.add(doc_id)
 
@@ -849,7 +852,9 @@ def ingest_path(
     if not target_path.exists():
         raise VaultliError(f"File not found: {target_path}", code="FILE_NOT_FOUND")
 
-    root_path = _resolve_root_hint(root if root is not None else (target_path if target_path.is_dir() else target_path.parent))
+    root_path = _resolve_root_hint(
+        root if root is not None else (target_path if target_path.is_dir() else target_path.parent)
+    )
     include_patterns = include or []
     exclude_patterns = exclude or []
     candidates = _ingest_candidates(target_path, root_path, include_patterns, exclude_patterns)
@@ -919,9 +924,7 @@ def validate_vault(root: Path | str | None = None) -> dict[str, Any]:
         try:
             document = parse_markdown_file(md_path, root_path)
         except VaultliError as exc:
-            issues.append(
-                ValidationIssue(code=exc.code, message=exc.message, file=_relative_path(md_path, root_path))
-            )
+            issues.append(ValidationIssue(code=exc.code, message=exc.message, file=_relative_path(md_path, root_path)))
             continue
 
         parsed_documents.append(document)
@@ -957,9 +960,7 @@ def validate_vault(root: Path | str | None = None) -> dict[str, Any]:
                 )
 
     referenceable_ids = {
-        document.doc_id
-        for document in parsed_documents
-        if document.doc_id and not _index_blocking_issues(document)
+        document.doc_id for document in parsed_documents if document.doc_id and not _index_blocking_issues(document)
     }
 
     for document in parsed_documents:
@@ -1182,11 +1183,7 @@ def iter_markdown_files(root: Path | str) -> list[Path]:
     """Return all markdown files in the vault, excluding derived artifacts."""
 
     root_path = Path(root).expanduser().resolve()
-    return sorted(
-        path
-        for path in root_path.rglob("*.md")
-        if path.is_file() and path.name != INDEX_FILENAME
-    )
+    return sorted(path for path in root_path.rglob("*.md") if path.is_file() and path.name != INDEX_FILENAME)
 
 
 def ordered_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
@@ -1378,9 +1375,7 @@ def _index_staleness_issues(root: Path, documents: list[ParsedDocument]) -> list
         return issues
 
     indexed_records = load_index_records(root)
-    indexed_by_id = {
-        record["id"]: record for record in indexed_records if isinstance(record.get("id"), str)
-    }
+    indexed_by_id = {record["id"]: record for record in indexed_records if isinstance(record.get("id"), str)}
 
     valid_documents: list[ParsedDocument] = []
     seen_ids: set[str] = set()
@@ -1455,7 +1450,11 @@ def _ingest_candidates(
     exclude_patterns: list[str],
 ) -> list[Path]:
     if target_path.is_file():
-        return [target_path] if _matches_ingest_patterns(target_path, root_path, include_patterns, exclude_patterns) else []
+        return (
+            [target_path]
+            if _matches_ingest_patterns(target_path, root_path, include_patterns, exclude_patterns)
+            else []
+        )
     if not target_path.is_dir():
         raise VaultliError(f"Expected a file, got directory: {target_path}", code="NOT_A_FILE")
 
@@ -1469,7 +1468,9 @@ def _ingest_candidates(
     return candidates
 
 
-def _matches_ingest_patterns(path: Path, root_path: Path, include_patterns: list[str], exclude_patterns: list[str]) -> bool:
+def _matches_ingest_patterns(
+    path: Path, root_path: Path, include_patterns: list[str], exclude_patterns: list[str]
+) -> bool:
     relative = _relative_path(path, root_path)
     if include_patterns and not any(fnmatch.fnmatch(relative, pattern) for pattern in include_patterns):
         return False
@@ -1649,10 +1650,7 @@ def _sample_text_for_inference(target_path: Path) -> str:
 
 
 def _default_sidecar_body(source_path: Path) -> str:
-    return (
-        "\n## Purpose\n\n"
-        f"Describe the purpose and usage of `{source_path.name}`.\n"
-    )
+    return f"\n## Purpose\n\nDescribe the purpose and usage of `{source_path.name}`.\n"
 
 
 def _is_iso_date_like(value: Any) -> bool:

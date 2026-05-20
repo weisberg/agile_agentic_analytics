@@ -5,7 +5,7 @@ description: Synthetic meeting demonstrating attendee propagation, decisions, ac
 category: meeting
 tags: [sample, meeting, renewal-risk]
 status: active
-related: [people/alice-example, companies/acme-example]
+related: [people/alice-example, companies/acme-example, queries/open-tasks]
 ---
 
 # Alice Acme Renewal Review
@@ -26,4 +26,3 @@ Alice Example asked for a renewal-risk dashboard that makes unresolved action it
 
 - [[people/alice-example]]
 - [[companies/acme-example]]
-

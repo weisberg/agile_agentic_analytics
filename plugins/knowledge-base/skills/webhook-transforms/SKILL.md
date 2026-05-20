@@ -31,6 +31,14 @@ writes_pages: true
 - Compute idempotency key and privacy classification.
 - Route to ingestion or queue for review.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py normalize-event`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+
+
 ## Output Format
 
 - WEBHOOK TRANSFORM

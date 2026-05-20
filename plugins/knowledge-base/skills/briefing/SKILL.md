@@ -31,6 +31,14 @@ writes_pages: false
 - Summarize what matters, what changed, decisions needed, and risks.
 - Include follow-up questions and stale-context warnings.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py query`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+
+
 ## Output Format
 
 - KB BRIEFING

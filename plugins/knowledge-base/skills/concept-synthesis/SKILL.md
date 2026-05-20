@@ -34,6 +34,14 @@ writes_pages: true
 - Create or update concept pages with See Also links and provenance.
 - Route contradictions to conflict resolution.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py query`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py graph-audit`
+
+
 ## Output Format
 
 - CONCEPT SYNTHESIS

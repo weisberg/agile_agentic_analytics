@@ -30,6 +30,14 @@ writes_pages: true
 - Add examples and validation notes.
 - Route webhook payloads through `webhook-transforms`.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py normalize-event`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py validate-schedule`
+
+
 ## Output Format
 
 - INTEGRATION CONTRACT

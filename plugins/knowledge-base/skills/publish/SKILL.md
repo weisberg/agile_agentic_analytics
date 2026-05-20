@@ -31,6 +31,14 @@ writes_pages: true
 - Redact or generalize sensitive names, paths, and raw sources.
 - Export markdown/PDF/html as requested, then record publication metadata.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+
+
 ## Output Format
 
 - PUBLISH PACKAGE

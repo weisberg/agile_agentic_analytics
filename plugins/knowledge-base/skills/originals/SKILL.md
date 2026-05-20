@@ -33,6 +33,14 @@ writes_pages: true
 - Link to related concepts and future synthesis pages.
 - Do not paraphrase except in separate analysis fields.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py privacy-audit`
+
+
 ## Output Format
 
 - ORIGINAL CAPTURED

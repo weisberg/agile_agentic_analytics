@@ -32,6 +32,15 @@ writes_pages: true
 - Use `ask-user` for meaningful forks.
 - Run validation and produce a concise operational report.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py dashboard`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py maintenance-plan`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check`
+
+
 ## Output Format
 
 - KB OPS

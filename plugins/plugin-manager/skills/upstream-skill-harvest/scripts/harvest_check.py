@@ -254,7 +254,9 @@ def main(argv: list[str] | None = None) -> int:
             source_fm, _source_body = split_frontmatter(source_text)
             source_keys = frontmatter_keys(source_fm)
             if source_fm is None:
-                warnings.append(Finding("source_frontmatter_missing", "Source is missing YAML frontmatter.", str(source)))
+                warnings.append(
+                    Finding("source_frontmatter_missing", "Source is missing YAML frontmatter.", str(source))
+                )
 
     target_keys = frontmatter_keys(target_fm)
 

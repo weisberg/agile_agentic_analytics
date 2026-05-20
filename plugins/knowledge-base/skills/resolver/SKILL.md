@@ -32,6 +32,13 @@ writes_pages: true
 - When routing is ambiguous, decide whether the skills should chain, merge, or split by user outcome.
 - Update trigger wording, routing fixtures, or skill descriptions, then rerun `plugin-health`.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check`
+
+
 ## Output Format
 
 - ROUTING REPORT

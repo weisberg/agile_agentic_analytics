@@ -32,6 +32,14 @@ writes_pages: true
 - Apply improvements and record receipt or waiver.
 - Then write or update tests.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py skill-inventory`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check`
+
+
 ## Output Format
 
 - KB QUALITY GATE

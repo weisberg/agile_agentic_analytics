@@ -34,6 +34,14 @@ writes_pages: true
 - Update related entity pages and graph links.
 - Validate citations and index state.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+- `python3 plugins/knowledge-base/scripts/kb_ops.py raw-source-audit`
+
+
 ## Output Format
 
 - ARTICLE ENRICHED

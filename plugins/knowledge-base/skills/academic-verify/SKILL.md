@@ -33,6 +33,13 @@ writes_pages: true
 - Write verification status and citation into relevant KB page.
 - Route unresolved current facts to `current-research`.
 
+## Operating System Backing
+
+This skill is backed by the shared deterministic KB operations harness. Use these commands for audits, CI fixtures, and repeatable agent runs:
+
+- `python3 plugins/knowledge-base/scripts/kb_ops.py citation-audit`
+
+
 ## Output Format
 
 - ACADEMIC VERIFICATION

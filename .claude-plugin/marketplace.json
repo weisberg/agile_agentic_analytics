@@ -40,6 +40,14 @@
       "version": "0.1.0",
       "keywords": ["campaign-analysis", "campaign-performance", "marketing", "analytics", "measurement", "optimization", "reporting"],
       "license": "MIT"
+    },
+    {
+      "name": "knowledge-base",
+      "source": "./plugins/knowledge-base",
+      "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
+      "version": "0.1.0",
+      "keywords": ["knowledge-base", "knowledge-management", "documentation", "research", "retrieval", "ask-user", "choice-gate", "ingest", "knowledge-ingestion", "source-preservation", "vaultli", "vault", "frontmatter", "sidecars", "indexing", "workflow"],
+      "license": "MIT"
     }
   ]
 }

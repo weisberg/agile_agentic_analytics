@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+release_bin="$plugin_root/vaultli/rs/target/release/vaultli"
+debug_bin="$plugin_root/vaultli/rs/target/debug/vaultli"
+
+supports_full_cli() {
+  "$1" --help 2>/dev/null | grep -q "federated-search"
+}
+
+if [[ -x "$release_bin" ]] && supports_full_cli "$release_bin"; then
+  exec "$release_bin" "$@"
+fi
+
+if [[ -x "$debug_bin" ]] && supports_full_cli "$debug_bin"; then
+  exec "$debug_bin" "$@"
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  if [[ -n "${PYTHONPATH:-}" ]]; then
+    exec env PYTHONPATH="$plugin_root:$PYTHONPATH" python3 -m vaultli "$@"
+  fi
+  exec env PYTHONPATH="$plugin_root" python3 -m vaultli "$@"
+fi
+
+echo "vaultli: no bundled binary found and python3 is unavailable" >&2
+exit 127

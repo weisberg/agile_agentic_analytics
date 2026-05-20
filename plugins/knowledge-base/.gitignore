@@ -1,0 +1,4 @@
+vaultli/.claude/settings.local.json
+vaultli/**/__pycache__/
+vaultli/**/*.pyc
+vaultli/rs/target/

@@ -7,7 +7,7 @@ import hashlib
 import json
 import shutil
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field as dataclass_field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -140,7 +140,7 @@ class IndexBuildResult:
     updated: int = 0
     pruned: int = 0
     skipped: int = 0
-    warnings: list[dict[str, Any]] = field(default_factory=list)
+    warnings: list[dict[str, Any]] = dataclass_field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -249,7 +249,12 @@ def build_index(root: Path | str | None = None, full: bool = False) -> IndexBuil
     """Build or rebuild the JSONL index for the vault."""
 
     root_path = _resolve_root_hint(root)
-    existing_records = load_index_records(root_path)
+    try:
+        existing_records = load_index_records(root_path)
+    except VaultliError as exc:
+        if exc.code != "INDEX_MISSING":
+            raise
+        existing_records = []
     existing_by_id = {
         record["id"]: record for record in existing_records if isinstance(record.get("id"), str)
     }

@@ -24,6 +24,41 @@ Or install a specific plugin directly:
 
 ## Available Plugins
 
+### Plugin Manager
+
+**Install:** `/plugin install plugin-manager@agile-agentic-analytics`
+
+Marketplace maintenance workflows for creating, validating, harvesting, syncing,
+and publishing Claude Code plugins.
+
+| Component | Description |
+|-----------|-------------|
+| `/plugin-manager:manage-plugins` | Route plugin maintenance work: create/update plugins, inspect manifests, validate packaging, update marketplace entries, and prepare release steps |
+| `/plugin-manager:plugin-health` | Run plugin health, conformance, packaging, manifest, marketplace, skill frontmatter, routing, and generated-artifact audits |
+| `/plugin-manager:plugin-quality-gate` | Run or record a cross-model/second-opinion quality gate for high-impact plugin skills before release |
+| `/plugin-manager:plugin-release` | Validate, version, document, and gate plugin releases before commit, push, PR, tag, or publish |
+| `/plugin-manager:plugin-work-checkpoint` | Save or restore resumable context for long plugin maintenance work |
+| `/plugin-manager:plugin-devex-review` | Review fresh-clone onboarding, README flow, local testing paths, prerequisites, and contributor experience |
+| `/plugin-manager:upstream-skill-harvest` | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins |
+
+### Knowledge Base
+
+**Install:** `/plugin install knowledge-base@agile-agentic-analytics`
+
+50-skill knowledge management system for file-based vaults, ingestion, retrieval,
+graph operations, provenance, privacy, publishing, automation, and plugin
+maintenance workflows. Includes the bundled `vaultli` CLI plus synthetic sample
+vault fixtures.
+
+| Area | Components |
+|-----------|-------------|
+| Core | `/knowledge-base:kb-ops`, `resolver`, `setup`, `health`, `maintenance`, `dashboard`, `vaultli` |
+| Retrieval | `query`, `search-modes`, `source-router`, `graph-ops`, `briefing`, `reports` |
+| Ingestion | `ingest`, `signal-detector`, `article-enrichment`, `meeting-ingestion`, `media-ingest`, `voice-note-ingest`, `browser-ingest`, `raw-source`, `cold-start`, `migrate`, `archive-crawler` |
+| Knowledge work | `enrich`, `citation-fixer`, `frontmatter-guard`, `filing-rules`, `concept-synthesis`, `book-mirror`, `academic-verify`, `current-research`, `strategic-reading`, `originals`, `task-manager` |
+| Governance | `privacy-security`, `quality-gate`, `context-checkpoint`, `integration-contracts`, `release-upgrade`, `devex-review`, `sample-vault`, `skillify` |
+| Agents | `kb-curator`, `kb-researcher`, `kb-ops-auditor` |
+
 ### A/B Testing
 
 **Install:** `/plugin install ab-testing@agile-agentic-analytics`

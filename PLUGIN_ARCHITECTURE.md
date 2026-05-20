@@ -52,32 +52,25 @@ The result is a shareable, versioned, installable set of domain-specific capabil
 
 ## 4. Current Repository Layout
 
-The current repository layout is:
+The current repository layout includes several distributable plugins:
 
 ```text
 agile_agentic_analytics/
 ├── .claude-plugin/
 │   └── marketplace.json
 ├── plugins/
-│   └── ab-testing/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── agents/
-│       │   ├── experiment-auditor.md
-│       │   └── statistician.md
-│       ├── skills/
-│       │   ├── analyze-results/
-│       │   │   └── SKILL.md
-│       │   ├── design-experiment/
-│       │   │   └── SKILL.md
-│       │   ├── experiment-report/
-│       │   │   └── SKILL.md
-│       │   ├── review-experiment/
-│       │   │   └── SKILL.md
-│       │   └── sample-size/
-│       │       └── SKILL.md
-│       ├── README.md
-│       └── settings.json
+│   ├── ab-testing/
+│   ├── campaign-analysis/
+│   ├── experimentation/
+│   ├── knowledge-base/
+│   │   ├── agents/
+│   │   ├── references/
+│   │   ├── skills/
+│   │   ├── vaultli/
+│   │   └── .claude-plugin/plugin.json
+│   ├── marketing-analytics/
+│   ├── plugin-manager/
+│   └── product-manager/
 ├── PLUGIN_ARCHITECTURE.md
 └── README.md
 ```
@@ -85,11 +78,12 @@ agile_agentic_analytics/
 ### What matters operationally
 
 - `.claude-plugin/marketplace.json` is the marketplace entry point.
-- `plugins/ab-testing/` is the only currently published plugin.
-- The `ab-testing` plugin currently provides:
-  - multiple skills
-  - two custom agents
-  - plugin metadata in `.claude-plugin/plugin.json`
+- Each plugin owns its `.claude-plugin/plugin.json`, skills, agents, references,
+  scripts, and bundled tools.
+- `plugins/plugin-manager/` contains marketplace maintenance skills that operate
+  across plugins.
+- `plugins/knowledge-base/` contains a large skill portfolio plus the bundled
+  `vaultli` file-vault CLI and sample fixtures.
 - There are currently no plugin hooks, MCP servers, or LSP servers in this repository, but the architecture supports them.
 
 ## 5. Marketplace Architecture
@@ -117,11 +111,11 @@ In this repository, that file currently looks like:
   },
   "plugins": [
     {
-      "name": "ab-testing",
-      "source": "./plugins/ab-testing",
-      "description": "Design, analyze, and review A/B tests with statistical rigor",
-      "version": "1.0.0",
-      "keywords": ["ab-testing", "experimentation", "statistics", "analytics"],
+      "name": "knowledge-base",
+      "source": "./plugins/knowledge-base",
+      "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
+      "version": "0.1.0",
+      "keywords": ["knowledge-base", "retrieval", "vaultli"],
       "license": "MIT"
     }
   ]
@@ -319,6 +313,23 @@ Use skills for:
 - repeatable prompts with arguments
 
 In this repository, skills are the primary way to package experimentation workflows.
+
+### Marketplace maintainer skills
+
+Some skills support maintaining this marketplace rather than serving end users
+of one target plugin. Keep those in the `plugin-manager` plugin:
+
+```text
+plugins/plugin-manager/skills/<skill-name>/SKILL.md
+```
+
+These skills are installable as `/plugin-manager:<skill-name>` capabilities and
+should not be duplicated inside an individual plugin unless the workflow is
+meant to ship to that plugin's users.
+
+Use this location for cross-plugin authoring workflows such as upstream
+GBrain/GStack skill harvesting, marketplace-wide validation, and release
+maintenance.
 
 ## 7.2 Agents
 
@@ -629,6 +640,8 @@ For this repository, a production-ready plugin should usually include:
 Good examples:
 
 - `ab-testing`
+- `knowledge-base`
+- `plugin-manager`
 - `metric-debugging`
 - `experiment-governance`
 
@@ -703,11 +716,21 @@ As of the current repository state:
 
 - marketplace name: `agile-agentic-analytics`
 - maintainer: `Brian Weisberg`
-- published plugin count: `1`
-- published plugin:
+- published plugin count: `7`
+- published plugins:
   - `ab-testing`
+  - `campaign-analysis`
+  - `experimentation`
+  - `knowledge-base`
+  - `marketing-analytics`
+  - `plugin-manager`
+  - `product-manager`
 
-The `ab-testing` plugin currently represents the reference implementation for future plugins in this marketplace.
+The reference implementations now cover both narrow domain plugins and broad
+operational plugins. Use `ab-testing` for a compact skill/agent example,
+`marketing-analytics` for a large domain portfolio, `knowledge-base` for a
+full lifecycle plugin with bundled tooling and fixtures, and `plugin-manager`
+for marketplace maintenance workflows.
 
 ## 15. Official Sources Used for This Architecture
 
@@ -735,8 +758,10 @@ This document is grounded primarily in official Claude Code documentation and th
 This repository should be understood as:
 
 - a **real Claude Code marketplace**
-- currently centered on a single `ab-testing` plugin
-- architected to grow into a broader suite of analytics-focused plugins
+- currently publishing multiple analytics, product, knowledge-base, and
+  marketplace-maintenance plugins
+- architected to grow through self-contained plugin packages with explicit
+  validation, docs, and release gates
 
 The core design principle is simple:
 

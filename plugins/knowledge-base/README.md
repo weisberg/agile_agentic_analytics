@@ -2,15 +2,17 @@
 
 Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.
 
-## Skills
+## Skill Portfolio
 
-| Skill | Description |
-|-------|-------------|
-| **ask-user** | Reusable choice-gate pattern for presenting 2-4 explicit options, including an escape hatch, and stopping until the user responds. |
-| **ingest** | Router for ingesting meetings, articles, media, documents, and conversations into the knowledge base with citations, raw source preservation, entity updates, and back-links. |
-| **skillify** | Meta-skill for turning raw features into proper, resolvable, tested agent skills with evals, resolver checks, and KB filing guidance. |
-| **strategic-reading** | Read a source text through one specific strategic problem and produce an applied do/avoid/watch-for playbook with cited recommendations. |
-| **vaultli** | Use the bundled `vaultli` CLI to initialize, scaffold, index, validate, search, and assemble context from file-based knowledge vaults. |
+The plugin ships 50 skills that cover the full KB lifecycle.
+
+| Area | Skills |
+| --- | --- |
+| Core operations | `ask-user`, `kb-ops`, `resolver`, `setup`, `health`, `maintenance`, `dashboard`, `vaultli` |
+| Retrieval and graph | `query`, `search-modes`, `source-router`, `graph-ops`, `briefing`, `reports` |
+| Ingestion | `ingest`, `signal-detector`, `article-enrichment`, `meeting-ingestion`, `media-ingest`, `voice-note-ingest`, `browser-ingest`, `raw-source`, `cold-start`, `migrate`, `archive-crawler` |
+| Knowledge work | `enrich`, `citation-fixer`, `frontmatter-guard`, `filing-rules`, `concept-synthesis`, `book-mirror`, `academic-verify`, `current-research`, `strategic-reading`, `originals`, `task-manager` |
+| Publishing and automation | `publish`, `pdf-export`, `webhook-transforms`, `cron-scheduler`, `background-jobs`, `context-checkpoint`, `privacy-security`, `quality-gate`, `release-upgrade`, `devex-review`, `integration-contracts`, `conflict-resolution`, `sample-vault`, `skillify` |
 
 ## Bundled Tools
 
@@ -18,9 +20,33 @@ Knowledge base workflows for capturing, organizing, retrieving, and maintaining 
 | --- | --- | --- |
 | `vaultli` | `vaultli/` via `bin/vaultli` | File-based KB setup, YAML frontmatter, sidecar docs for non-markdown assets, `INDEX.jsonl` rebuilds, validation, metadata search, context assembly, and federated vault lookup. |
 
-## Status
+## Agents
 
-Plugin skeleton with reusable workflow skills and a bundled vault maintenance CLI. Add more skills, agents, references, and scripts under the standard plugin directories:
+| Agent | Use |
+| --- | --- |
+| `kb-curator` | Maintain page quality, citations, filing, back-links, and schema-aligned page edits. |
+| `kb-researcher` | Compare current facts and primary sources against existing KB context. |
+| `kb-ops-auditor` | Audit plugin health, vault health, generated artifacts, releases, and operational workflows. |
+
+## References And Fixtures
+
+| Path | Purpose |
+| --- | --- |
+| `references/schemas/page-types.md` | Canonical KB page types, frontmatter, and relationship fields. |
+| `references/schemas/integration-contracts.md` | Normalized connector/webhook envelope for ingestion. |
+| `references/retrieval-and-benchmarks.md` | Retrieval modes, graph/timeline routing, and benchmark record shape. |
+| `references/raw-source-storage.md` | Raw source, redirect, hash, and restore conventions. |
+| `references/privacy-and-security.md` | Scope, PII, credential, and publication-safety model. |
+| `references/automation.md` | Cron/background job and checkpoint envelope. |
+| `references/release-upgrade.md` | Release, versioning, and validation bundle. |
+| `references/upstream-sources.md` | GBrain/GStack import ledger and drift review cadence. |
+| `references/issue-coverage.md` | GitHub issue closeout map for the KB roadmap. |
+| `references/samples/mini-vault/` | Synthetic sample vault with people, companies, concepts, meetings, sources, strategic reading, and non-markdown sidecars. |
+
+## Structure
+
+Plugin with reusable workflow skills, specialized KB agents, reference schemas,
+synthetic fixtures, and a bundled vault maintenance CLI.
 
 | Directory | Purpose |
 | --- | --- |
@@ -30,6 +56,13 @@ Plugin skeleton with reusable workflow skills and a bundled vault maintenance CL
 | `scripts/` | Reusable indexing, validation, import, or export utilities |
 | `vaultli/` | Bundled file-based knowledge vault CLI and implementation docs |
 | `bin/` | Executable wrappers exposed while the plugin is enabled |
+
+## Maintainer Notes
+
+Imported or adapted upstream sources are tracked in
+`references/upstream-sources.md`. Use
+`/plugin-manager:upstream-skill-harvest` when importing, refreshing, or diffing
+skills from GBrain or GStack.
 
 ## Installation
 
@@ -50,4 +83,15 @@ Try the bundled CLI after loading the plugin:
 ```bash
 vaultli --json root .
 vaultli --json validate --root ./kb
+```
+
+The Python fallback for `vaultli` requires `PyYAML`; the Rust binary path is
+used automatically when a compatible bundled binary is present.
+
+Validate the bundled sample vault:
+
+```bash
+vaultli --json index --root ./plugins/knowledge-base/references/samples/mini-vault
+vaultli --json validate --root ./plugins/knowledge-base/references/samples/mini-vault
+vaultli --json search "renewal risk" --root ./plugins/knowledge-base/references/samples/mini-vault
 ```

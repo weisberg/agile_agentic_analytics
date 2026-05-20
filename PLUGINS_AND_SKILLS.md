@@ -11,6 +11,21 @@
   * Planning
   * Prioritizing
 * Plugin: Marketing Analytics
+* Plugin: Plugin Manager
+  * Manage Plugins
+  * Plugin Health
+  * Plugin Quality Gate
+  * Plugin Release
+  * Plugin Work Checkpoint
+  * Plugin Devex Review
+  * Upstream Skill Harvest
+* Plugin: Knowledge Base
+  * Core Operations
+  * Retrieval And Graph
+  * Ingestion
+  * Knowledge Work
+  * Publishing And Automation
+  * KB Agents
 
 
 
@@ -94,9 +109,90 @@
 
 #### Web Analytics
 
+## Plugin: Plugin Manager
 
+Marketplace maintenance workflows for creating, validating, harvesting, syncing,
+and publishing Claude Code plugins.
 
+### Manage Plugins
 
+Use for plugin creation, plugin updates, marketplace entries, plugin validation,
+skill moves, and release preparation.
+
+### Plugin Health
+
+Use for manifest, marketplace, skill frontmatter, conformance, routing fixture,
+generated-artifact, and CI-readiness audits.
+
+### Plugin Quality Gate
+
+Use for cross-model or second-opinion review of high-impact plugin skills before
+tests and releases cement behavior.
+
+### Plugin Release
+
+Use for plugin versioning, documentation sync, validation bundles, upgrade notes,
+and release approval gates.
+
+### Plugin Work Checkpoint
+
+Use to save or restore resumable context for long plugin maintenance, release,
+or harvest work without storing secrets or large raw diffs.
+
+### Plugin Devex Review
+
+Use for fresh-clone onboarding checks, quickstart testing, prerequisite review,
+and contributor-experience improvements.
+
+### Upstream Skill Harvest
+
+Use for importing, adapting, diffing, and periodically reviewing skills harvested
+from GBrain or GStack into marketplace plugins.
+
+## Plugin: Knowledge Base
+
+The Knowledge Base plugin provides a 50-skill portfolio for file-based knowledge
+vaults, including ingestion, retrieval, graph operations, provenance, privacy,
+publishing, automation, release workflows, and bundled `vaultli` maintenance.
+
+### Core Operations
+
+`ask-user`, `kb-ops`, `resolver`, `setup`, `health`, `maintenance`, `dashboard`,
+and `vaultli` provide choice gates, routing, first-run setup, operational health,
+and local vault CLI access.
+
+### Retrieval And Graph
+
+`query`, `search-modes`, `source-router`, `graph-ops`, `briefing`, and `reports`
+answer from the KB first, choose retrieval modes, expand relationships, and
+produce cited operational summaries.
+
+### Ingestion
+
+`ingest`, `signal-detector`, `article-enrichment`, `meeting-ingestion`,
+`media-ingest`, `voice-note-ingest`, `browser-ingest`, `raw-source`,
+`cold-start`, `migrate`, and `archive-crawler` route source material into
+cited, back-linked KB pages with raw source preservation.
+
+### Knowledge Work
+
+`enrich`, `citation-fixer`, `frontmatter-guard`, `filing-rules`,
+`concept-synthesis`, `book-mirror`, `academic-verify`, `current-research`,
+`strategic-reading`, `originals`, and `task-manager` keep pages useful,
+fresh, verified, and connected.
+
+### Publishing And Automation
+
+`publish`, `pdf-export`, `webhook-transforms`, `cron-scheduler`,
+`background-jobs`, `context-checkpoint`, `privacy-security`, `quality-gate`,
+`release-upgrade`, `devex-review`, `integration-contracts`,
+`conflict-resolution`, `sample-vault`, and `skillify` cover durable outputs,
+scheduled work, safety, validation, and release readiness.
+
+### KB Agents
+
+`kb-curator`, `kb-researcher`, and `kb-ops-auditor` provide specialized
+subagent roles for curation, current-source research, and operational audits.
 
 
 

@@ -8,6 +8,8 @@ Knowledge base workflows for capturing, organizing, retrieving, and maintaining 
 |-------|-------------|
 | **ask-user** | Reusable choice-gate pattern for presenting 2-4 explicit options, including an escape hatch, and stopping until the user responds. |
 | **ingest** | Router for ingesting meetings, articles, media, documents, and conversations into the knowledge base with citations, raw source preservation, entity updates, and back-links. |
+| **skillify** | Meta-skill for turning raw features into proper, resolvable, tested agent skills with evals, resolver checks, and KB filing guidance. |
+| **strategic-reading** | Read a source text through one specific strategic problem and produce an applied do/avoid/watch-for playbook with cited recommendations. |
 | **vaultli** | Use the bundled `vaultli` CLI to initialize, scaffold, index, validate, search, and assemble context from file-based knowledge vaults. |
 
 ## Bundled Tools

@@ -1,45 +1,143 @@
 ---
 name: vaultli
 description: >
-  Use when initializing, maintaining, validating, or searching a file-based
-  knowledge base with the bundled vaultli CLI. Trigger on knowledge vaults,
-  KB setup, YAML frontmatter, sidecar markdown, INDEX.jsonl, documenting SQL or
-  template assets, validating stale or broken KB state, searching vault
-  metadata, assembling retrieval context, or federated lookup across vaults.
+  Use when initializing, maintaining, validating, searching, documenting, or
+  assembling context from a file-based knowledge base with the bundled vaultli
+  CLI. Trigger on knowledge vaults, KB setup, .kbroot, YAML frontmatter,
+  sidecar markdown, INDEX.jsonl, documenting SQL/templates/configs/scripts,
+  validating stale or broken KB state, searching vault metadata, hydrating
+  source assets, assembling retrieval context, or federated lookup across
+  multiple vault roots.
 ---
 
 # vaultli
 
-Use `vaultli` when the task is to make knowledge assets discoverable,
-auditable, and agent-friendly in a file-based KB.
+Use `vaultli` when the task is to make a file tree of knowledge assets
+discoverable, auditable, retrievable, and safe for later agents. It is the
+Knowledge Base plugin's bundled CLI for vault roots, YAML metadata, sidecar
+documentation, JSONL indexes, validation, metadata search, and deterministic
+context assembly.
 
-The bundled implementation lives at `vaultli/` in this plugin. The plugin also
-ships a `bin/vaultli` wrapper so enabled plugin sessions can call:
+The bundled implementation lives at `../../vaultli/` relative to this skill.
+Enabled plugin sessions also expose a wrapper at `bin/vaultli`, so normal use
+looks like:
 
 ```bash
 vaultli --json <command> ...
 ```
 
-For the full tool guide, read `../../vaultli/SKILL.md`. For the storage and
-metadata schema, read `../../vaultli/vaultli-spec-v1.0.md`.
+For deeper reference, read only what you need:
 
-## Use Cases
+- `../../vaultli/README.md` for the tool overview and command surface.
+- `../../vaultli/vaultli-spec-v1.0.md` for the storage and metadata spec.
+- `../../vaultli/SKILL.md` for the original full tool operating guide.
+- `../../references/samples/walkthrough.md` for a synthetic sample vault flow.
+- `../../references/schemas/page-types.md` for KB page type conventions.
 
-- Initialize a new file-based KB root with `.kbroot` and `INDEX.jsonl`.
-- Add YAML frontmatter to markdown knowledge pages.
-- Create sidecar markdown for non-markdown assets such as SQL, Jinja templates,
-  configs, scripts, and runbooks.
-- Bulk scaffold missing metadata with a dry-run before writing.
-- Rebuild `INDEX.jsonl` after page or metadata edits.
-- Validate duplicate IDs, broken sources, dangling refs, and stale index state.
-- Search indexed metadata, then hydrate matched records with `resolve`, `cat`, or
-  `context`.
-- Assemble deterministic context bundles for later answers.
-- Federate search across multiple KB vault roots.
+## Contract
 
-## Default Loop
+When this skill is used:
 
-Prefer JSON output in agent workflows:
+- The source of truth is the file tree. `INDEX.jsonl` is a rebuildable cache.
+- Markdown pages carry YAML frontmatter inline.
+- Non-markdown assets become discoverable only through same-directory sidecar
+  markdown files such as `retention.sql.md`.
+- Generated metadata is treated as a draft and refined before claiming the KB
+  is high quality.
+- Bulk writes are previewed with `--dry-run` and narrowed with `--include` or
+  `--exclude` when the tree is large.
+- Every material edit is followed by `vaultli --json index` and
+  `vaultli --json validate`.
+- Retrieval happens in two stages: search metadata first, then hydrate body or
+  source content with `resolve`, `cat`, or `context`.
+- `search --semantic` is token-overlap matching over indexed metadata, not a
+  vector database or full-text search engine.
+- Do not edit `INDEX.jsonl` directly.
+
+## When To Use
+
+Use this skill for:
+
+- Creating or finding KB vault roots.
+- Adding or repairing markdown frontmatter.
+- Creating sidecars for SQL, Jinja, JSON, YAML, TOML, scripts, configs, and
+  other non-markdown assets.
+- Bulk scaffolding, indexing, validation, search, hydration, context assembly,
+  federated lookup, and stale/broken state audits.
+
+## When Not To Use
+
+Do not use `vaultli` as the primary tool for:
+
+- Current web facts. Use `current-research`, then file the result if needed.
+- Semantic/vector retrieval expectations. `vaultli` is metadata-first.
+- Editing large binary assets. Store or point to them, then document with a
+  sidecar.
+- Replacing citation, privacy, or filing judgment. Pair with `citation-fixer`,
+  `privacy-security`, and `filing-rules` when those concerns matter.
+- Automatically fixing validation failures without inspecting what they mean.
+
+## Core Mental Model
+
+vaultli is built around three stable conventions:
+
+1. Markdown is the universal knowledge wrapper.
+2. YAML frontmatter is the universal metadata format.
+3. JSONL is the universal index format.
+
+A typical vault:
+
+```text
+kb/
+  .kbroot
+  INDEX.jsonl
+  concepts/decision-quality.md
+  queries/retention.sql
+  queries/retention.sql.md
+  templates/report.j2
+  templates/report.j2.md
+```
+
+Native markdown files are indexed directly. Non-markdown files are indexed
+through sidecars. Sidecars keep the original asset valid in its native format
+and put retrievable metadata and prose in markdown.
+
+## Invocation Rules
+
+Prefer the plugin wrapper:
+
+```bash
+vaultli --json --help
+```
+
+The wrapper chooses a compatible bundled Rust binary if one has been built,
+then falls back to the Python package with `PYTHONPATH` pointed at the plugin
+root. In local development, the Python fallback requires `PyYAML`.
+
+Use `--json` in agent workflows unless the user explicitly wants human-only
+terminal output. JSON output makes failures parseable and prevents brittle
+screen-scraping.
+
+Always pass `--root <vault-root>` for commands that operate on a vault. Do not
+depend on the shell's current directory unless root discovery is the task.
+
+## Command Selection
+
+| Need | Command |
+| --- | --- |
+| Create/find root | `init <path>`, `root <path>` |
+| Preview IDs/metadata | `make-id <file> --root <root>`, `infer <file> --root <root>` |
+| Add markdown | `add <file> --root <root>` |
+| Add non-markdown sidecar | `scaffold <file> --root <root>` |
+| Bulk scaffold | `ingest <path> --root <root> --dry-run` |
+| Maintain fields | `set`, `unset`, `refresh` |
+| Rebuild/audit | `index --root <root>`, `validate --root <root>` |
+| Search/hydrate | `search`, `show`, `resolve`, `cat`, `context` |
+| Multi-vault/git | `federated-search`, `git-info`, `dump-index` |
+
+## Workflow
+
+For most maintenance work, run this loop:
 
 ```bash
 vaultli --json root .
@@ -51,34 +149,339 @@ vaultli --json resolve queries/retention --root ./kb --body --source
 vaultli --json context --root ./kb --id queries/retention --token-budget 2000
 ```
 
-Use `ingest --dry-run` before bulk writes. Add `--include` and `--exclude`
-globs when the tree is large.
+If `ingest --dry-run` shows too many changes, narrow it:
 
-## Command Selection
+```bash
+vaultli --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql'
+vaultli --json ingest ./kb --root ./kb --dry-run --exclude 'tmp/**'
+```
 
-| Need | Command |
-| --- | --- |
-| Create a vault root | `vaultli --json init <path>` |
-| Find the nearest vault root | `vaultli --json root <path>` |
-| Add markdown frontmatter and index | `vaultli --json add <file> --root <root>` |
-| Create sidecar metadata for a non-markdown asset | `vaultli --json scaffold <file> --root <root>` |
-| Bulk scaffold missing metadata | `vaultli --json ingest <path> --root <root> --dry-run` |
-| Rebuild the derived index | `vaultli --json index --root <root>` |
-| Audit vault consistency | `vaultli --json validate --root <root>` |
-| Search metadata | `vaultli --json search <query> --root <root>` |
-| Hydrate a result | `vaultli --json resolve <id> --root <root> --body --source` |
-| Print raw content | `vaultli cat <id> --root <root> --source` |
-| Build a context bundle | `vaultli --json context --root <root> --id <id>` |
-| Search across vaults | `vaultli --json federated-search <query> --vault <root> --vault <other>` |
+After reviewing the dry-run, run the write command intentionally:
 
-## Rules
+```bash
+vaultli --json ingest ./kb --root ./kb --index --include 'queries/*.sql'
+vaultli --json validate --root ./kb
+```
 
-- Never edit `INDEX.jsonl` directly; rebuild it with `vaultli index`.
-- Treat `INDEX.jsonl` as a cache. The source of truth is the file tree.
-- Non-markdown assets are not discoverable until they have sidecar `.md` files.
-- Refine generated metadata after scaffolding, especially `description`, `tags`,
-  `category`, and relationships.
-- Run `validate` after material metadata changes.
-- Use `search` to shortlist and `resolve`, `cat`, or `context` to hydrate. Do not
-  assume metadata search has loaded the document body.
-- Treat `search --semantic` as experimental token-overlap matching, not vector retrieval.
+### Creating A New Vault
+
+Pick a root that belongs to the user or project, initialize only when `.kbroot`
+is missing, add or scaffold a few representative files, refine metadata, then
+index and validate:
+
+```bash
+vaultli --json init ./kb
+vaultli --json add ./kb/concepts/decision-quality.md --root ./kb
+vaultli --json scaffold ./kb/queries/open_tasks.sql --root ./kb
+vaultli --json index --root ./kb
+vaultli --json validate --root ./kb
+```
+
+`.kbroot` may contain conservative YAML defaults:
+
+```yaml
+defaults:
+  author: brian
+  scope: personal
+  domain: knowledge-management
+```
+
+Defaults should never be used to hide per-file specificity.
+
+## Metadata Quality
+
+The practical fields for useful retrieval are:
+
+- `id`: stable path-derived identifier, used by links and dependencies.
+- `title`: human-readable display name.
+- `description`: one precise sentence explaining what the page or asset is for.
+- `category`: useful type such as `person`, `company`, `concept`, `meeting`,
+  `source`, `query`, `template`, `runbook`, `report`, or `task`.
+- `tags`: flat, retrieval-friendly keywords.
+- `status`: `draft`, `active`, `review`, `deprecated`, or `archived`.
+- `scope`: `personal`, `team`, `org`, or `public`.
+- `related` and `depends_on`: soft links and structural prerequisites.
+- `source`: required for sidecars and relative to the sidecar.
+
+Treat `description` as the most valuable retrieval field. Replace generic
+scaffold text like "Markdown document for..." with specific language that
+answers: "When should an agent retrieve this?"
+
+Good:
+
+```yaml
+description: >-
+  SQL query that finds overdue renewal tasks by account owner and priority for
+  weekly customer-success review.
+tags: [renewal, tasks, customer-success, sql]
+category: query
+```
+
+Weak:
+
+```yaml
+description: SQL query stored in the vault.
+tags: [query]
+```
+
+## Sidecar Workflow
+
+For a non-markdown asset, keep the source file untouched and create a sidecar:
+
+```bash
+vaultli --json scaffold ./kb/queries/open_tasks.sql --root ./kb
+```
+
+Expected files:
+
+```text
+kb/queries/open_tasks.sql
+kb/queries/open_tasks.sql.md
+```
+
+The sidecar frontmatter must include:
+
+```yaml
+source: ./open_tasks.sql
+```
+
+Fill the body with purpose, parameters, assumptions, usage, sample output, and
+downstream consumers. `search` finds the sidecar metadata; `resolve --source`
+or `cat --source` retrieves the executable SQL/template/config.
+
+Sidecar rules:
+
+- The sidecar lives beside the source asset and is named `<source>.<ext>.md`.
+- A broken `source` field makes validation fail.
+- Sidecar-backed hashes are based on source asset bytes.
+
+## Bulk Ingestion
+
+Use bulk ingestion when a directory already contains useful files but lacks KB
+metadata.
+
+Start with a preview, slice large trees, then write in batches:
+
+```bash
+vaultli --json ingest ./kb --root ./kb --dry-run
+vaultli --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql'
+vaultli --json ingest ./kb --root ./kb --dry-run --exclude 'archive/**'
+vaultli --json ingest ./kb --root ./kb --index --include 'queries/*.sql'
+vaultli --json validate --root ./kb
+```
+
+After writing, manually improve generated metadata. The scaffold is allowed to
+be mechanical; the curated KB should not stay mechanical.
+
+## Metadata Maintenance
+
+Use `set`, `unset`, and `refresh` for simple frontmatter changes:
+
+```bash
+vaultli --json set queries/open-tasks status active --root ./kb --index
+vaultli --json set queries/open-tasks scope team --root ./kb --index
+vaultli --json unset queries/open-tasks priority --root ./kb --index
+vaultli --json refresh queries/open-tasks --root ./kb --field tags --index
+```
+
+Use manual editing when changing prose, multi-line descriptions, relationship
+lists, or citations. After manual editing:
+
+```bash
+vaultli --json index --root ./kb
+vaultli --json validate --root ./kb
+```
+
+Avoid ID churn. If an ID changes because a file moved or was renamed, inspect
+`related`, `depends_on`, backlinks, citations, and external references.
+
+## Validation And Repair
+
+Run validation after every material batch:
+
+```bash
+vaultli --json validate --root ./kb
+```
+
+Common validation failures:
+
+| Code or symptom | Meaning | Usual fix |
+| --- | --- | --- |
+| Missing index | Index has not been built | `vaultli --json index --root <root>` |
+| Duplicate IDs | Two pages resolve to the same ID | Rename/move one file or set a distinct ID if supported |
+| Broken source | Sidecar `source` target is missing | Fix path or restore the source asset |
+| Dangling related/depends_on | Relationship points to a missing ID | Correct the ID or remove the stale link |
+| Stale index | Source files differ from index cache | Rebuild with `index` |
+| Invalid frontmatter | YAML is malformed or not a mapping | Repair the YAML delimiters and values |
+
+`validate` reports; it does not repair. Inspect failures before changing files,
+and sample 3-5 files before a broad repair.
+
+## Retrieval Workflow
+
+Search first:
+
+```bash
+vaultli --json search "renewal risk" --root ./kb --limit 10
+vaultli --json search --root ./kb --category company --tag renewal-risk
+vaultli --json search "open tasks" --root ./kb --sort priority --order asc
+vaultli --json search "decision quality" --root ./kb --semantic --explain
+```
+
+Then hydrate:
+
+```bash
+vaultli --json show companies/acme-example --root ./kb
+vaultli --json resolve companies/acme-example --root ./kb --body
+vaultli --json resolve queries/open-tasks --root ./kb --body --source
+vaultli cat queries/open-tasks --root ./kb --source
+```
+
+Use `search` to shortlist, `show` for metadata, `resolve` for paths/body/source
+JSON, `cat` for raw text, and `context` for answer-ready bundles.
+
+Do not answer from `search` metadata alone when the body or source content
+matters. Search results are pointers, not full evidence.
+
+## Context Assembly
+
+Use `context` when the next step is synthesis or answering:
+
+```bash
+vaultli --json context "renewal risk" --root ./kb --limit 5 --token-budget 3000
+vaultli --json context --root ./kb --id companies/acme-example --related --token-budget 4000
+vaultli --json context --root ./kb --id queries/open-tasks --no-dependencies
+```
+
+`context` is deterministic and useful for reproducible prompts. Still inspect
+whether the bundle includes enough source evidence; add explicit IDs if search
+missed important records.
+
+## Federated Search
+
+Use federated search when the question crosses source scopes:
+
+```bash
+vaultli --json federated-search "renewal risk" \
+  --vault ./personal-kb \
+  --vault ./team-kb \
+  --per-vault-limit 5 \
+  --limit 10
+```
+
+In outputs and answers, preserve vault origin and privacy scope. Do not merge
+personal and team facts without labeling their source.
+
+## Git And Change Awareness
+
+Use `git-info` when you need to know whether a vault or item is dirty before
+writing, committing, migrating, or publishing:
+
+```bash
+vaultli --json git-info --root ./kb
+vaultli --json git-info queries/open-tasks --root ./kb
+```
+
+If the target file is dirty and the changes are not yours, read them and work
+with them. Do not overwrite user edits to frontmatter or source assets.
+
+## Sample Vault Smoke Test
+
+The Knowledge Base plugin ships a synthetic mini vault:
+
+```bash
+vaultli --json index --root ./plugins/knowledge-base/references/samples/mini-vault
+vaultli --json validate --root ./plugins/knowledge-base/references/samples/mini-vault
+vaultli --json search --tag renewal-risk --root ./plugins/knowledge-base/references/samples/mini-vault
+vaultli --json context --root ./plugins/knowledge-base/references/samples/mini-vault --id companies/acme-example --related
+```
+
+Use this fixture when checking whether the plugin wrapper, Python fallback,
+indexing, validation, sidecars, and retrieval flow are functioning.
+
+## Integration With Other KB Skills
+
+- `setup`: create or verify the first vault.
+- `frontmatter-guard`: repair metadata with `validate`, `set`, `unset`,
+  `refresh`, and `index`.
+- `ingest`, `media-ingest`, `article-enrichment`, `meeting-ingestion`: make
+  filed source assets discoverable with sidecars.
+- `query`, `search-modes`, `graph-ops`: use `search`, `resolve`, and `context`
+  as the local retrieval substrate.
+- `raw-source` and `privacy-security`: check source pointers, large assets,
+  `scope`, and sensitivity before broad indexing or publishing.
+- `citation-fixer`: hydrate pages with `resolve --body` before repairing gaps.
+- `sample-vault` and `release-upgrade`: keep fixtures, parity, and plugin-health
+  checks current.
+
+## Output Format
+
+For maintenance tasks:
+
+```text
+VAULTLI RESULT
+Root: <vault root>
+Operation: <init/add/scaffold/ingest/index/validate/search/context/...>
+Files changed: <count and paths, or none>
+Index: <rebuilt/skipped/missing>
+Validation: <pass/fail and issue count>
+Results: <key IDs or records>
+Next action: <none / inspect failures / refine metadata / rerun command>
+```
+
+For retrieval tasks:
+
+```text
+VAULTLI RETRIEVAL
+Root: <vault root>
+Query: <query or IDs>
+Mode: <metadata/filter/semantic/context/federated>
+Matches: <IDs with titles>
+Hydrated: <IDs opened with body/source>
+Confidence: <high/medium/low>
+Gaps: <missing body/source/stale index/privacy constraint>
+```
+
+## Troubleshooting
+
+- `vaultli: no bundled binary found and python3 is unavailable`: expose
+  `python3` or build the Rust binary.
+- `ModuleNotFoundError: yaml`: install `PyYAML` for the Python fallback.
+- `No .kbroot found`: run from inside a vault or pass the correct root path.
+- `INDEX_MISSING`: run `vaultli --json index --root <root>`.
+- Search misses obvious content: metadata may be too generic, the file may lack
+  frontmatter/sidecar, or the index may be stale.
+- Missing source content: check the sidecar `source` field and run `validate`.
+- `--jq` fails: the external `jq` binary is not installed; use first-class
+  filters when possible.
+- Rust and Python disagree: rerun Rust parity tests and inspect the Python
+  reference under `../../vaultli/py/`.
+
+## Release And CI Checks
+
+Before claiming vaultli-related changes are ready:
+
+```bash
+python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin knowledge-base --json
+uv run --no-project --with pytest --with numpy --with pandas --with pyyaml pytest tests/test_knowledge_base tests/test_plugins
+cargo test --locked
+```
+
+Run `cargo test --locked` from `plugins/knowledge-base/vaultli/rs`.
+
+The repository also includes `.github/workflows/knowledge-base-vaultli.yml` for
+CI coverage of the Python fallback, sample vault validation, plugin audits, and
+Rust vaultli tests.
+
+## Anti-Patterns
+
+- Editing `INDEX.jsonl` by hand.
+- Treating metadata search as if it loaded document bodies.
+- Creating sidecars without a valid `source` field.
+- Leaving scaffolded descriptions generic.
+- Running broad bulk ingestion without `--dry-run`.
+- Changing IDs casually.
+- Mixing personal/team/org/public vaults without scope labels.
+- Trusting `search --semantic` as vector retrieval.
+- Skipping `validate` after metadata or source changes.
+- Committing generated caches or Rust `target/` artifacts.

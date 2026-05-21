@@ -16,6 +16,10 @@ user asks. It reads the artifact, traces claims back to evidence where possible,
 checks metric definitions and data quality, and returns findings ordered by
 decision risk.
 
+If the review finds an undefined KPI, recommend `metric-contract`. If the review
+finds evidence trust problems, recommend `data-quality-audit`. If the analysis is
+valid but poorly communicated for leadership, recommend `executive-readout`.
+
 ## Workflow
 
 1. **Identify the claimed decision.** State what the analysis appears to

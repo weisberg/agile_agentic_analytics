@@ -1,6 +1,6 @@
 {
   "name": "lead-analyst",
-  "description": "Senior analyst workflows for planning analytical work, framing business questions, auditing data quality, producing decision-ready analysis briefs, and reviewing analytical claims.",
+  "description": "Senior analyst workflows for intake, source inventory, analysis planning, metric contracts, lineage, SQL review, profiling, diagnostics, data-quality audits, decision-ready briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
   "version": "0.1.0",
   "author": {
     "name": "Brian Weisberg"
@@ -9,9 +9,19 @@
   "keywords": [
     "analytics",
     "analysis",
+    "analysis-intake",
     "analysis-planning",
-    "senior-analyst",
+    "metric-contract",
+    "metric-lineage",
     "data-quality",
+    "sql-review",
+    "eda",
+    "cohort-analysis",
+    "dashboard",
+    "forecasting",
+    "executive-readout",
+    "decision-log",
+    "senior-analyst",
     "decision-support",
     "metrics",
     "insights"

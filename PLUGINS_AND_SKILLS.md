@@ -20,11 +20,29 @@
   * Plugin Devex Review
   * Upstream Skill Harvest
 * Plugin: Lead Analyst
+  * Analysis Intake
+  * Source Inventory
   * Analysis Planning
+  * Metric Contract
+  * Metric Lineage
+  * SQL Review
+  * EDA Profile
+  * Metric Movement Diagnostic
+  * Cohort Analysis
+  * Segment Diagnostics
+  * Dashboard Spec
+  * Dashboard Audit
+  * Forecast Scenario
+  * Data Quality Audit
   * Analysis Brief
   * Analysis Review
+  * Executive Readout
+  * Decision Log
+  * Metric Steward Agent
+  * Data Quality Auditor Agent
   * Lead Analyst Agent
   * Analysis Planner Agent
+  * Insight Editor Agent
 * Plugin: Knowledge Base
   * Core Operations
   * Retrieval And Graph
@@ -160,12 +178,82 @@ from GBrain or GStack into marketplace plugins.
 Senior analyst workflows for evidence-backed business, product, marketing, and
 operations analysis.
 
+### Analysis Intake
+
+Use when a stakeholder request is vague, political, broad, or under-specified
+and needs to become a crisp analytics intake before planning or execution.
+
+### Source Inventory
+
+Use when the analyst needs to map available tables, files, dashboards,
+notebooks, reports, APIs, owners, freshness, grain, access, and source-of-truth
+status before analysis.
+
 ### Analysis Planning
 
 Use when the user wants to plan an analysis before running it, scope analytical
 work, design an investigation, write an analysis plan, decide what data or
 metrics are needed, or turn a vague metric/business question into an executable
 analyst workplan.
+
+### Metric Contract
+
+Use when the user wants to define, document, reconcile, or review a KPI or
+metric, including numerator, denominator, grain, population, source of truth,
+caveats, and change control.
+
+### Metric Lineage
+
+Use to trace a KPI or metric from dashboard/report back through SQL, dbt models,
+semantic layers, events, source tables, transformations, filters, and owners.
+
+### SQL Review
+
+Use to review SQL, dbt models, BI queries, warehouse transformations, or notebook
+queries for analytical correctness.
+
+### EDA Profile
+
+Use for exploratory data analysis profiling before deeper analysis: row counts,
+date coverage, schema, missingness, duplicates, distributions, outliers,
+categorical levels, grain, and first-cut anomalies.
+
+### Metric Movement Diagnostic
+
+Use when a KPI or metric moved and the team needs to understand why.
+
+### Cohort Analysis
+
+Use to design or perform cohort analysis for retention, activation, repeat
+behavior, lifecycle progression, revenue, churn, or product usage.
+
+### Segment Diagnostics
+
+Use to diagnose which segments explain a metric movement, opportunity, risk, or
+performance gap without overclaiming post-hoc slices.
+
+### Dashboard Spec
+
+Use to design a dashboard specification from an operating decision: audience,
+cadence, metrics, definitions, source of truth, layout, alerts, drilldowns,
+states, and governance.
+
+### Dashboard Audit
+
+Use to review an existing dashboard for decision usefulness, metric definition
+quality, freshness, misleading charts, broken filters, stale data, alert
+thresholds, and governance.
+
+### Forecast Scenario
+
+Use to design or review forecasts, scenarios, sensitivity analyses, targets,
+plans, capacity models, revenue forecasts, demand forecasts, budget scenarios,
+or what-if models.
+
+### Data Quality Audit
+
+Use when the user wants to audit whether data, SQL, dashboards, extracts,
+notebooks, or metric pipelines are reliable enough for analysis or decision use.
 
 ### Analysis Brief
 
@@ -180,6 +268,18 @@ Use when the user wants a senior analyst review of an existing analysis,
 dashboard, notebook, SQL query, KPI claim, experiment readout, executive brief,
 or report.
 
+### Executive Readout
+
+Use when the user wants to turn analysis into an executive-ready readout,
+decision memo, operating-review narrative, stakeholder update, board-ready
+summary, or concise recommendation.
+
+### Decision Log
+
+Use to capture, update, or review analytical decisions and follow-through:
+recommendation, evidence, confidence, owner decision, action taken, follow-up
+date, and outcome.
+
 ### Lead Analyst Agent
 
 Use as an independent senior analyst subagent for ambiguous business/data
@@ -191,6 +291,21 @@ decision-ready insight synthesis.
 Use as a planning-focused senior analyst subagent for analysis design, metric
 precision, evidence inventory, validity threats, candidate approaches, and plan
 review.
+
+### Metric Steward Agent
+
+Use as a metric-definition specialist for KPI contracts and source-of-truth
+reconciliation.
+
+### Data Quality Auditor Agent
+
+Use as an evidence-quality specialist for freshness, grain, joins, missingness,
+duplicates, definition drift, and decision risk.
+
+### Insight Editor Agent
+
+Use as an executive narrative specialist for sharpening recommendations while
+preserving uncertainty and decision-changing caveats.
 
 ## Plugin: Knowledge Base
 

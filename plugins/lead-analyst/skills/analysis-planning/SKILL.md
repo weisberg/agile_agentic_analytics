@@ -17,6 +17,11 @@ feasibility. It must not run the full analysis or present analytical findings as
 final. Route execution to `analysis-brief` or a domain-specific skill after the
 plan is approved.
 
+If metric definitions are loose, route to `metric-contract` before execution. If
+evidence trust is unclear, route to `data-quality-audit`. If the final audience
+is leadership, make `executive-readout` the downstream artifact after
+`analysis-brief` and `analysis-review`.
+
 Use `references/analysis-standards.md` for the general analytical spine. Use
 `references/analysis-plan-template.md` when writing the final plan artifact.
 
@@ -157,6 +162,7 @@ Use `references/analysis-plan-template.md` for the structure. Include:
 - stakeholder, deadline, and artifact
 - metric definitions
 - evidence inventory
+- prerequisite metric contracts or data-quality audits
 - data quality gates
 - candidate approaches and recommendation
 - validity threats

@@ -20,6 +20,11 @@ reproducible commands, and write a Markdown artifact when the user asks for a
 durable brief or the analysis is too large for chat. It must not invent numbers,
 pretend screenshots are verified data, or convert correlation into causation.
 
+If the question is underspecified, run or recommend `analysis-planning` first. If
+metric definitions are contested, use `metric-contract`. If the evidence may be
+untrustworthy, use `data-quality-audit` before making claims. If the user needs a
+leadership artifact, hand off to `executive-readout` after the analysis brief.
+
 ## Workflow
 
 1. **Frame the decision.** Identify the decision, audience, time horizon, and
@@ -27,7 +32,8 @@ pretend screenshots are verified data, or convert correlation into causation.
    clarifying question before analyzing.
 2. **Define the metrics.** For every key metric, name the numerator, denominator,
    grain, cohort, time window, exclusions, and source of truth. Mark unresolved
-   definitions as `[NEEDS DEFINITION]`.
+   definitions as `[NEEDS DEFINITION]`; if they are load-bearing, stop and
+   produce a metric-contract task before continuing.
 3. **Inventory evidence.** Locate relevant data files, queries, notebooks,
    reports, dashboards, tickets, prior analyses, and code paths. Prefer source
    data and reproducible logic over copied summaries.
@@ -60,7 +66,9 @@ For most requests, return:
 ## Evidence Used
 ## Data Quality
 ## Findings
+## So What
 ## Interpretation
+## Options
 ## Risks And Caveats
 ## Next Actions
 ```

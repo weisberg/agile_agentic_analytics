@@ -24,7 +24,7 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `plugins/ab-testing/` | A/B testing plugin (`agents/`, `skills/{analyze-results, design-experiment, experiment-report, review-experiment, sample-size}`). |
 | `plugins/experimentation/` | Experimentation plugin (`agents/`, `references/`, `skills/{advanced-experiment-analysis, compliance-trust-review, early-signal-monitoring, email-incrementality, executive-evidence-brief, experiment-decision-review, experiment-operating-model, measurement-integration, null-results-knowledge-base, personalization-governance, power-duration-planning, safe-experiment-design}`). |
 | `plugins/marketing-analytics/` | Marketing analytics portfolio (`shared/{definitions, schemas, utils}`, `skills/{attribution-analysis, audience-segmentation, clv-modeling, competitive-intel, compliance-review, crm-lead-scoring, email-analytics, experimentation, funnel-analysis, paid-media, reporting, seo-content, social-analytics, voc-analytics, web-analytics}`). |
-| `plugins/lead-analyst/` | Senior analyst plugin (`agents/{analysis-planner, lead-analyst}.md`, `references/{analysis-plan-template, analysis-standards}.md`, `skills/{analysis-brief, analysis-planning, analysis-review}`). |
+| `plugins/lead-analyst/` | Senior analyst plugin (`agents/{analysis-planner, data-quality-auditor, insight-editor, lead-analyst, metric-steward}.md`, `references/{analysis-plan-template, analysis-standards, causal-claims-guide, data-quality-checklist, executive-readout-template, metric-contract-template}.md`, `scripts/profile_table.py`, `skills/{analysis-brief, analysis-intake, analysis-planning, analysis-review, cohort-analysis, dashboard-audit, dashboard-spec, data-quality-audit, decision-log, eda-profile, executive-readout, forecast-scenario, metric-contract, metric-lineage, metric-movement-diagnostic, segment-diagnostics, source-inventory, sql-review}`). |
 | `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
 | `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`). |
 | `plugins/plugin-manager/` | Plugin marketplace maintenance plugin (`skills/{manage-plugins, plugin-devex-review, plugin-health, plugin-quality-gate, plugin-release, plugin-work-checkpoint, upstream-skill-harvest}`). |
@@ -205,16 +205,33 @@ and publishing Claude Code plugins.
 
 ### lead-analyst
 
-Senior analyst workflows for evidence-backed business, product, marketing, and
-operations analysis. Includes a reusable `lead-analyst` subagent for independent
-analytical judgment and an `analysis-planner` subagent for planning analytical
-work before execution.
+Senior analyst workflows for intake, source inventory, analysis planning, metric
+contracts, lineage, SQL review, profiling, diagnostics, data-quality audits,
+decision-ready briefs, dashboard work, forecasting, reviews, executive readouts,
+and decision logs. Includes specialist subagents for planning, metric
+stewardship, data-quality audit, insight editing, and general senior analyst
+judgment.
 
 | Skill | Description |
 |-------|-------------|
+| **analysis-intake** | Turn vague stakeholder asks into a crisp analytics intake with decision, audience, timing, metric, and route. |
+| **source-inventory** | Map available tables, files, dashboards, notebooks, owners, freshness, grain, and source-of-truth status. |
 | **analysis-planning** | Plan analytical work before execution: decision, metrics, evidence inventory, data-quality gates, candidate methods, and handoff artifact. |
+| **metric-contract** | Define or reconcile KPI contracts with numerator, denominator, grain, source of truth, caveats, and change control. |
+| **metric-lineage** | Trace KPIs from dashboard/report back through SQL, models, events, source tables, and transformation logic. |
+| **sql-review** | Review SQL, dbt models, BI queries, and notebook queries for analytical correctness and decision risk. |
+| **eda-profile** | Profile datasets before analysis: grain, coverage, missingness, duplicates, distributions, and anomalies. |
+| **metric-movement-diagnostic** | Diagnose why a KPI moved by separating measurement issues, mix shift, segments, timing, and plausible drivers. |
+| **cohort-analysis** | Design or run cohort analysis for retention, activation, repeat behavior, lifecycle progression, revenue, or churn. |
+| **segment-diagnostics** | Identify which segments explain a movement or opportunity without overclaiming noisy post-hoc cuts. |
+| **dashboard-spec** | Design dashboards from operating decisions: audience, cadence, metrics, layout, alerts, states, and governance. |
+| **dashboard-audit** | Review dashboards for decision usefulness, metric trust, freshness, misleading charts, filters, and governance. |
+| **forecast-scenario** | Design forecasts, scenarios, sensitivity analyses, targets, capacity models, and what-if plans. |
+| **data-quality-audit** | Audit datasets, SQL, dashboards, extracts, notebooks, and metric pipelines for decision readiness. |
 | **analysis-brief** | Lead a decision-ready analysis from question framing through data quality, findings, interpretation, and recommendation. |
 | **analysis-review** | Review an existing analysis, dashboard, notebook, report, KPI claim, or executive brief for analytical validity and decision risk. |
+| **executive-readout** | Turn analytical work into an executive-ready recommendation, decision memo, or operating-review update. |
+| **decision-log** | Capture analytical recommendations, decisions, confidence, follow-up plans, and outcomes. |
 
 ### knowledge-base
 

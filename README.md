@@ -45,17 +45,36 @@ and publishing Claude Code plugins.
 
 **Install:** `/plugin install lead-analyst@agile-agentic-analytics`
 
-Senior analyst workflows for planning analytical work, framing business
-questions, auditing data quality, producing decision-ready analysis briefs, and
-reviewing analytical claims.
+Senior analyst workflows for intake, source inventory, analysis planning, metric
+contracts, lineage, SQL review, profiling, diagnostics, data-quality audits,
+decision-ready briefs, dashboard work, forecasting, reviews, executive readouts,
+and decision logs.
 
 | Component | Description |
 |-----------|-------------|
+| `/lead-analyst:analysis-intake` | Turn vague stakeholder asks into a crisp analytics intake with decision, audience, timing, metric, and route |
+| `/lead-analyst:source-inventory` | Map available tables, files, dashboards, notebooks, owners, freshness, grain, and source-of-truth status |
 | `/lead-analyst:analysis-planning` | Plan analytical work before execution: decision, metrics, evidence, data-quality gates, candidate methods, and handoff artifact |
+| `/lead-analyst:metric-contract` | Define or reconcile KPI contracts with numerator, denominator, grain, source of truth, caveats, and change control |
+| `/lead-analyst:metric-lineage` | Trace KPIs from dashboard/report back through SQL, models, events, source tables, and transformation logic |
+| `/lead-analyst:sql-review` | Review SQL, dbt models, BI queries, and notebook queries for analytical correctness and decision risk |
+| `/lead-analyst:eda-profile` | Profile datasets before analysis: grain, coverage, missingness, duplicates, distributions, and anomalies |
+| `/lead-analyst:metric-movement-diagnostic` | Diagnose why a KPI moved by separating measurement issues, mix shift, segments, timing, and plausible drivers |
+| `/lead-analyst:cohort-analysis` | Design or run cohort analysis for retention, activation, repeat behavior, lifecycle progression, revenue, or churn |
+| `/lead-analyst:segment-diagnostics` | Identify which segments explain a movement or opportunity without overclaiming noisy post-hoc cuts |
+| `/lead-analyst:dashboard-spec` | Design dashboards from operating decisions: audience, cadence, metrics, layout, alerts, states, and governance |
+| `/lead-analyst:dashboard-audit` | Review dashboards for decision usefulness, metric trust, freshness, misleading charts, filters, and governance |
+| `/lead-analyst:forecast-scenario` | Design forecasts, scenarios, sensitivity analyses, targets, capacity models, and what-if plans |
+| `/lead-analyst:data-quality-audit` | Audit datasets, SQL, dashboards, extracts, and metric pipelines for decision readiness |
 | `/lead-analyst:analysis-brief` | Lead an analysis from question framing through evidence, data-quality checks, interpretation, and recommendation |
 | `/lead-analyst:analysis-review` | Review an analysis, dashboard, notebook, report, or KPI claim for analytical validity and decision risk |
-| `lead-analyst` agent | Senior analyst subagent for independent analytical judgment and decision-ready synthesis |
+| `/lead-analyst:executive-readout` | Turn analytical work into an executive-ready recommendation, decision memo, or operating-review update |
+| `/lead-analyst:decision-log` | Capture analytical recommendations, decisions, confidence, follow-up plans, and outcomes |
 | `analysis-planner` agent | Planning-focused analyst subagent for metric precision, validity threats, and analysis plan review |
+| `metric-steward` agent | Metric-definition specialist for KPI contracts and source-of-truth reconciliation |
+| `data-quality-auditor` agent | Evidence-quality specialist for freshness, grain, joins, missingness, and decision risk |
+| `lead-analyst` agent | Senior analyst subagent for independent analytical judgment and decision-ready synthesis |
+| `insight-editor` agent | Executive narrative specialist for sharpening recommendations without overstating certainty |
 
 ### Knowledge Base
 

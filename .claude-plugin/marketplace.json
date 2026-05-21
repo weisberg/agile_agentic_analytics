@@ -18,6 +18,14 @@
       "license": "MIT"
     },
     {
+      "name": "lead-analyst",
+      "source": "./plugins/lead-analyst",
+      "description": "Senior analyst workflows for planning analytical work, framing business questions, auditing data quality, producing decision-ready analysis briefs, and reviewing analytical claims.",
+      "version": "0.1.0",
+      "keywords": ["analytics", "analysis", "analysis-planning", "senior-analyst", "data-quality", "decision-support", "metrics", "insights"],
+      "license": "MIT"
+    },
+    {
       "name": "ab-testing",
       "source": "./plugins/ab-testing",
       "description": "Design, analyze, and review A/B tests with statistical rigor",

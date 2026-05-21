@@ -24,6 +24,7 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `plugins/ab-testing/` | A/B testing plugin (`agents/`, `skills/{analyze-results, design-experiment, experiment-report, review-experiment, sample-size}`). |
 | `plugins/experimentation/` | Experimentation plugin (`agents/`, `references/`, `skills/{advanced-experiment-analysis, compliance-trust-review, early-signal-monitoring, email-incrementality, executive-evidence-brief, experiment-decision-review, experiment-operating-model, measurement-integration, null-results-knowledge-base, personalization-governance, power-duration-planning, safe-experiment-design}`). |
 | `plugins/marketing-analytics/` | Marketing analytics portfolio (`shared/{definitions, schemas, utils}`, `skills/{attribution-analysis, audience-segmentation, clv-modeling, competitive-intel, compliance-review, crm-lead-scoring, email-analytics, experimentation, funnel-analysis, paid-media, reporting, seo-content, social-analytics, voc-analytics, web-analytics}`). |
+| `plugins/lead-analyst/` | Senior analyst plugin (`agents/{analysis-planner, lead-analyst}.md`, `references/{analysis-plan-template, analysis-standards}.md`, `skills/{analysis-brief, analysis-planning, analysis-review}`). |
 | `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
 | `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`). |
 | `plugins/plugin-manager/` | Plugin marketplace maintenance plugin (`skills/{manage-plugins, plugin-devex-review, plugin-health, plugin-quality-gate, plugin-release, plugin-work-checkpoint, upstream-skill-harvest}`). |
@@ -201,6 +202,19 @@ and publishing Claude Code plugins.
 | **plugin-work-checkpoint** | Save or restore resumable context for long plugin maintenance work. |
 | **plugin-devex-review** | Review fresh-clone onboarding, README flow, local testing paths, prerequisites, bundled CLIs, and contributor experience. |
 | **upstream-skill-harvest** | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins. |
+
+### lead-analyst
+
+Senior analyst workflows for evidence-backed business, product, marketing, and
+operations analysis. Includes a reusable `lead-analyst` subagent for independent
+analytical judgment and an `analysis-planner` subagent for planning analytical
+work before execution.
+
+| Skill | Description |
+|-------|-------------|
+| **analysis-planning** | Plan analytical work before execution: decision, metrics, evidence inventory, data-quality gates, candidate methods, and handoff artifact. |
+| **analysis-brief** | Lead a decision-ready analysis from question framing through data quality, findings, interpretation, and recommendation. |
+| **analysis-review** | Review an existing analysis, dashboard, notebook, report, KPI claim, or executive brief for analytical validity and decision risk. |
 
 ### knowledge-base
 

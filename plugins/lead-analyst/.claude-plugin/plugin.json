@@ -1,0 +1,19 @@
+{
+  "name": "lead-analyst",
+  "description": "Senior analyst workflows for planning analytical work, framing business questions, auditing data quality, producing decision-ready analysis briefs, and reviewing analytical claims.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "license": "MIT",
+  "keywords": [
+    "analytics",
+    "analysis",
+    "analysis-planning",
+    "senior-analyst",
+    "data-quality",
+    "decision-support",
+    "metrics",
+    "insights"
+  ]
+}

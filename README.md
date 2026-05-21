@@ -41,6 +41,22 @@ and publishing Claude Code plugins.
 | `/plugin-manager:plugin-devex-review` | Review fresh-clone onboarding, README flow, local testing paths, prerequisites, and contributor experience |
 | `/plugin-manager:upstream-skill-harvest` | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins |
 
+### Lead Analyst
+
+**Install:** `/plugin install lead-analyst@agile-agentic-analytics`
+
+Senior analyst workflows for planning analytical work, framing business
+questions, auditing data quality, producing decision-ready analysis briefs, and
+reviewing analytical claims.
+
+| Component | Description |
+|-----------|-------------|
+| `/lead-analyst:analysis-planning` | Plan analytical work before execution: decision, metrics, evidence, data-quality gates, candidate methods, and handoff artifact |
+| `/lead-analyst:analysis-brief` | Lead an analysis from question framing through evidence, data-quality checks, interpretation, and recommendation |
+| `/lead-analyst:analysis-review` | Review an analysis, dashboard, notebook, report, or KPI claim for analytical validity and decision risk |
+| `lead-analyst` agent | Senior analyst subagent for independent analytical judgment and decision-ready synthesis |
+| `analysis-planner` agent | Planning-focused analyst subagent for metric precision, validity threats, and analysis plan review |
+
 ### Knowledge Base
 
 **Install:** `/plugin install knowledge-base@agile-agentic-analytics`

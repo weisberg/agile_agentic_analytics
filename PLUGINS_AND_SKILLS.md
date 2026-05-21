@@ -19,6 +19,12 @@
   * Plugin Work Checkpoint
   * Plugin Devex Review
   * Upstream Skill Harvest
+* Plugin: Lead Analyst
+  * Analysis Planning
+  * Analysis Brief
+  * Analysis Review
+  * Lead Analyst Agent
+  * Analysis Planner Agent
 * Plugin: Knowledge Base
   * Core Operations
   * Retrieval And Graph
@@ -149,6 +155,43 @@ and contributor-experience improvements.
 Use for importing, adapting, diffing, and periodically reviewing skills harvested
 from GBrain or GStack into marketplace plugins.
 
+## Plugin: Lead Analyst
+
+Senior analyst workflows for evidence-backed business, product, marketing, and
+operations analysis.
+
+### Analysis Planning
+
+Use when the user wants to plan an analysis before running it, scope analytical
+work, design an investigation, write an analysis plan, decide what data or
+metrics are needed, or turn a vague metric/business question into an executable
+analyst workplan.
+
+### Analysis Brief
+
+Use when the user asks the lead analyst or senior analyst to analyze data, answer
+a business/product/marketing/operations question, diagnose a metric movement,
+summarize what the data says, produce an insight brief, or recommend what to do
+from evidence.
+
+### Analysis Review
+
+Use when the user wants a senior analyst review of an existing analysis,
+dashboard, notebook, SQL query, KPI claim, experiment readout, executive brief,
+or report.
+
+### Lead Analyst Agent
+
+Use as an independent senior analyst subagent for ambiguous business/data
+questions, metric definitions, exploratory analysis, data-quality audits, and
+decision-ready insight synthesis.
+
+### Analysis Planner Agent
+
+Use as a planning-focused senior analyst subagent for analysis design, metric
+precision, evidence inventory, validity threats, candidate approaches, and plan
+review.
+
 ## Plugin: Knowledge Base
 
 The Knowledge Base plugin provides a 50-skill portfolio for file-based knowledge
@@ -193,6 +236,3 @@ scheduled work, safety, validation, and release readiness.
 
 `kb-curator`, `kb-researcher`, and `kb-ops-auditor` provide specialized
 subagent roles for curation, current-source research, and operational audits.
-
-
-

@@ -716,12 +716,13 @@ As of the current repository state:
 
 - marketplace name: `agile-agentic-analytics`
 - maintainer: `Brian Weisberg`
-- published plugin count: `7`
+- published plugin count: `8`
 - published plugins:
   - `ab-testing`
   - `campaign-analysis`
   - `experimentation`
   - `knowledge-base`
+  - `lead-analyst`
   - `marketing-analytics`
   - `plugin-manager`
   - `product-manager`

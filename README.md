@@ -39,6 +39,13 @@ and publishing Claude Code plugins.
 | `/plugin-manager:plugin-release` | Validate, version, document, and gate plugin releases before commit, push, PR, tag, or publish |
 | `/plugin-manager:plugin-work-checkpoint` | Save or restore resumable context for long plugin maintenance work |
 | `/plugin-manager:plugin-devex-review` | Review fresh-clone onboarding, README flow, local testing paths, prerequisites, and contributor experience |
+| `/plugin-manager:skill-improve` | Improve an existing skill in one bounded evidence-backed pass without a full SkillOpt training loop |
+| `/plugin-manager:skillopt-training-run` | Orchestrate offline SkillOpt-style optimization for plugin skills |
+| `/plugin-manager:skillopt-rollout-evidence` | Capture scored task trajectories, verifier output, and failure modes |
+| `/plugin-manager:skillopt-reflection-edits` | Turn rollout successes and failures into bounded structured skill edits |
+| `/plugin-manager:skillopt-validation-gate` | Accept candidate skill edits only when held-out validation improves |
+| `/plugin-manager:skillopt-slow-meta-update` | Consolidate epoch-level slow guidance and optimizer meta memory |
+| `/plugin-manager:skillopt-transfer-release` | Export, transfer-check, document, and promote the best optimized skill |
 | `/plugin-manager:upstream-skill-harvest` | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins |
 
 ### Lead Analyst

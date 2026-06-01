@@ -13,6 +13,13 @@ and publishing Claude Code plugins.
 | **plugin-quality-gate** | Run or record a cross-model/second-opinion quality gate for high-impact plugin skills before release. |
 | **plugin-release** | Validate, version, document, and gate plugin releases before commit, push, PR, tag, or publish. |
 | **plugin-work-checkpoint** | Save or restore resumable context for long plugin maintenance work. |
+| **skill-improve** | Improve an existing skill in one bounded evidence-backed pass without running a full SkillOpt training loop. |
+| **skillopt-training-run** | Orchestrate an offline SkillOpt-style optimization run for a plugin skill. |
+| **skillopt-rollout-evidence** | Capture scored rollout evidence, task splits, verifier output, and failure modes for skill optimization. |
+| **skillopt-reflection-edits** | Convert rollout successes and failures into bounded structured skill edits. |
+| **skillopt-validation-gate** | Apply candidate edits to a copy and accept only held-out validation improvements. |
+| **skillopt-slow-meta-update** | Run epoch-boundary slow-update guidance and optimizer-side meta memory. |
+| **skillopt-transfer-release** | Export, transfer-check, document, and promote a validated best skill. |
 | **upstream-skill-harvest** | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins. |
 
 ## Use Cases
@@ -26,6 +33,11 @@ and publishing Claude Code plugins.
 - Save/restore long-running plugin work without leaking secrets.
 - Run quality gates for high-impact plugin skills before tests and releases
   cement behavior.
+- Improve a single skill with SkillOpt-inspired evidence, bounded edits, and
+  validation without creating a full optimization run.
+- Run SkillOpt-style skill optimization loops with scored rollouts, bounded
+  edits, held-out gates, rejected-edit buffers, slow/meta updates, and best-skill
+  release checks.
 - Prepare plugin release or publishing work after local validation.
 
 ## Local Testing

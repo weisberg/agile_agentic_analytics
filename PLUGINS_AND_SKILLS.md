@@ -18,6 +18,13 @@
   * Plugin Release
   * Plugin Work Checkpoint
   * Plugin Devex Review
+  * Skill Improve
+  * SkillOpt Training Run
+  * SkillOpt Rollout Evidence
+  * SkillOpt Reflection Edits
+  * SkillOpt Validation Gate
+  * SkillOpt Slow Meta Update
+  * SkillOpt Transfer Release
   * Upstream Skill Harvest
 * Plugin: Lead Analyst
   * Analysis Intake
@@ -167,6 +174,36 @@ or harvest work without storing secrets or large raw diffs.
 
 Use for fresh-clone onboarding checks, quickstart testing, prerequisite review,
 and contributor-experience improvements.
+
+### Skill Improve
+
+Use for one-pass evidence-backed skill improvements without a full SkillOpt
+training loop.
+
+### SkillOpt Training Run
+
+Use for orchestrating offline SkillOpt-style optimization loops for plugin
+skills.
+
+### SkillOpt Rollout Evidence
+
+Use for capturing scored train, selection, test, or transfer trajectories.
+
+### SkillOpt Reflection Edits
+
+Use for turning rollout failures and successes into bounded structured edits.
+
+### SkillOpt Validation Gate
+
+Use for accepting candidate skill edits only when held-out validation improves.
+
+### SkillOpt Slow Meta Update
+
+Use for epoch-boundary protected guidance and optimizer-side memory.
+
+### SkillOpt Transfer Release
+
+Use for exporting, transfer-checking, documenting, and promoting a best skill.
 
 ### Upstream Skill Harvest
 

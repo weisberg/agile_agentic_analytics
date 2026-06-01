@@ -27,7 +27,7 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `plugins/lead-analyst/` | Senior analyst plugin (`agents/{analysis-planner, data-quality-auditor, insight-editor, lead-analyst, metric-steward}.md`, `references/{analysis-plan-template, analysis-standards, causal-claims-guide, data-quality-checklist, executive-readout-template, metric-contract-template}.md`, `scripts/profile_table.py`, `skills/{analysis-brief, analysis-intake, analysis-planning, analysis-review, cohort-analysis, dashboard-audit, dashboard-spec, data-quality-audit, decision-log, eda-profile, executive-readout, forecast-scenario, metric-contract, metric-lineage, metric-movement-diagnostic, segment-diagnostics, source-inventory, sql-review}`). |
 | `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
 | `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`). |
-| `plugins/plugin-manager/` | Plugin marketplace maintenance plugin (`skills/{manage-plugins, plugin-devex-review, plugin-health, plugin-quality-gate, plugin-release, plugin-work-checkpoint, upstream-skill-harvest}`). |
+| `plugins/plugin-manager/` | Plugin marketplace maintenance plugin (`skills/{manage-plugins, plugin-devex-review, plugin-health, plugin-quality-gate, plugin-release, plugin-work-checkpoint, skill-improve, skillopt-training-run, skillopt-rollout-evidence, skillopt-reflection-edits, skillopt-validation-gate, skillopt-slow-meta-update, skillopt-transfer-release, upstream-skill-harvest}`). |
 | `plugins/knowledge-base/` | Knowledge base plugin (`agents/`, `references/`, bundled `vaultli/`, and 50 skills for ingestion, retrieval, graph ops, privacy, automation, publishing, and maintenance). |
 | `knowledge/experimentation/` | Knowledge base material for the experimentation plugin. |
 | `examples/` | Worked example workflows (`clv_segmentation_workflow.md`, `funnel_optimization.md`, `quick_start.md`, `generate_sample_data.py`, `data/`). |
@@ -201,6 +201,13 @@ and publishing Claude Code plugins.
 | **plugin-release** | Validate, version, document, and gate plugin releases before commit, push, PR, tag, or publish. |
 | **plugin-work-checkpoint** | Save or restore resumable context for long plugin maintenance work. |
 | **plugin-devex-review** | Review fresh-clone onboarding, README flow, local testing paths, prerequisites, bundled CLIs, and contributor experience. |
+| **skill-improve** | Improve an existing skill in one bounded evidence-backed pass without a full SkillOpt training loop. |
+| **skillopt-training-run** | Orchestrate offline SkillOpt-style optimization runs for plugin skills. |
+| **skillopt-rollout-evidence** | Capture scored rollout evidence, task splits, verifier output, and failure modes. |
+| **skillopt-reflection-edits** | Convert rollout successes and failures into bounded structured skill edits. |
+| **skillopt-validation-gate** | Apply candidate edits to a copy and accept only held-out validation improvements. |
+| **skillopt-slow-meta-update** | Run epoch-boundary protected guidance and optimizer-side meta memory. |
+| **skillopt-transfer-release** | Export, transfer-check, document, and promote a validated best skill. |
 | **upstream-skill-harvest** | Import, adapt, diff, and periodically review skills harvested from GBrain or GStack into marketplace plugins. |
 
 ### lead-analyst

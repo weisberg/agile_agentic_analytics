@@ -61,6 +61,11 @@ Use this skill as the first stop for plugin work, then route:
   `../plugin-work-checkpoint/SKILL.md` and write/read a checkpoint.
 - **Run a high-impact quality gate:** read
   `../plugin-quality-gate/SKILL.md` before tests or release lock in behavior.
+- **Improve one skill without a full training loop:** read
+  `../skill-improve/SKILL.md` and keep edits bounded and evidence-backed.
+- **Run a full SkillOpt-style training loop:** read
+  `../skillopt-training-run/SKILL.md` and follow its rollout, reflection, gate,
+  slow/meta, and release phases.
 - **Create a new plugin:** create `plugins/<plugin-name>/.claude-plugin/plugin.json`,
   `README.md`, and any needed `skills/`, `agents/`, `references/`, `scripts/`, or
   `bin/` directories.

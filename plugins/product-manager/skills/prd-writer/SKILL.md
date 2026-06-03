@@ -1,6 +1,9 @@
 ---
-name: prd-author
-description: Use this skill whenever the user wants to write, draft, create, scaffold, review, or improve a PRD (Product Requirements Document), spec, product brief, one-pager, or "working backwards" PR/FAQ. Trigger on phrases like "write a PRD", "draft a spec", "product doc for X", "one-pager", "PR/FAQ", "feature brief", or when the user describes a feature/product idea and asks for it to be turned into a written requirements document. Also trigger when the user asks to *critique* or *level up* an existing PRD. Do NOT trigger for engineering design docs, RFCs, ADRs, or technical architecture documents — those are downstream of the PRD and have their own conventions. The output of this skill is always a markdown file (or section thereof) that a real product team could ship from.
+name: prd-writer
+description: >
+  Use this skill whenever the user wants to write, draft, create, scaffold, review, or improve a PRD (Product Requirements Document), spec, product brief, one-pager, or "working backwards" PR/FAQ. Trigger on phrases like "write a PRD", "draft a spec", "product doc for X", "one-pager", "PR/FAQ", "feature brief", or when the user describes a feature/product idea and asks for it to be turned into a written requirements document. Also trigger when the user asks to *critique* or *level up* an existing PRD. Do NOT trigger for engineering design docs, RFCs, ADRs, or technical architecture documents — those are downstream of the PRD and have their own conventions. The output of this skill is always a markdown file (or section thereof) that a real product team could ship from.
+
+disable-model-invocation: false
 ---
 
 # PRD Author

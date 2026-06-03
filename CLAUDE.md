@@ -10,11 +10,14 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `AGENTS.md` | Agent-facing pointer to this index. |
 | `README.md` | Public-facing repo overview. |
 | `LICENSE` | Repo license. |
+| `marketplace.yaml` | Canonical marketplace catalog. Edit this, then render generated Claude Code and Codex marketplace files. |
+| `package.json`, `package-lock.json` | Node scripts and locked YAML parser for marketplace rendering and validation. |
 | `PLUGINS_AND_SKILLS.md` | Catalog of plugins and their skills. |
 | `PLUGIN_ARCHITECTURE.md` | Architectural notes for plugin design across the repo. |
 | `PLUGIN_SKILLS.md` | Long-form notes on skill behavior per plugin. |
 | `pyproject.toml`, `pytest.ini`, `requirements.txt`, `requirements-dev.txt` | Python project and test configuration. |
-| `.claude-plugin/` | Repo-level marketplace manifest (`marketplace.json`). |
+| `.claude-plugin/` | Generated Claude Code marketplace manifest (`marketplace.json`). |
+| `.agents/plugins/` | Generated Codex marketplace manifest (`marketplace.json`). |
 | `.github/` | GitHub workflows and repo metadata. |
 | `docs/` | Authoritative reference docs (see Documentation Map below). |
 | `docs/CREATE_PLUGINS.md`, `docs/PLUGINS_REFERENCE.md`, `docs/CREATE_CUSTOM_SUBAGENTS.md`, `docs/HOOKS_REFERENCE.md`, `docs/TOOLS_REFERENCE.md`, `docs/ADVANCED_SKILLS.md`, `docs/marketing_analytics_skill_specs.md` | Plugin, agent, hook, tool, and marketing-analytics reference material. |
@@ -31,9 +34,11 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `plugins/knowledge-base/` | Knowledge base plugin (`agents/`, `references/`, bundled `vaultli/`, and 50 skills for ingestion, retrieval, graph ops, privacy, automation, publishing, and maintenance). |
 | `knowledge/experimentation/` | Knowledge base material for the experimentation plugin. |
 | `examples/` | Worked example workflows (`clv_segmentation_workflow.md`, `funnel_optimization.md`, `quick_start.md`, `generate_sample_data.py`, `data/`). |
+| `scripts/` | Marketplace renderer, validator, and smoke-test scripts. |
+| `schemas/` | Documentation schemas for the canonical catalog and generated plugin manifests. |
 | `tests/` | Pytest suite (`conftest.py`, `fixtures/`, plugin tests, knowledge-base tests, and per-skill test packages such as `test_audience_segmentation`, `test_email_analytics`, `test_funnel_analysis`, `test_integration`, `test_voc_analytics`, `test_web_analytics`). |
 
-Note: `.claude/` (local Claude settings) and `plugins/campaign-measurement/` exist locally but are not tracked in git. Top-level `agents/`, `bin/`, `hooks/`, `scripts/`, `skills/` are also untracked — git does not preserve empty directories, so these only appear once they contain files.
+Note: `.claude/` (local Claude settings) and `plugins/campaign-measurement/` exist locally but are not tracked in git. Top-level `agents/`, `bin/`, `hooks/`, and `skills/` are also untracked — git does not preserve empty directories, so these only appear once they contain files.
 
 ## Documentation Map
 
@@ -142,14 +147,82 @@ The reusable skill architecture lives under `templates/skills/`. Treat these fil
 
 ## Plugin Authoring Rules
 
+### Marketplace Generation
+
+This repository is maintained as one canonical marketplace rendered into two
+harness-specific surfaces:
+
+| Source of truth | Claude Code output | Codex output |
+| --- | --- | --- |
+| `marketplace.yaml` | `.claude-plugin/marketplace.json` | `.agents/plugins/marketplace.json` |
+| `marketplace.yaml` plugin entry | `plugins/<plugin>/.claude-plugin/plugin.json` | `plugins/<plugin>/.codex-plugin/plugin.json` |
+| `plugins/<plugin>/skills/*/SKILL.md` | Shared skill content | Shared skill content |
+
+Requirements:
+
+- `marketplace.yaml` is the only human-edited source of marketplace metadata,
+  plugin display names, descriptions, versions, policies, categories, Codex
+  interface copy, component flags, and generated manifest metadata.
+- Generated files are committed, but should not be hand-edited:
+  `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`,
+  `plugins/<plugin>/.claude-plugin/plugin.json`, and
+  `plugins/<plugin>/.codex-plugin/plugin.json`.
+- If generated JSON is wrong, fix `marketplace.yaml` or
+  `scripts/marketplace-lib.mjs`, then rerender.
+- Run `npm run render` after changing marketplace metadata, plugin versions,
+  plugin paths, component flags, Codex policy/interface values, or shared skill
+  frontmatter that affects validation.
+- Run `npm run render:check` and `npm run validate` before release, PR, or
+  handoff.
+- Claude strict validation should pass when the Claude CLI is available:
+
+  ```bash
+  ./scripts/smoke-claude.sh
+  ```
+
+- Codex validation is structural because a stable local `codex plugin validate`
+  command is not assumed:
+
+  ```bash
+  ./scripts/smoke-codex.sh
+  ```
+
+- For local Codex marketplace testing, use `codex plugin marketplace add ./`.
+  `codex plugin marketplace upgrade <marketplace-name>` applies to Git-backed
+  marketplaces, not plain local checkout roots.
+- For Claude local marketplace testing, use:
+
+  ```bash
+  claude plugin marketplace add ./ --scope local
+  claude plugin install <plugin-name>@agile-agentic-analytics --scope local
+  ```
+
+- Keep Claude marketplace plugin entries free of duplicate `version` values;
+  plugin versions live in generated plugin manifests. When installable behavior
+  changes, bump the plugin's `version` in `marketplace.yaml`.
+- Do not add optional component fields unless the backing file or directory
+  exists. In particular, only enable Codex `apps` when `.app.json` exists and
+  only enable shared `mcp` when `.mcp.json` exists.
+- Keep Codex-only fields out of Claude manifests and Claude-only fields out of
+  Codex manifests by expressing harness-specific values under `codex:` or
+  `claude:` in `marketplace.yaml`.
+
 ### Structure
 
 - Each distributable plugin lives under `plugins/<plugin-name>/`.
 - Maintainer skills that operate on the marketplace or multiple plugins live in `plugins/plugin-manager/skills/<skill-name>/SKILL.md`. Do not add these to an individual target plugin unless they are intended for that plugin's end users.
-- Use `.claude-plugin/plugin.json` for the plugin manifest. If a manifest exists, `name` is the only required field, but this repository should include `description`, `version`, `author`, `license`, and useful `keywords`.
+- Use generated `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` for plugin manifests. If metadata changes, edit `marketplace.yaml` and rerender.
 - Only `plugin.json` belongs inside `.claude-plugin/`. Put components at the plugin root: `skills/`, `commands/`, `agents/`, `hooks/`, `monitors/`, `bin/`, `.mcp.json`, `.lsp.json`, `settings.json`, `output-styles/`, and `themes/`.
 - Prefer `skills/<name>/SKILL.md` for new capabilities. `commands/` is supported for flat Markdown skills, but `skills/` is the recommended layout.
-- Skills need YAML frontmatter with a useful `description`, followed by clear Markdown instructions. Supporting `scripts/`, `references/`, and assets may live alongside the skill.
+- Shared skills need YAML frontmatter with `name`, a useful `description`, and
+  `disable-model-invocation: false`, followed by clear Markdown instructions.
+  Supporting `scripts/`, `references`, and assets may live alongside the skill.
+- `name` in shared skill frontmatter must be lowercase kebab-case and should
+  match the skill directory name unless there is an explicit compatibility reason
+  to do otherwise.
+- Plugin-root `CLAUDE.md` files are not loaded from marketplace-installed
+  plugins and fail Claude strict validation. Put packaged context in skills or
+  under `references/` instead.
 
 ### Manifest And Paths
 
@@ -191,7 +264,7 @@ The reusable skill architecture lives under `templates/skills/`. Treat these fil
 ### plugin-manager
 
 Marketplace maintenance workflows for creating, validating, harvesting, syncing,
-and publishing Claude Code plugins.
+and publishing shared Claude Code and Codex plugins.
 
 | Skill | Description |
 |-------|-------------|
@@ -316,8 +389,8 @@ Product management toolkit covering requirements authoring and translation into 
 
 | Skill | Trigger Phrases | Description |
 |-------|----------------|-------------|
-| **prd-writer** (`prd-author`) | write a PRD, draft a spec, product doc, one-pager, PR/FAQ, feature brief, critique/level up a PRD | Produces Product Requirements Documents, specs, product briefs, one-pagers, and PR/FAQs. Does not handle engineering design docs, RFCs, or ADRs. |
-| **prd-to-plan** (`prd-to-agent-plan`) | turn this PRD into a plan, agentic plan, execution plan, task graph, decompose this spec, break this down for Claude Code, scrum-master plan | Converts a PRD/spec into a structured `PLAN.md` for agentic execution: phases, tasks, dependencies, validation gates, sub-agent assignments, context bundles. |
+| **prd-writer** | write a PRD, draft a spec, product doc, one-pager, PR/FAQ, feature brief, critique/level up a PRD | Produces Product Requirements Documents, specs, product briefs, one-pagers, and PR/FAQs. Does not handle engineering design docs, RFCs, or ADRs. |
+| **prd-to-plan** | turn this PRD into a plan, agentic plan, execution plan, task graph, decompose this spec, break this down for Claude Code, scrum-master plan | Converts a PRD/spec into a structured `PLAN.md` for agentic execution: phases, tasks, dependencies, validation gates, sub-agent assignments, context bundles. |
 
 ## Workspace Convention
 

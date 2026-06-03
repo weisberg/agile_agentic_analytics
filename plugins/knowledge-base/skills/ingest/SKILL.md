@@ -1,6 +1,7 @@
 ---
 name: ingest
-description: Route content to specialized ingestion skills. Detects input type and delegates.
+description: >
+  Route content to specialized ingestion skills. Detects input type and delegates.
 triggers:
   - "ingest this"
   - "save this to knowledge base"
@@ -22,6 +23,8 @@ writes_to:
   - concepts/
   - meetings/
   - sources/
+
+disable-model-invocation: false
 ---
 
 # Ingest Skill

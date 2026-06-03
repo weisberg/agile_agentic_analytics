@@ -1,0 +1,361 @@
+marketplace:
+  name: agile-agentic-analytics
+  displayName: Agile Agentic Analytics
+  description: A marketplace of Claude Code and Codex plugins for agile agentic analytics.
+  version: 0.1.0
+  owner:
+    name: Brian Weisberg
+    email: ""
+  repository: https://github.com/weisberg/agile_agentic_analytics
+
+defaults:
+  license: MIT
+  installPolicy: AVAILABLE
+  authPolicy: ON_INSTALL
+  category: Developer Tools
+  brandColor: "#2563EB"
+  author:
+    name: Brian Weisberg
+    email: ""
+    url: ""
+  codex:
+    installation: AVAILABLE
+    authentication: ON_INSTALL
+    interface:
+      developerName: Brian Weisberg
+      brandColor: "#2563EB"
+  claude:
+    defaultEnabled: true
+    strict: true
+    minVersion: "2.1.154"
+
+plugins:
+  - name: plugin-manager
+    displayName: Plugin Manager
+    path: plugins/plugin-manager
+    description: Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing agent plugins.
+    version: 0.1.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/plugin-manager
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - plugin-manager
+      - plugin-development
+      - marketplace
+      - skills
+      - validation
+      - health
+      - doctor
+      - quality-gate
+      - skill-improve
+      - skillopt
+      - skill-optimization
+      - self-evolving-skills
+      - validation-gate
+      - checkpoint
+      - publishing
+      - release
+      - devex
+      - upstream-sync
+      - gbrain
+      - gstack
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me maintain and validate marketplace plugins.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: false
+    codex:
+      interface:
+        shortDescription: Maintain and validate Codex and Claude plugin packages.
+        longDescription: Plugin Manager provides workflows for creating, auditing, improving, and releasing shared marketplace plugins.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: lead-analyst
+    displayName: Lead Analyst
+    path: plugins/lead-analyst
+    description: Senior analyst workflows for intake, source inventory, planning, metric contracts, lineage, SQL review, diagnostics, briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.
+    version: 0.1.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/lead-analyst
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - analytics
+      - analysis
+      - analysis-intake
+      - analysis-planning
+      - metric-contract
+      - metric-lineage
+      - data-quality
+      - sql-review
+      - eda
+      - cohort-analysis
+      - dashboard
+      - forecasting
+      - executive-readout
+      - decision-log
+      - senior-analyst
+      - decision-support
+      - metrics
+      - insights
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me turn an analytics question into a decision-ready analysis.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: true
+    codex:
+      interface:
+        shortDescription: Plan, audit, and communicate decision-ready analytics work.
+        longDescription: Lead Analyst packages senior analytics workflows for scoping questions, defining metrics, auditing evidence, producing briefs, and supporting executive decisions.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: ab-testing
+    displayName: A/B Testing
+    path: plugins/ab-testing
+    description: Design, analyze, and review A/B tests with statistical rigor.
+    version: 1.0.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/ab-testing
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - ab-testing
+      - experimentation
+      - statistics
+      - analytics
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me design, size, analyze, or review an A/B test.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: true
+    codex:
+      interface:
+        shortDescription: Design, size, analyze, and review controlled experiments.
+        longDescription: A/B Testing provides experiment design, sample sizing, result analysis, reporting, and review workflows for statistically rigorous testing.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: marketing-analytics
+    displayName: Marketing Analytics
+    path: plugins/marketing-analytics
+    description: Fifteen interconnected marketing analytics skills for attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.
+    version: 1.0.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/marketing-analytics
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - marketing
+      - analytics
+      - attribution
+      - experimentation
+      - paid-media
+      - reporting
+      - clv
+      - segmentation
+      - funnel
+      - email
+      - web-analytics
+      - seo
+      - crm
+      - social-media
+      - competitive-intelligence
+      - voice-of-customer
+      - compliance
+      - financial-services
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me analyze marketing performance and produce decision-ready recommendations.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: false
+    codex:
+      interface:
+        shortDescription: Run marketing analytics workflows across channels and lifecycle stages.
+        longDescription: Marketing Analytics packages linked workflows for attribution, experiments, paid media, reporting, CLV, segmentation, funnels, email, web, SEO, CRM, social, VoC, and compliance review.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: experimentation
+    displayName: Experimentation
+    path: plugins/experimentation
+    description: Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, operating models, and executive evidence briefs.
+    version: 1.0.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/experimentation
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - experimentation
+      - ab-testing
+      - regulated-finance
+      - email-incrementality
+      - sequential-testing
+      - cuped
+      - causal-inference
+      - measurement-governance
+      - compliance
+      - executive-briefing
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me design, review, or communicate a trustworthy experiment.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: true
+    codex:
+      interface:
+        shortDescription: Govern trustworthy experimentation in regulated or low-velocity settings.
+        longDescription: Experimentation supports safe design, power planning, decision review, early signal monitoring, advanced analysis, email incrementality, measurement integration, operating models, and executive evidence.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: campaign-analysis
+    displayName: Campaign Analysis
+    path: plugins/campaign-analysis
+    description: Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.
+    version: 0.1.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/campaign-analysis
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - campaign-analysis
+      - campaign-performance
+      - marketing
+      - analytics
+      - measurement
+      - optimization
+      - reporting
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me evaluate a campaign and explain the performance story.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: false
+    codex:
+      interface:
+        shortDescription: Measure and explain campaign performance.
+        longDescription: Campaign Analysis supports campaign diagnostics, conversion and value analysis, holdout-aware measurement, optimization, and stakeholder-ready reporting.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: knowledge-base
+    displayName: Knowledge Base
+    path: plugins/knowledge-base
+    description: Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.
+    version: 0.1.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - knowledge-base
+      - knowledge-management
+      - documentation
+      - research
+      - retrieval
+      - ask-user
+      - choice-gate
+      - ingest
+      - knowledge-ingestion
+      - source-preservation
+      - vaultli
+      - vault
+      - frontmatter
+      - sidecars
+      - indexing
+      - skillify
+      - skill-development
+      - evals
+      - strategic-reading
+      - applied-analysis
+      - playbooks
+      - workflow
+      - resolver
+      - query
+      - graph-ops
+      - citations
+      - raw-sources
+      - privacy
+      - automation
+      - sample-vault
+      - plugin-manager
+      - upstream-sync
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me capture, retrieve, or maintain reusable knowledge.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: true
+    codex:
+      interface:
+        shortDescription: Capture, retrieve, and maintain durable knowledge bases.
+        longDescription: Knowledge Base packages workflows for vault setup, ingestion, retrieval, graph operations, provenance, privacy, publishing, automation, maintenance, and bundled vault tooling.
+    claude:
+      defaultEnabled: true
+      strict: true
+
+  - name: product-manager
+    displayName: Product Manager
+    path: plugins/product-manager
+    description: Product management toolkit for discovery, prioritization, roadmapping, PRDs, and stakeholder communication.
+    version: 0.1.0
+    homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/product-manager
+    repository: https://github.com/weisberg/agile_agentic_analytics
+    keywords:
+      - product-management
+      - roadmap
+      - prioritization
+      - discovery
+      - prd
+    capabilities:
+      - Read
+      - Write
+    defaultPrompt:
+      - Help me write a PRD or turn product work into an implementation plan.
+    components:
+      skills: true
+      mcp: false
+      apps: false
+      hooks: false
+      agents: false
+    codex:
+      interface:
+        shortDescription: Write PRDs and turn product ideas into implementation plans.
+        longDescription: Product Manager provides workflows for discovery, prioritization, roadmapping, PRD writing, stakeholder communication, and implementation planning.
+    claude:
+      defaultEnabled: true
+      strict: true

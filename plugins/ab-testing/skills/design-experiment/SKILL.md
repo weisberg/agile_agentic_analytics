@@ -1,6 +1,9 @@
 ---
 name: design-experiment
-description: Use when the user is starting a new A/B test, formalizing a half-formed test idea, writing a test plan or PRD, or pre-registering an experiment. Triggers on phrases like "design a test", "set up an experiment", "write the test plan", "pre-register this", "what should we measure", "what's a good hypothesis", or any time the user describes a product/marketing change they want to validate experimentally. Produces a versioned, pre-registered experiment design document with hypothesis, OEC, guardrails, counter-metrics, randomization design, power/MDE estimate, pre-specified analysis plan, and operational decision criteria — written to a reproducible artifact directory the auditor and readout tooling can later reference.
+description: >
+  Use when the user is starting a new A/B test, formalizing a half-formed test idea, writing a test plan or PRD, or pre-registering an experiment. Triggers on phrases like "design a test", "set up an experiment", "write the test plan", "pre-register this", "what should we measure", "what's a good hypothesis", or any time the user describes a product/marketing change they want to validate experimentally. Produces a versioned, pre-registered experiment design document with hypothesis, OEC, guardrails, counter-metrics, randomization design, power/MDE estimate, pre-specified analysis plan, and operational decision criteria — written to a reproducible artifact directory the auditor and readout tooling can later reference.
+
+disable-model-invocation: false
 ---
 
 # Design an Experiment

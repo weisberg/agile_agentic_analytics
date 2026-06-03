@@ -14,6 +14,8 @@ tools:
   - exec
 mutating: true
 writes_pages: true
+
+disable-model-invocation: false
 ---
 
 # Resolver

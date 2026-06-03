@@ -1,6 +1,9 @@
 ---
 name: analysis-planning
-description: Use this skill when the user wants to plan an analysis before running it, scope analytical work, design an investigation, write an analysis plan, decide what data or metrics are needed, or turn a vague metric/business question into an executable analyst workplan. Trigger on phrases like "analysis planning", "plan this analysis", "how should we analyze", "what data do we need", "design the analysis", "scope this analysis", "analysis plan", "investigation plan", "before we pull data", or "senior analyst, help me plan this".
+description: >
+  Use this skill when the user wants to plan an analysis before running it, scope analytical work, design an investigation, write an analysis plan, decide what data or metrics are needed, or turn a vague metric/business question into an executable analyst workplan. Trigger on phrases like "analysis planning", "plan this analysis", "how should we analyze", "what data do we need", "design the analysis", "scope this analysis", "analysis plan", "investigation plan", "before we pull data", or "senior analyst, help me plan this".
+
+disable-model-invocation: false
 ---
 
 # Analysis Planning

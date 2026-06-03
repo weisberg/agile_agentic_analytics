@@ -10,6 +10,8 @@ description: >
   scores are available from clv-modeling, they enrich segment profiles. Segments
   feed into experimentation (stratification), email-analytics (targeting),
   paid-media (lookalike audiences), and reporting skills.
+
+disable-model-invocation: false
 ---
 
 # Customer Segmentation & Cohort Analysis

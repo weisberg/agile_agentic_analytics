@@ -19,6 +19,8 @@ tools:
   - read
   - write
 mutating: true
+
+disable-model-invocation: false
 ---
 
 # vaultli

@@ -1,0 +1,35 @@
+{
+  "name": "product-manager",
+  "version": "0.1.0",
+  "description": "Product management toolkit for discovery, prioritization, roadmapping, PRDs, and stakeholder communication.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/product-manager",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "product-management",
+    "roadmap",
+    "prioritization",
+    "discovery",
+    "prd"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Product Manager",
+    "shortDescription": "Write PRDs and turn product ideas into implementation plans.",
+    "longDescription": "Product Manager provides workflows for discovery, prioritization, roadmapping, PRD writing, stakeholder communication, and implementation planning.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/product-manager",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me write a PRD or turn product work into an implementation plan."
+    ]
+  }
+}

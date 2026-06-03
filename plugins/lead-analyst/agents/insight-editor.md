@@ -2,7 +2,6 @@
 name: insight-editor
 description: "Use this agent to turn analytical work into an executive-ready readout without overstating certainty. It sharpens the answer, evidence, caveats, recommendation, decision options, and stakeholder narrative."
 tools: Read, Write, Edit, Bash, Glob, Grep
-color: purple
 ---
 
 # Insight Editor

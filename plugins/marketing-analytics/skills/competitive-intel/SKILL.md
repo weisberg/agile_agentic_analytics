@@ -19,6 +19,8 @@ depends_on:
 feeds_into:
   - attribution-analysis
   - reporting
+
+disable-model-invocation: false
 ---
 
 # Competitive Intelligence

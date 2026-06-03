@@ -23,7 +23,11 @@ mutating: true
 writes_pages: false
 writes_to:
   - plugins/
+  - marketplace.yaml
   - .claude-plugin/marketplace.json
+  - .agents/plugins/marketplace.json
+
+disable-model-invocation: false
 ---
 
 # Manage Plugins
@@ -33,10 +37,13 @@ writes_to:
 Plugin maintenance is complete only when:
 
 - Plugin components live in valid Claude Code plugin locations.
-- `.claude-plugin/plugin.json` has stable metadata: `name`, `description`,
-  `version`, `author`, `license`, and useful `keywords`.
-- Marketplace registration in `.claude-plugin/marketplace.json` is added or
-  updated when the plugin should be installable.
+- `marketplace.yaml` is the source of truth for marketplace metadata.
+- Generated `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` files
+  have stable metadata: `name`, `description`, `version`, `author`, `license`,
+  and useful `keywords`.
+- Generated marketplace registration exists in both
+  `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` when
+  the plugin should be installable.
 - Skills keep YAML frontmatter and have descriptions that explain real trigger
   situations.
 - Cross-plugin maintenance workflows live in the `plugin-manager` plugin unless
@@ -66,9 +73,9 @@ Use this skill as the first stop for plugin work, then route:
 - **Run a full SkillOpt-style training loop:** read
   `../skillopt-training-run/SKILL.md` and follow its rollout, reflection, gate,
   slow/meta, and release phases.
-- **Create a new plugin:** create `plugins/<plugin-name>/.claude-plugin/plugin.json`,
-  `README.md`, and any needed `skills/`, `agents/`, `references/`, `scripts/`, or
-  `bin/` directories.
+- **Create a new plugin:** create `plugins/<plugin-name>/README.md`, any needed
+  `skills/`, `agents/`, `references/`, `scripts/`, or `bin/` directories, and a
+  new `plugins[]` entry in `marketplace.yaml`.
 - **Add a skill to a plugin:** put it at
   `plugins/<plugin-name>/skills/<skill-name>/SKILL.md` with optional sibling
   `scripts/`, `references/`, or `assets/`.
@@ -95,8 +102,12 @@ Use this skill as the first stop for plugin work, then route:
 
 3. **Apply the repo convention**
    - Distributable plugins live under `plugins/<plugin-name>/`.
-   - Plugin manifests live at `plugins/<plugin-name>/.claude-plugin/plugin.json`.
+   - Plugin manifests are generated at
+     `plugins/<plugin-name>/.claude-plugin/plugin.json` and
+     `plugins/<plugin-name>/.codex-plugin/plugin.json`.
    - Plugin skills live under `plugins/<plugin-name>/skills/<skill-name>/SKILL.md`.
+   - Shared skill frontmatter must include `name`, `description`, and
+     `disable-model-invocation`.
    - Marketplace-wide maintainer workflows live in `plugins/plugin-manager/`.
    - Health, release, devex, checkpoint, quality-gate, and upstream sync
      workflows should be shared from `plugin-manager` instead of copied into
@@ -106,13 +117,18 @@ Use this skill as the first stop for plugin work, then route:
 4. **Update docs and marketplace**
    - Update plugin `README.md` when user-facing skills or tools change.
    - Update root `README.md` for installable plugin additions.
-   - Update `.claude-plugin/marketplace.json` when a plugin should be listed.
+   - Update `marketplace.yaml` when marketplace metadata, versions, or plugin
+     entries change.
+   - Run `npm run render` to refresh generated Claude Code and Codex files.
    - Update `CLAUDE.md` or `PLUGIN_ARCHITECTURE.md` only for repo-wide
      conventions, not every small plugin change.
 
 5. **Validate**
    - Run focused tests for any scripts changed.
-   - Run `python3 -m json.tool` on edited JSON manifests.
+   - Run `npm run render:check`.
+   - Run `npm run validate`.
+   - Run `python3 -m json.tool` on generated marketplace files or changed JSON
+     when debugging schema errors.
    - Run `claude plugin validate plugins/<plugin-name>` when available.
    - Run `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin-name> --json`.
    - Run plugin-specific checks such as `harvest_check.py` or `vaultli validate`
@@ -137,6 +153,8 @@ Notes:
 - Creating plugin skills inside `.claude-plugin/`.
 - Leaving a new plugin out of the marketplace when the user expects it to be
   installable.
+- Hand-editing generated marketplace or manifest JSON instead of updating
+  `marketplace.yaml` and rerendering.
 - Duplicating the same maintainer workflow inside every plugin.
 - Dropping YAML frontmatter while moving skills.
 - Editing unrelated plugin files to make the diff look tidy.

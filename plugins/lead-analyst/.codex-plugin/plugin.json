@@ -1,0 +1,48 @@
+{
+  "name": "lead-analyst",
+  "version": "0.1.0",
+  "description": "Senior analyst workflows for intake, source inventory, planning, metric contracts, lineage, SQL review, diagnostics, briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/lead-analyst",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "analytics",
+    "analysis",
+    "analysis-intake",
+    "analysis-planning",
+    "metric-contract",
+    "metric-lineage",
+    "data-quality",
+    "sql-review",
+    "eda",
+    "cohort-analysis",
+    "dashboard",
+    "forecasting",
+    "executive-readout",
+    "decision-log",
+    "senior-analyst",
+    "decision-support",
+    "metrics",
+    "insights"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Lead Analyst",
+    "shortDescription": "Plan, audit, and communicate decision-ready analytics work.",
+    "longDescription": "Lead Analyst packages senior analytics workflows for scoping questions, defining metrics, auditing evidence, producing briefs, and supporting executive decisions.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/lead-analyst",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me turn an analytics question into a decision-ready analysis."
+    ]
+  }
+}

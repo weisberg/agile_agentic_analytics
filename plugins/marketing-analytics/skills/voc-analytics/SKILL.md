@@ -10,6 +10,8 @@ description: >
   are not defined, suggest running audience-segmentation first. Theme insights
   inform seo-content strategy and email-analytics messaging. Satisfaction trends
   feed into reporting.
+
+disable-model-invocation: false
 ---
 
 # Survey & Voice-of-Customer Analytics

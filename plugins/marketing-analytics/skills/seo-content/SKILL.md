@@ -10,6 +10,8 @@ description: >
   should we target.' If web traffic context is needed, suggest running
   web-analytics first. Keyword data feeds into competitive-intel and paid-media
   (organic/paid keyword overlap). Results feed into reporting.
+
+disable-model-invocation: false
 ---
 
 # SEO & Content Analytics

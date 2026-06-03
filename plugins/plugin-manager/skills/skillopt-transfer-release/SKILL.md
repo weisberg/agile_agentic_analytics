@@ -24,6 +24,8 @@ writes_to:
   - README.md
   - PLUGINS_AND_SKILLS.md
   - CLAUDE.md
+
+disable-model-invocation: false
 ---
 
 # SkillOpt Transfer Release

@@ -1,6 +1,9 @@
 ---
 name: analyze-results
-description: Use when the user wants to analyze A/B test or experiment results and needs significance, confidence intervals, effect sizes, lifts, or a readout report. Triggers on phrases like "analyze this test", "run the readout", "is this significant", "what's the lift", "did B win", or any time the user shares an experiment dataset, summary table, or readout request. Accepts data as pasted CSV/TSV, a summary table (variant / visitors / conversions), a file path, or raw numbers in prose. Produces a reproducible analysis directory, a structured numerical summary, and a plain-English interpretation with diagnostic flags.
+description: >
+  Use when the user wants to analyze A/B test or experiment results and needs significance, confidence intervals, effect sizes, lifts, or a readout report. Triggers on phrases like "analyze this test", "run the readout", "is this significant", "what's the lift", "did B win", or any time the user shares an experiment dataset, summary table, or readout request. Accepts data as pasted CSV/TSV, a summary table (variant / visitors / conversions), a file path, or raw numbers in prose. Produces a reproducible analysis directory, a structured numerical summary, and a plain-English interpretation with diagnostic flags.
+
+disable-model-invocation: false
 ---
 
 # Analyze A/B Test Results

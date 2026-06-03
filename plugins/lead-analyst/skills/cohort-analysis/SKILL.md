@@ -1,6 +1,8 @@
 ---
 name: cohort-analysis
 description: "Use this skill to design or perform cohort analysis for retention, activation, repeat behavior, lifecycle progression, revenue, churn, or product usage. Trigger on phrases like cohort analysis, retention cohorts, activation by signup month, repeat purchase cohort, churn by cohort, lifecycle cohort, vintage analysis, or cohort retention."
+
+disable-model-invocation: false
 ---
 
 # Cohort Analysis

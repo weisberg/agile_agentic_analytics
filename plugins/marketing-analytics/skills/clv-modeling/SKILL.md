@@ -9,6 +9,8 @@ description: >
   If transaction data is not yet extracted, suggest running data-extraction first.
   CLV predictions enrich audience-segmentation with a value dimension and feed into
   paid-media (acquisition targets), email-analytics (lifecycle), and reporting skills.
+
+disable-model-invocation: false
 ---
 
 Implement probabilistic customer lifetime value modeling using BG/NBD for purchase frequency

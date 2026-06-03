@@ -1,6 +1,7 @@
 ---
 name: kb-enrichment-analyst
-description: Enriches entity, concept, project, and source pages with current state, timelines, contradictions, links, and exact user-original language.
+description: >
+  Enriches entity, concept, project, and source pages with current state, timelines, contradictions, links, and exact user-original language.
 tools: read, write, exec
 ---
 

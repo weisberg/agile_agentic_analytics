@@ -1,10 +1,13 @@
 {
   "name": "knowledge-base",
-  "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
+  "displayName": "Knowledge Base",
   "version": "0.1.0",
+  "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
   "author": {
     "name": "Brian Weisberg"
   },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
   "license": "MIT",
   "keywords": [
     "knowledge-base",
@@ -39,5 +42,7 @@
     "sample-vault",
     "plugin-manager",
     "upstream-sync"
-  ]
+  ],
+  "skills": "./skills/",
+  "defaultEnabled": true
 }

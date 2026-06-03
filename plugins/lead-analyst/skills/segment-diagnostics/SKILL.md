@@ -1,6 +1,8 @@
 ---
 name: segment-diagnostics
 description: "Use this skill to diagnose which segments explain a metric movement, opportunity, risk, or performance gap without overclaiming post-hoc slices. Trigger on phrases like segment diagnostics, which segment drove this, segment contribution, where is the opportunity, breakdown by segment, mix shift, customer segment issue, or which cohort/channel/geo/device explains the change."
+
+disable-model-invocation: false
 ---
 
 # Segment Diagnostics

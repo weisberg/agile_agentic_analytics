@@ -1,6 +1,8 @@
 ---
 name: forecast-scenario
 description: "Use this skill to design or review forecasts, scenarios, sensitivity analyses, targets, plans, capacity models, revenue forecasts, demand forecasts, budget scenarios, or what-if models. Trigger on phrases like forecast, scenario planning, sensitivity analysis, what if, target setting, capacity forecast, revenue forecast, demand model, downside case, upside case, or assumptions model."
+
+disable-model-invocation: false
 ---
 
 # Forecast Scenario

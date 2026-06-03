@@ -1,6 +1,9 @@
 ---
 name: metric-contract
-description: Use this skill when the user wants to define, document, reconcile, or review a KPI or metric. Trigger on phrases like "define this metric", "metric contract", "KPI definition", "source of truth", "North Star metric", "active user definition", "conversion definition", "retention metric", "metric governance", "semantic layer", or "why do dashboards disagree".
+description: >
+  Use this skill when the user wants to define, document, reconcile, or review a KPI or metric. Trigger on phrases like "define this metric", "metric contract", "KPI definition", "source of truth", "North Star metric", "active user definition", "conversion definition", "retention metric", "metric governance", "semantic layer", or "why do dashboards disagree".
+
+disable-model-invocation: false
 ---
 
 # Metric Contract

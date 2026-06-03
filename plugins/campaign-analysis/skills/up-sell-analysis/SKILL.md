@@ -1,5 +1,5 @@
 ---
-name: Up-Sell Campaign Analysis
+name: up-sell-analysis
 description: >
   Use when the user wants to measure the impact of a marketing campaign on existing
   clients, account owners, or current customers — phrases like "up-sell analysis",
@@ -12,6 +12,8 @@ description: >
   for existing customers". Handles both holdout-controlled designs (statistical
   testing on the difference) and uncontrolled pre/post designs (descriptive lift
   only, clearly flagged as non-causal).
+
+disable-model-invocation: false
 ---
 
 # Up-Sell Campaign Analysis

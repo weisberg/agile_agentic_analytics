@@ -20,6 +20,8 @@ mutating: true
 writes_pages: false
 writes_to:
   - .plugin-manager/checkpoints/
+
+disable-model-invocation: false
 ---
 
 # Plugin Work Checkpoint

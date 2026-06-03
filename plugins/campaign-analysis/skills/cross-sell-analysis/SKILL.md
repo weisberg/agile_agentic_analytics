@@ -1,5 +1,5 @@
 ---
-name: Cross-Sell Campaign Analysis
+name: cross-sell-analysis
 description: >
   Use when the user wants to measure the impact of a campaign that promotes a NEW
   product to existing customers — phrases like "cross-sell analysis", "cross-sell
@@ -15,6 +15,8 @@ description: >
   product, not growth on existing accounts. Handles both holdout-controlled
   designs (statistical testing on conversion rate AND value) and uncontrolled
   designs (descriptive conversion rate only, clearly flagged as non-causal).
+
+disable-model-invocation: false
 ---
 
 # Cross-Sell Campaign Analysis

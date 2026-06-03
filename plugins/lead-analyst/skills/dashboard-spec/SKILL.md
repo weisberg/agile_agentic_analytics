@@ -1,6 +1,8 @@
 ---
 name: dashboard-spec
 description: "Use this skill to design a dashboard specification from an operating decision: audience, cadence, metrics, definitions, source of truth, layout, alerts, drilldowns, states, and governance. Trigger on phrases like dashboard spec, design a dashboard, KPI dashboard requirements, operating dashboard, scorecard spec, dashboard PRD, what should this dashboard show, or dashboard wireframe."
+
+disable-model-invocation: false
 ---
 
 # Dashboard Spec

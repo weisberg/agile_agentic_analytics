@@ -1,6 +1,9 @@
 ---
 name: data-quality-audit
-description: Use this skill when the user wants to audit whether data, SQL, dashboards, extracts, notebooks, or metric pipelines are reliable enough for analysis or decision use. Trigger on phrases like "data quality audit", "can we trust this data", "validate this dataset", "profile this CSV", "check the SQL", "audit the dashboard numbers", "missingness", "duplicates", "join loss", "data freshness", or "why does this data look wrong".
+description: >
+  Use this skill when the user wants to audit whether data, SQL, dashboards, extracts, notebooks, or metric pipelines are reliable enough for analysis or decision use. Trigger on phrases like "data quality audit", "can we trust this data", "validate this dataset", "profile this CSV", "check the SQL", "audit the dashboard numbers", "missingness", "duplicates", "join loss", "data freshness", or "why does this data look wrong".
+
+disable-model-invocation: false
 ---
 
 # Data Quality Audit

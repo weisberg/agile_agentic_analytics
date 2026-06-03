@@ -1,6 +1,9 @@
 ---
-name: prd-to-agent-plan
-description: Use this skill when the user has a PRD (Product Requirements Document), spec, or product brief and wants to turn it into an executable plan for agentic development — a plan that AI coding agents (Claude Code, sub-agents, orchestrators) can actually run. Trigger on phrases like "turn this PRD into a plan", "agentic plan", "execution plan", "task graph", "break this down for Claude Code", "decompose this spec", "build plan", "implementation plan from PRD", "scrum-master plan", or when the user provides a PRD/spec and asks "what's next" or "how do we build this with agents". The output is always a structured `PLAN.md` artifact with phases, tasks, dependencies, validation gates, sub-agent assignments, and context bundles. Do NOT trigger for: writing the PRD itself (use prd-author), pure engineering design / RFC / ADR (architecture is a separate artifact), or generic project management plans without an agentic execution model.
+name: prd-to-plan
+description: >
+  Use this skill when the user has a PRD (Product Requirements Document), spec, or product brief and wants to turn it into an executable plan for agentic development — a plan that AI coding agents (Claude Code, sub-agents, orchestrators) can actually run. Trigger on phrases like "turn this PRD into a plan", "agentic plan", "execution plan", "task graph", "break this down for Claude Code", "decompose this spec", "build plan", "implementation plan from PRD", "scrum-master plan", or when the user provides a PRD/spec and asks "what's next" or "how do we build this with agents". The output is always a structured `PLAN.md` artifact with phases, tasks, dependencies, validation gates, sub-agent assignments, and context bundles. Do NOT trigger for: writing the PRD itself (use prd-author), pure engineering design / RFC / ADR (architecture is a separate artifact), or generic project management plans without an agentic execution model.
+
+disable-model-invocation: false
 ---
 
 # PRD → Agent Plan

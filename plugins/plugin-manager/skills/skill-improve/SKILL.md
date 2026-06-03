@@ -24,6 +24,8 @@ writes_pages: false
 writes_to:
   - plugins/
   - .plugin-manager/skill-improve/
+
+disable-model-invocation: false
 ---
 
 # Skill Improve

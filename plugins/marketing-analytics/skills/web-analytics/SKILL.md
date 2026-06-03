@@ -10,6 +10,8 @@ description: >
   from.' If GA4 data is not yet extracted, suggest running data-extraction first.
   Web metrics feed into funnel-analysis, seo-content, paid-media,
   audience-segmentation, experimentation (CUPED covariates), and reporting skills.
+
+disable-model-invocation: false
 ---
 
 # Web Analytics & Behavioral Analysis

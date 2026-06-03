@@ -1,6 +1,9 @@
 ---
 name: experiment-report
-description: Use when the user wants a stakeholder-ready experiment readout, report, or summary written from analyzed results. Triggers on phrases like "write the readout", "generate the experiment report", "summarize this test for leadership", "draft the post-test writeup", "exec summary of the test", "share this with the team". Produces a structured Markdown report tuned to a named audience (executive / technical / mixed / regulatory), grounded in the pre-registered design and the analysis artifact, with a single explicit recommendation. Does not invent numbers — it composes from the design document, the analysis directory, and the user's stated recommendation context.
+description: >
+  Use when the user wants a stakeholder-ready experiment readout, report, or summary written from analyzed results. Triggers on phrases like "write the readout", "generate the experiment report", "summarize this test for leadership", "draft the post-test writeup", "exec summary of the test", "share this with the team". Produces a structured Markdown report tuned to a named audience (executive / technical / mixed / regulatory), grounded in the pre-registered design and the analysis artifact, with a single explicit recommendation. Does not invent numbers — it composes from the design document, the analysis directory, and the user's stated recommendation context.
+
+disable-model-invocation: false
 ---
 
 # Experiment Report

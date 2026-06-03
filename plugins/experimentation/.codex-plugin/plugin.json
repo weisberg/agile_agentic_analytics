@@ -1,0 +1,40 @@
+{
+  "name": "experimentation",
+  "version": "1.0.0",
+  "description": "Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, operating models, and executive evidence briefs.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/experimentation",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "experimentation",
+    "ab-testing",
+    "regulated-finance",
+    "email-incrementality",
+    "sequential-testing",
+    "cuped",
+    "causal-inference",
+    "measurement-governance",
+    "compliance",
+    "executive-briefing"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Experimentation",
+    "shortDescription": "Govern trustworthy experimentation in regulated or low-velocity settings.",
+    "longDescription": "Experimentation supports safe design, power planning, decision review, early signal monitoring, advanced analysis, email incrementality, measurement integration, operating models, and executive evidence.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/experimentation",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me design, review, or communicate a trustworthy experiment."
+    ]
+  }
+}

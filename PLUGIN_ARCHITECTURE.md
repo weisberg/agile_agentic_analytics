@@ -2,16 +2,17 @@
 
 ## 1. Purpose
 
-This document explains how the `agile_agentic_analytics` repository is structured as a Claude Code plugin marketplace, how that maps to the official Claude Code plugin system, and how contributors should add new plugins safely and consistently.
+This document explains how the `agile_agentic_analytics` repository is structured as a dual Claude Code and Codex plugin marketplace, how that maps to the official Claude Code plugin system and the local Codex marketplace shape, and how contributors should add new plugins safely and consistently.
 
 It is intentionally both:
 
 - a **repository architecture guide** for this codebase
-- a **practical implementation reference** for Claude Code marketplaces and plugins
+- a **practical implementation reference** for the shared marketplace and generated harness files
 
 Where relevant, this document distinguishes between:
 
 - **official Claude Code behavior** documented by Anthropic
+- **Codex local marketplace conventions** used by this repository
 - **repository conventions** used in this marketplace
 
 ## 2. Architectural Summary
@@ -20,16 +21,21 @@ At a high level, the system has three layers:
 
 1. **Marketplace repository**
    - This repository is the marketplace.
-   - It exposes `.claude-plugin/marketplace.json`, which is the catalog Claude Code reads to discover available plugins.
+   - It keeps canonical metadata in `marketplace.yaml`.
+   - It generates `.claude-plugin/marketplace.json` for Claude Code and
+     `.agents/plugins/marketplace.json` for Codex.
 
 2. **Plugin packages**
    - Each plugin lives in its own directory under `plugins/`.
-   - A plugin is a self-contained bundle of Claude Code extension components such as skills, agents, hooks, MCP servers, and LSP servers.
+   - A plugin is a self-contained bundle of shared skills plus optional
+     harness-specific components such as agents, hooks, MCP servers, apps, and
+     LSP servers.
 
-3. **Claude Code runtime**
-   - Claude Code installs plugins from a marketplace, copies them into its local plugin cache, loads their components, and exposes those capabilities in the CLI and agent runtime.
+3. **Harness runtimes**
+   - Claude Code reads the generated Claude marketplace and plugin manifests.
+   - Codex reads the generated Codex marketplace and plugin manifests.
 
-This means the repository is not just documentation plus examples: it is a distributable marketplace that Claude Code can consume directly.
+This means the repository is not just documentation plus examples: it is a distributable marketplace that both harnesses can consume directly.
 
 ## 3. Official Claude Code Model vs. This Repository
 
@@ -56,8 +62,12 @@ The current repository layout includes several distributable plugins:
 
 ```text
 agile_agentic_analytics/
+├── marketplace.yaml
 ├── .claude-plugin/
 │   └── marketplace.json
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json
 ├── plugins/
 │   ├── ab-testing/
 │   ├── campaign-analysis/
@@ -67,19 +77,27 @@ agile_agentic_analytics/
 │   │   ├── references/
 │   │   ├── skills/
 │   │   ├── vaultli/
-│   │   └── .claude-plugin/plugin.json
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── .codex-plugin/plugin.json
 │   ├── marketing-analytics/
 │   ├── plugin-manager/
 │   └── product-manager/
+├── scripts/
+│   ├── render-marketplace.mjs
+│   └── validate-marketplace.mjs
+├── schemas/
 ├── PLUGIN_ARCHITECTURE.md
 └── README.md
 ```
 
 ### What matters operationally
 
-- `.claude-plugin/marketplace.json` is the marketplace entry point.
-- Each plugin owns its `.claude-plugin/plugin.json`, skills, agents, references,
-  scripts, and bundled tools.
+- `marketplace.yaml` is the human-edited marketplace source of truth.
+- `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` are
+  generated marketplace entry points.
+- Each plugin owns shared skills, agents, references, scripts, and bundled tools.
+  Harness-specific manifests are generated into `.claude-plugin/plugin.json` and
+  `.codex-plugin/plugin.json`.
 - `plugins/plugin-manager/` contains marketplace maintenance skills that operate
   across plugins.
 - `plugins/knowledge-base/` contains a large skill portfolio plus the bundled
@@ -88,7 +106,7 @@ agile_agentic_analytics/
 
 ## 5. Marketplace Architecture
 
-## 5.1 Marketplace manifest
+## 5.1 Marketplace manifests
 
 Claude Code expects a marketplace catalog in:
 
@@ -96,31 +114,14 @@ Claude Code expects a marketplace catalog in:
 .claude-plugin/marketplace.json
 ```
 
-In this repository, that file currently looks like:
+Codex expects this repository's local marketplace catalog in:
 
-```json
-{
-  "name": "agile-agentic-analytics",
-  "owner": {
-    "name": "Brian Weisberg"
-  },
-  "metadata": {
-    "description": "A marketplace of Claude Code plugins for agile agentic analytics",
-    "version": "0.1.0",
-    "pluginRoot": "./plugins"
-  },
-  "plugins": [
-    {
-      "name": "knowledge-base",
-      "source": "./plugins/knowledge-base",
-      "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
-      "version": "0.1.0",
-      "keywords": ["knowledge-base", "retrieval", "vaultli"],
-      "license": "MIT"
-    }
-  ]
-}
+```text
+.agents/plugins/marketplace.json
 ```
+
+Both files are generated from `marketplace.yaml`; do not hand-edit either JSON
+file.
 
 ## 5.2 Meaning of the key fields
 
@@ -518,8 +519,10 @@ For this repository, contributor workflow should generally be:
 
 1. create or modify a plugin under `plugins/<name>/`
 2. test with `claude --plugin-dir ./plugins/<name>`
-3. register the plugin in `.claude-plugin/marketplace.json`
-4. verify installation through marketplace flows
+3. register or update the plugin in `marketplace.yaml`
+4. run `npm run render`, `npm run render:check`, and `npm run validate`
+5. verify installation through Claude Code and Codex marketplace flows when the
+   CLIs are available
 
 ## 9. Caching, Path Resolution, and Runtime Environment
 
@@ -627,9 +630,11 @@ Not every directory is required. Only add what the plugin actually uses.
 For this repository, a production-ready plugin should usually include:
 
 - `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
 - at least one actual component directory or config
 - `README.md`
-- marketplace registration in `.claude-plugin/marketplace.json`
+- marketplace registration in `marketplace.yaml`, rendered into both generated
+  marketplace files
 
 ## 11.3 Naming guidance
 

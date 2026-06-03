@@ -1,0 +1,50 @@
+{
+  "name": "plugin-manager",
+  "version": "0.1.0",
+  "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing agent plugins.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/plugin-manager",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "plugin-manager",
+    "plugin-development",
+    "marketplace",
+    "skills",
+    "validation",
+    "health",
+    "doctor",
+    "quality-gate",
+    "skill-improve",
+    "skillopt",
+    "skill-optimization",
+    "self-evolving-skills",
+    "validation-gate",
+    "checkpoint",
+    "publishing",
+    "release",
+    "devex",
+    "upstream-sync",
+    "gbrain",
+    "gstack"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Plugin Manager",
+    "shortDescription": "Maintain and validate Codex and Claude plugin packages.",
+    "longDescription": "Plugin Manager provides workflows for creating, auditing, improving, and releasing shared marketplace plugins.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/plugin-manager",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me maintain and validate marketplace plugins."
+    ]
+  }
+}

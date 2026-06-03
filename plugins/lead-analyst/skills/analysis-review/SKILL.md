@@ -1,6 +1,9 @@
 ---
 name: analysis-review
-description: Use this skill when the user wants a senior analyst review of an existing analysis, dashboard, notebook, SQL query, KPI claim, experiment readout, executive brief, or report. Trigger on phrases like "review this analysis", "check this dashboard", "is this conclusion valid", "audit this notebook", "senior analyst review", "does this metric claim hold up", or "poke holes in this analysis".
+description: >
+  Use this skill when the user wants a senior analyst review of an existing analysis, dashboard, notebook, SQL query, KPI claim, experiment readout, executive brief, or report. Trigger on phrases like "review this analysis", "check this dashboard", "is this conclusion valid", "audit this notebook", "senior analyst review", "does this metric claim hold up", or "poke holes in this analysis".
+
+disable-model-invocation: false
 ---
 
 # Analysis Review

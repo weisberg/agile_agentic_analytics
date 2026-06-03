@@ -30,6 +30,8 @@ benefits-from:
   - ab-testing-expert
   - experimentation-statistician
   - regulated-experiment-auditor
+
+disable-model-invocation: false
 ---
 # Safe Experiment Design
 

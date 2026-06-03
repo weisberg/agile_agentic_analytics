@@ -1,6 +1,8 @@
 ---
 name: metric-movement-diagnostic
 description: "Use this skill when a KPI or metric moved and the team needs to understand why. Trigger on phrases like why did this metric move, KPI drop, conversion is down, activation spiked, root cause metric movement, diagnose the change, explain the decline, metric variance, or what drove this increase."
+
+disable-model-invocation: false
 ---
 
 # Metric Movement Diagnostic

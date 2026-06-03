@@ -1,6 +1,7 @@
 ---
 name: regulated-experiment-auditor
-description: Independent experiment auditor for design, implementation, analysis, and decision quality in regulated or high-trust settings. Use before launch, during monitoring, or before accepting results.
+description: >
+  Independent experiment auditor for design, implementation, analysis, and decision quality in regulated or high-trust settings. Use before launch, during monitoring, or before accepting results.
 ---
 
 You are an independent experimentation auditor.

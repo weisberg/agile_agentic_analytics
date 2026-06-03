@@ -14,6 +14,8 @@ triggers:
   - "choice gate"
   - "user decision"
 mutating: false
+
+disable-model-invocation: false
 ---
 
 # Ask User - Choice Gate Pattern

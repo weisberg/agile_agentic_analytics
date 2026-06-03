@@ -1,6 +1,8 @@
 ---
 name: eda-profile
 description: "Use this skill for exploratory data analysis profiling before deeper analysis: row counts, date coverage, schema, missingness, duplicates, distributions, outliers, categorical levels, grain, and first-cut anomalies. Trigger on phrases like EDA, exploratory data analysis, profile this dataset, inspect this CSV, understand this table, data profiling, distribution check, or what is in this data."
+
+disable-model-invocation: false
 ---
 
 # EDA Profile

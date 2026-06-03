@@ -1,6 +1,9 @@
 ---
 name: analysis-brief
-description: Use this skill when the user asks the lead analyst or senior analyst to analyze data, answer a business/product/marketing/operations question, diagnose a metric movement, summarize what the data says, produce an insight brief, or recommend what to do from evidence. Trigger on phrases like "lead analyst", "senior analyst", "analyze this", "what does this data say", "why did this metric move", "write an analysis brief", "decision brief", "insight brief", or "what should we do based on this".
+description: >
+  Use this skill when the user asks the lead analyst or senior analyst to analyze data, answer a business/product/marketing/operations question, diagnose a metric movement, summarize what the data says, produce an insight brief, or recommend what to do from evidence. Trigger on phrases like "lead analyst", "senior analyst", "analyze this", "what does this data say", "why did this metric move", "write an analysis brief", "decision brief", "insight brief", or "what should we do based on this".
+
+disable-model-invocation: false
 ---
 
 # Analysis Brief

@@ -1,6 +1,7 @@
 ---
 name: kb-librarian
-description: Maintains the KB taxonomy, page templates, resolver coverage, naming conventions, and sample-vault fixtures. Use when the structure of the knowledge base itself needs care.
+description: >
+  Maintains the KB taxonomy, page templates, resolver coverage, naming conventions, and sample-vault fixtures. Use when the structure of the knowledge base itself needs care.
 tools: read, write, exec
 ---
 

@@ -14,6 +14,8 @@ tools:
   - vaultli
 mutating: false
 writes_pages: false
+
+disable-model-invocation: false
 ---
 
 # Briefing

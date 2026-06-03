@@ -1,0 +1,62 @@
+{
+  "name": "knowledge-base",
+  "version": "0.1.0",
+  "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "knowledge-base",
+    "knowledge-management",
+    "documentation",
+    "research",
+    "retrieval",
+    "ask-user",
+    "choice-gate",
+    "ingest",
+    "knowledge-ingestion",
+    "source-preservation",
+    "vaultli",
+    "vault",
+    "frontmatter",
+    "sidecars",
+    "indexing",
+    "skillify",
+    "skill-development",
+    "evals",
+    "strategic-reading",
+    "applied-analysis",
+    "playbooks",
+    "workflow",
+    "resolver",
+    "query",
+    "graph-ops",
+    "citations",
+    "raw-sources",
+    "privacy",
+    "automation",
+    "sample-vault",
+    "plugin-manager",
+    "upstream-sync"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Knowledge Base",
+    "shortDescription": "Capture, retrieve, and maintain durable knowledge bases.",
+    "longDescription": "Knowledge Base packages workflows for vault setup, ingestion, retrieval, graph operations, provenance, privacy, publishing, automation, maintenance, and bundled vault tooling.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me capture, retrieve, or maintain reusable knowledge."
+    ]
+  }
+}

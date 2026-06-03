@@ -1,6 +1,8 @@
 ---
 name: analysis-intake
 description: "Use this skill when a stakeholder request is vague, political, broad, or under-specified and needs to become a crisp analytics intake before planning or execution. Trigger on phrases like intake this request, clarify this analysis ask, stakeholder wants analysis, turn this vague question into an analytics request, what should we ask before analyzing, or help me scope the ask."
+
+disable-model-invocation: false
 ---
 
 # Analysis Intake

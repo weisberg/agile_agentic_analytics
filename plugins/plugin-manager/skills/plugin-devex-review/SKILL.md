@@ -21,6 +21,8 @@ writes_pages: false
 writes_to:
   - plugins/
   - README.md
+
+disable-model-invocation: false
 ---
 
 # Plugin Devex Review

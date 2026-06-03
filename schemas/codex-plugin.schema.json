@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Codex Plugin Manifest",
+  "type": "object",
+  "required": ["name", "version", "description", "author", "skills", "interface"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "skills": { "type": "string" },
+    "apps": { "type": "string" },
+    "mcpServers": { "type": "string" },
+    "author": { "type": "object", "required": ["name"] },
+    "homepage": { "type": "string" },
+    "repository": { "type": "string" },
+    "license": { "type": "string" },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "interface": {
+      "type": "object",
+      "required": [
+        "displayName",
+        "shortDescription",
+        "longDescription",
+        "developerName",
+        "category",
+        "capabilities",
+        "defaultPrompt"
+      ]
+    }
+  }
+}

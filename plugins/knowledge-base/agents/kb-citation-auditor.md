@@ -1,6 +1,7 @@
 ---
 name: kb-citation-auditor
-description: Audits factual claims, source manifests, quotes, raw pointers, and publication readiness for KB pages. Use before publishing, reports, or enrichment merges.
+description: >
+  Audits factual claims, source manifests, quotes, raw pointers, and publication readiness for KB pages. Use before publishing, reports, or enrichment merges.
 tools: read, write, exec
 ---
 

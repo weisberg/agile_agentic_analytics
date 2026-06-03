@@ -9,6 +9,8 @@ description: >
   ALWAYS trigger automatically when any other skill produces customer-facing content in a
   workspace tagged as financial services. Also trigger on 'is this compliant' or 'check
   this for regulatory issues.'
+
+disable-model-invocation: false
 ---
 
 # Compliance-Aware Content Review

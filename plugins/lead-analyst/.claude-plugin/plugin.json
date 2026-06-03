@@ -1,10 +1,13 @@
 {
   "name": "lead-analyst",
-  "description": "Senior analyst workflows for intake, source inventory, analysis planning, metric contracts, lineage, SQL review, profiling, diagnostics, data-quality audits, decision-ready briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
+  "displayName": "Lead Analyst",
   "version": "0.1.0",
+  "description": "Senior analyst workflows for intake, source inventory, planning, metric contracts, lineage, SQL review, diagnostics, briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
   "author": {
     "name": "Brian Weisberg"
   },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/lead-analyst",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
   "license": "MIT",
   "keywords": [
     "analytics",
@@ -25,5 +28,7 @@
     "decision-support",
     "metrics",
     "insights"
-  ]
+  ],
+  "skills": "./skills/",
+  "defaultEnabled": true
 }

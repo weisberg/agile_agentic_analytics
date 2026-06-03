@@ -11,6 +11,8 @@ description: >
   typically comes from web-analytics. CRO hypotheses feed into experimentation
   for A/B testing. Results feed into reporting and paid-media (landing page
   optimization) skills.
+
+disable-model-invocation: false
 ---
 
 # Funnel Analysis & Conversion Optimization

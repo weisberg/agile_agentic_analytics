@@ -1,6 +1,8 @@
 ---
 name: source-inventory
 description: "Use this skill when the analyst needs to map available data sources before analysis: tables, files, dashboards, notebooks, reports, APIs, owners, freshness, grain, access, and source-of-truth status. Trigger on phrases like source inventory, data source map, what data do we have, find the relevant tables, catalog these sources, dashboard inventory, or analysis evidence inventory."
+
+disable-model-invocation: false
 ---
 
 # Source Inventory

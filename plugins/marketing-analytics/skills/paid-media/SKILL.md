@@ -18,6 +18,8 @@ feeds_into:
   - attribution-analysis
   - reporting
   - funnel-analysis
+
+disable-model-invocation: false
 ---
 
 # Paid Media Analytics

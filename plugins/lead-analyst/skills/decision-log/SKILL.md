@@ -1,6 +1,8 @@
 ---
 name: decision-log
 description: "Use this skill to capture, update, or review analytical decisions and follow-through: recommendation, evidence, confidence, owner decision, action taken, follow-up date, and outcome. Trigger on phrases like decision log, record this decision, analytics decision record, what did we decide, follow up on this recommendation, track analysis outcome, or log the recommendation."
+
+disable-model-invocation: false
 ---
 
 # Decision Log

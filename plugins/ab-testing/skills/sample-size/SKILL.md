@@ -1,6 +1,9 @@
 ---
 name: sample-size
-description: Use when the user needs to calculate the required sample size, duration, or minimum detectable effect (MDE) for an A/B test. Triggers on phrases like "how many users do I need", "what sample size", "calculate MDE", "how long should this test run", "do we have enough traffic", "is this test feasible", "power calculation", or any planning question that involves trading off effect size, sample, and duration. Produces a reproducible sample-size artifact with the headline n-per-arm + duration, a two-direction sensitivity table (n at multiple MDEs, MDE at multiple durations), adjustments for CUPED / cluster designs / multiple comparisons / sequential testing, and the MDE translated into business units. Delegates to the `experiment-statistician` sub-agent for ratio metrics, heavily skewed continuous metrics, and cluster-randomized designs that require simulation.
+description: >
+  Use when the user needs to calculate the required sample size, duration, or minimum detectable effect (MDE) for an A/B test. Triggers on phrases like "how many users do I need", "what sample size", "calculate MDE", "how long should this test run", "do we have enough traffic", "is this test feasible", "power calculation", or any planning question that involves trading off effect size, sample, and duration. Produces a reproducible sample-size artifact with the headline n-per-arm + duration, a two-direction sensitivity table (n at multiple MDEs, MDE at multiple durations), adjustments for CUPED / cluster designs / multiple comparisons / sequential testing, and the MDE translated into business units. Delegates to the `experiment-statistician` sub-agent for ratio metrics, heavily skewed continuous metrics, and cluster-randomized designs that require simulation.
+
+disable-model-invocation: false
 ---
 
 # Calculate Sample Size and Experiment Duration

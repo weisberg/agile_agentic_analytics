@@ -24,6 +24,8 @@ mutating: true
 writes_pages: false
 writes_to:
   - plugins/
+
+disable-model-invocation: false
 ---
 
 # Upstream Skill Harvest

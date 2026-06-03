@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Claude Code Plugin Manifest",
+  "type": "object",
+  "required": ["name", "displayName", "version", "description", "author", "license", "keywords"],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "displayName": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "author": { "type": "object", "required": ["name"] },
+    "homepage": { "type": "string" },
+    "repository": { "type": "string" },
+    "license": { "type": "string" },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "skills": { "type": ["string", "array"] },
+    "agents": { "type": ["string", "array"] },
+    "commands": { "type": ["string", "array"] },
+    "hooks": { "type": ["string", "object"] },
+    "mcpServers": { "type": ["string", "object"] },
+    "lspServers": { "type": ["string", "object"] },
+    "defaultEnabled": { "type": "boolean" }
+  }
+}

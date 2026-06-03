@@ -9,6 +9,8 @@ description: >
   If segment enrichment is needed and segments are not defined, suggest running
   audience-segmentation first. Lead quality signals feed into paid-media for
   campaign targeting. Pipeline metrics feed into reporting.
+
+disable-model-invocation: false
 ---
 
 # CRM Analytics & Lead Scoring

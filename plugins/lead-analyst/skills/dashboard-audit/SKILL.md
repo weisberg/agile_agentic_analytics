@@ -1,6 +1,8 @@
 ---
 name: dashboard-audit
 description: "Use this skill to review an existing dashboard for decision usefulness, metric definition quality, freshness, misleading charts, broken filters, stale data, alert thresholds, and governance. Trigger on phrases like dashboard audit, review this dashboard, can execs trust this dashboard, dashboard QA, misleading chart, stale dashboard, KPI scorecard review, or dashboard health check."
+
+disable-model-invocation: false
 ---
 
 # Dashboard Audit

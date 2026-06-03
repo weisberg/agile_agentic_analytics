@@ -1,6 +1,9 @@
 ---
 name: executive-readout
-description: Use this skill when the user wants to turn analysis into an executive-ready readout, decision memo, operating-review narrative, stakeholder update, board-ready summary, or concise recommendation. Trigger on phrases like "executive readout", "decision memo", "summarize for leadership", "turn this analysis into a recommendation", "board summary", "operating review", "stakeholder update", or "so what should we tell execs".
+description: >
+  Use this skill when the user wants to turn analysis into an executive-ready readout, decision memo, operating-review narrative, stakeholder update, board-ready summary, or concise recommendation. Trigger on phrases like "executive readout", "decision memo", "summarize for leadership", "turn this analysis into a recommendation", "board summary", "operating review", "stakeholder update", or "so what should we tell execs".
+
+disable-model-invocation: false
 ---
 
 # Executive Readout

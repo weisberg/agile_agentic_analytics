@@ -14,6 +14,8 @@ tools:
   - vaultli
 mutating: true
 writes_pages: true
+
+disable-model-invocation: false
 ---
 
 # Source Router

@@ -1,6 +1,8 @@
 ---
 name: sql-review
 description: "Use this skill to review SQL, dbt models, BI queries, warehouse transformations, or notebook queries for analytical correctness. Trigger on phrases like review this SQL, check this query, SQL audit, join fanout, denominator bug, dbt model review, query correctness, aggregation bug, or why is this query wrong."
+
+disable-model-invocation: false
 ---
 
 # SQL Review

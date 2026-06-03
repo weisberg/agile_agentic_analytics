@@ -1,8 +1,8 @@
 ---
 name: lead-analyst
-description: Use this agent for senior analyst judgment on ambiguous business/data questions, metric definitions, exploratory analysis, data-quality audits, dashboard or notebook review, and decision-ready insight synthesis. Invoke when analysis needs an independent skeptical reviewer or when another skill needs a strong analytical partner.
+description: >
+  Use this agent for senior analyst judgment on ambiguous business/data questions, metric definitions, exploratory analysis, data-quality audits, dashboard or notebook review, and decision-ready insight synthesis. Invoke when analysis needs an independent skeptical reviewer or when another skill needs a strong analytical partner.
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
-color: blue
 ---
 
 # Lead Analyst

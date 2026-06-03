@@ -31,6 +31,8 @@ benefits-from:
   - ab-testing-expert
   - experimentation-statistician
   - regulated-experiment-auditor
+
+disable-model-invocation: false
 ---
 # Experiment Operating Model
 

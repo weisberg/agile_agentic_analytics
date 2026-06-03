@@ -1,10 +1,13 @@
 {
   "name": "plugin-manager",
-  "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing Claude Code plugins.",
+  "displayName": "Plugin Manager",
   "version": "0.1.0",
+  "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing agent plugins.",
   "author": {
     "name": "Brian Weisberg"
   },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/plugin-manager",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
   "license": "MIT",
   "keywords": [
     "plugin-manager",
@@ -27,5 +30,7 @@
     "upstream-sync",
     "gbrain",
     "gstack"
-  ]
+  ],
+  "skills": "./skills/",
+  "defaultEnabled": true
 }

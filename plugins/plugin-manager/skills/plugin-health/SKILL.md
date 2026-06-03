@@ -19,6 +19,8 @@ tools:
   - exec
 mutating: false
 writes_pages: false
+
+disable-model-invocation: false
 ---
 
 # Plugin Health
@@ -31,7 +33,8 @@ This skill returns a plugin health report with:
 - `summary`: one-line human-readable status.
 - `actions`: remediation hints that can be executed or assigned.
 - `plugins`: per-plugin checks for manifest, marketplace, skills, references,
-  routing evals, generated artifacts, and optional strict sections.
+  routing evals, generated artifacts, dual Codex/Claude structure, and optional
+  strict sections.
 
 It follows the GBrain `skillpack-check` pattern: JSON first for agents and CI,
 plain summary for humans, specific remediation hints for every failure.
@@ -47,6 +50,9 @@ plain summary for humans, specific remediation hints for every failure.
 2. **Run the audit**
 
    ```bash
+   npm run render:check
+   npm run validate
+
    python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py \
      --plugin <plugin-name> \
      --json
@@ -91,4 +97,3 @@ Artifacts:
 - Running destructive cleanup to fix generated artifacts.
 - Claiming a plugin is healthy without checking marketplace registration and
   skill frontmatter.
-

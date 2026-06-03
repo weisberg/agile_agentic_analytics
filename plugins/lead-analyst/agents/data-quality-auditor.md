@@ -2,7 +2,6 @@
 name: data-quality-auditor
 description: "Use this agent to audit datasets, extracts, SQL, notebooks, dashboards, and metric pipelines before analysis or decision use. It checks freshness, grain, duplicates, missingness, joins, unit mismatches, denominator drift, instrumentation changes, and decision risk."
 tools: Read, Write, Edit, Bash, Glob, Grep
-color: red
 ---
 
 # Data Quality Auditor

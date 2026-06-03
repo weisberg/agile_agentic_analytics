@@ -1,6 +1,9 @@
 ---
 name: review-experiment
-description: Use when the user wants a code review of A/B test implementation — assignment logic, bucketing, feature flags, exposure event logging, variant propagation, and metric instrumentation. Triggers on phrases like "review this experiment code", "is my bucketing correct", "check the implementation before launch", "review the flag logic", "audit the assignment code", "why might this SRM", or any time the user shares a PR, file, or directory containing experiment plumbing. Produces a severity-tagged findings report with file:line citations and concrete fix suggestions, written to a reproducible artifact directory. Complements (not replaces) the `experiment-auditor` sub-agent: this skill reviews the *code*, the auditor reviews the *design and the readout*. Most production SRM is caused by bugs this skill is built to find.
+description: >
+  Use when the user wants a code review of A/B test implementation — assignment logic, bucketing, feature flags, exposure event logging, variant propagation, and metric instrumentation. Triggers on phrases like "review this experiment code", "is my bucketing correct", "check the implementation before launch", "review the flag logic", "audit the assignment code", "why might this SRM", or any time the user shares a PR, file, or directory containing experiment plumbing. Produces a severity-tagged findings report with file:line citations and concrete fix suggestions, written to a reproducible artifact directory. Complements (not replaces) the `experiment-auditor` sub-agent: this skill reviews the *code*, the auditor reviews the *design and the readout*. Most production SRM is caused by bugs this skill is built to find.
+
+disable-model-invocation: false
 ---
 
 # Review Experiment Implementation Code

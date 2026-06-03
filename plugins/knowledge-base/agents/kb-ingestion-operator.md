@@ -1,6 +1,7 @@
 ---
 name: kb-ingestion-operator
-description: Runs ingestion pipelines for meetings, articles, media, web captures, voice notes, migrations, and archive batches with raw-source preservation and checkpoints.
+description: >
+  Runs ingestion pipelines for meetings, articles, media, web captures, voice notes, migrations, and archive batches with raw-source preservation and checkpoints.
 tools: read, write, exec
 ---
 

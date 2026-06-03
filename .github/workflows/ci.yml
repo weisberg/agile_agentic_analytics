@@ -17,6 +17,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install marketplace tooling
+        run: npm ci
+
+      - name: Validate generated marketplace files
+        run: |
+          npm run render:check
+          npm run validate
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -59,8 +73,10 @@ jobs:
           if [ "$failed" -eq 1 ]; then exit 1; fi
           echo "All SKILL.md files are under 500 lines"
 
-      - name: Validate marketplace.json is valid JSON
+      - name: Validate marketplace JSON files
         run: python -m json.tool .claude-plugin/marketplace.json > /dev/null
+      - name: Validate Codex marketplace JSON
+        run: python -m json.tool .agents/plugins/marketplace.json > /dev/null
 
       - name: Upload coverage report
         if: matrix.python-version == '3.12'

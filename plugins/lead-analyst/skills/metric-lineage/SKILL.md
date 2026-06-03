@@ -1,6 +1,8 @@
 ---
 name: metric-lineage
 description: "Use this skill to trace a KPI or metric from dashboard/report back through SQL, dbt models, semantic layers, events, source tables, transformations, filters, and owners. Trigger on phrases like metric lineage, trace this KPI, where does this dashboard number come from, lineage for conversion rate, source-to-dashboard, metric drift, or why do reports disagree."
+
+disable-model-invocation: false
 ---
 
 # Metric Lineage

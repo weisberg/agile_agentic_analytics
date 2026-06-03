@@ -1,26 +1,61 @@
 # Agile Agentic Analytics
 
-A Claude Code plugin marketplace for agile agentic analytics.
+A dual Claude Code and Codex plugin marketplace for agile agentic analytics.
+The repo keeps one canonical plugin catalog in `marketplace.yaml` and renders
+the harness-specific files that Claude Code and Codex need.
 
 ## Installation
 
-Add this marketplace to Claude Code:
+### Claude Code
 
+```bash
+# Local checkout
+claude plugin marketplace add ./ --scope local
+claude plugin install plugin-manager@agile-agentic-analytics --scope local
+
+# GitHub marketplace
+claude plugin marketplace add weisberg/agile_agentic_analytics
+claude plugin install plugin-manager@agile-agentic-analytics
 ```
+
+You can also use the slash-command UI:
+
+```text
 /plugin marketplace add weisberg/agile_agentic_analytics
-```
-
-Then browse and install plugins:
-
-```
 /plugin
 ```
 
-Or install a specific plugin directly:
+### Codex
 
+```bash
+# Local checkout
+codex plugin marketplace add ./
+
+# GitHub marketplace
+codex plugin marketplace add weisberg/agile_agentic_analytics
 ```
-/plugin install <plugin-name>@agile-agentic-analytics
+
+After adding the marketplace, open the Codex plugin UI and install or enable the
+plugin there. Codex deep links use the generated marketplace file:
+
+```text
+codex://plugins/plugin-manager?marketplacePath=/absolute/path/to/.agents/plugins/marketplace.json
+codex://plugins/plugin-manager?marketplacePath=/absolute/path/to/.agents/plugins/marketplace.json&mode=share
 ```
+
+URL-encode the `marketplacePath` value when turning those examples into actual
+links.
+
+## Generated Structure
+
+| Source | Generated Claude Code file | Generated Codex file |
+| --- | --- | --- |
+| `marketplace.yaml` | `.claude-plugin/marketplace.json` | `.agents/plugins/marketplace.json` |
+| `marketplace.yaml` plugin entry | `plugins/<plugin>/.claude-plugin/plugin.json` | `plugins/<plugin>/.codex-plugin/plugin.json` |
+| `plugins/<plugin>/skills/*/SKILL.md` | Shared skill content | Shared skill content |
+
+Do not hand-edit generated marketplace or manifest JSON. Edit
+`marketplace.yaml`, then run `npm run render`.
 
 ## Available Plugins
 
@@ -29,7 +64,7 @@ Or install a specific plugin directly:
 **Install:** `/plugin install plugin-manager@agile-agentic-analytics`
 
 Marketplace maintenance workflows for creating, validating, harvesting, syncing,
-and publishing Claude Code plugins.
+and publishing shared Claude Code and Codex plugins.
 
 | Component | Description |
 |-----------|-------------|
@@ -155,48 +190,82 @@ Design, analyze, and review A/B tests with statistical rigor.
 
 ## Creating a Plugin
 
-Each plugin lives in its own directory under `plugins/`. The minimum structure is:
+Each plugin lives in its own directory under `plugins/`. The marketplace metadata
+lives in `marketplace.yaml`; the renderer creates both harness manifests.
+
+Minimum source structure:
 
 ```
 plugins/my-plugin/
-├── .claude-plugin/
-│   └── plugin.json        # Plugin manifest (required)
-├── skills/                 # Custom slash commands
-│   └── my-skill/
-│       └── SKILL.md
-├── agents/                 # Custom subagents
-│   └── my-agent.md
-├── hooks/                  # Event handlers
-│   └── hooks.json
-├── .mcp.json               # MCP server configs
-├── .lsp.json               # LSP server configs
-├── settings.json           # Supported Claude Code settings only
-└── README.md
+  README.md
+  skills/
+    my-skill/
+      SKILL.md
+  agents/                  # Optional Claude Code agents
+    my-agent.md
+  hooks/                   # Optional Claude Code hooks
+    hooks.json
+  .mcp.json                # Optional shared MCP server config
+  .app.json                # Optional Codex app config
 ```
 
-### plugin.json
+Skill frontmatter should stay compatible with both harnesses:
 
-```json
-{
-  "name": "my-plugin",
-  "description": "What the plugin does",
-  "version": "1.0.0",
-  "author": {
-    "name": "Your Name"
-  },
-  "license": "MIT"
-}
+```yaml
+---
+name: my-skill
+description: Short routing description.
+disable-model-invocation: false
+---
 ```
 
-After creating your plugin directory, register it in `.claude-plugin/marketplace.json`:
+Add the plugin to `marketplace.yaml` with `path: plugins/my-plugin`, component
+flags, version, keywords, and Codex interface copy. Then render and validate:
 
-```json
-{
-  "name": "my-plugin",
-  "source": "./plugins/my-plugin",
-  "description": "What the plugin does"
-}
+```bash
+npm run render
+npm run render:check
+npm run validate
 ```
+
+When a plugin's installable behavior changes, bump its `version` in
+`marketplace.yaml`. Claude Code uses manifest versions for update detection, and
+Codex receives the same version in its generated manifest.
+
+## Validation
+
+```bash
+npm ci
+npm run render:check
+npm run validate
+python3 -m json.tool .claude-plugin/marketplace.json
+python3 -m json.tool .agents/plugins/marketplace.json
+python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --json
+```
+
+Claude Code strict validation is available when the CLI is installed:
+
+```bash
+./scripts/smoke-claude.sh
+```
+
+Codex does not currently expose a stable local `codex plugin validate` command
+for this marketplace shape, so `npm run validate` enforces the Codex structural
+contract locally.
+
+## Release Checklist
+
+1. Update plugin content.
+2. Bump `plugins[].version` in `marketplace.yaml` for changed installable behavior.
+3. Run `npm run render`.
+4. Run `npm run render:check` and `npm run validate`.
+5. Run Claude/Codex smoke checks where the CLIs are available.
+6. Commit the generated marketplace and manifest files.
+7. Tell users to refresh with `claude plugin marketplace update agile-agentic-analytics`.
+   For Git-backed Codex marketplaces, use
+   `codex plugin marketplace upgrade agile-agentic-analytics`; for local
+   checkouts, re-add the local root with `codex plugin marketplace add ./` when
+   needed.
 
 ## License
 

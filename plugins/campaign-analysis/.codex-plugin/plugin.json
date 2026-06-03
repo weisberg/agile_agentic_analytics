@@ -1,0 +1,37 @@
+{
+  "name": "campaign-analysis",
+  "version": "0.1.0",
+  "description": "Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/campaign-analysis",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "campaign-analysis",
+    "campaign-performance",
+    "marketing",
+    "analytics",
+    "measurement",
+    "optimization",
+    "reporting"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Campaign Analysis",
+    "shortDescription": "Measure and explain campaign performance.",
+    "longDescription": "Campaign Analysis supports campaign diagnostics, conversion and value analysis, holdout-aware measurement, optimization, and stakeholder-ready reporting.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/campaign-analysis",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me evaluate a campaign and explain the performance story."
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 # Plugin Manager
 
 Marketplace maintenance workflows for creating, validating, harvesting, syncing,
-and publishing Claude Code plugins.
+and publishing shared Claude Code and Codex plugins.
 
 ## Skills
 
@@ -25,7 +25,8 @@ and publishing Claude Code plugins.
 ## Use Cases
 
 - Create or revise a plugin under `plugins/<plugin-name>/`.
-- Keep plugin manifests, README files, marketplace entries, and skill locations aligned.
+- Keep `marketplace.yaml`, generated manifests, README files, marketplace entries,
+  and skill locations aligned.
 - Harvest upstream skills from GBrain or GStack into a target plugin with source/adaptation notes.
 - Validate skill frontmatter, KB terminology, privacy/path safety, and upstream ledgers.
 - Run a JSON-producing health audit that can be used by agents or CI.
@@ -49,8 +50,10 @@ claude --plugin-dir ./plugins/plugin-manager
 Reload after edits with `/reload-plugins`. Validate with `claude plugin validate`
 when the Claude Code CLI is available.
 
-Run the health audit:
+Run the health audit and dual-marketplace validation:
 
 ```bash
+npm run render:check
+npm run validate
 python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin plugin-manager --json
 ```

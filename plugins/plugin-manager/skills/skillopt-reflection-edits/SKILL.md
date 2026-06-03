@@ -21,6 +21,8 @@ mutating: true
 writes_pages: false
 writes_to:
   - .plugin-manager/skillopt/
+
+disable-model-invocation: false
 ---
 
 # SkillOpt Reflection Edits

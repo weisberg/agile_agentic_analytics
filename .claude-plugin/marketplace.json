@@ -3,67 +3,261 @@
   "owner": {
     "name": "Brian Weisberg"
   },
+  "description": "A marketplace of Claude Code and Codex plugins for agile agentic analytics.",
+  "version": "0.1.0",
   "metadata": {
-    "description": "A marketplace of Claude Code plugins for agile agentic analytics",
-    "version": "0.1.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "plugin-manager",
       "source": "./plugins/plugin-manager",
-      "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing Claude Code plugins.",
-      "version": "0.1.0",
-      "keywords": ["plugin-manager", "plugin-development", "marketplace", "skills", "validation", "health", "doctor", "quality-gate", "checkpoint", "release", "devex", "publishing", "upstream-sync", "gbrain", "gstack"],
-      "license": "MIT"
+      "displayName": "Plugin Manager",
+      "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing agent plugins.",
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/plugin-manager",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "plugin-manager",
+        "plugin-development",
+        "marketplace",
+        "skills",
+        "validation",
+        "health",
+        "doctor",
+        "quality-gate",
+        "skill-improve",
+        "skillopt",
+        "skill-optimization",
+        "self-evolving-skills",
+        "validation-gate",
+        "checkpoint",
+        "publishing",
+        "release",
+        "devex",
+        "upstream-sync",
+        "gbrain",
+        "gstack"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     },
     {
       "name": "lead-analyst",
       "source": "./plugins/lead-analyst",
-      "description": "Senior analyst workflows for intake, source inventory, analysis planning, metric contracts, lineage, SQL review, profiling, diagnostics, data-quality audits, decision-ready briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
-      "version": "0.1.0",
-      "keywords": ["analytics", "analysis", "analysis-intake", "analysis-planning", "metric-contract", "metric-lineage", "data-quality", "sql-review", "eda", "cohort-analysis", "dashboard", "forecasting", "executive-readout", "decision-log", "senior-analyst", "decision-support", "metrics", "insights"],
-      "license": "MIT"
+      "displayName": "Lead Analyst",
+      "description": "Senior analyst workflows for intake, source inventory, planning, metric contracts, lineage, SQL review, diagnostics, briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/lead-analyst",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "analytics",
+        "analysis",
+        "analysis-intake",
+        "analysis-planning",
+        "metric-contract",
+        "metric-lineage",
+        "data-quality",
+        "sql-review",
+        "eda",
+        "cohort-analysis",
+        "dashboard",
+        "forecasting",
+        "executive-readout",
+        "decision-log",
+        "senior-analyst",
+        "decision-support",
+        "metrics",
+        "insights"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     },
     {
       "name": "ab-testing",
       "source": "./plugins/ab-testing",
-      "description": "Design, analyze, and review A/B tests with statistical rigor",
-      "version": "1.0.0",
-      "keywords": ["ab-testing", "experimentation", "statistics", "analytics"],
-      "license": "MIT"
+      "displayName": "A/B Testing",
+      "description": "Design, analyze, and review A/B tests with statistical rigor.",
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/ab-testing",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "ab-testing",
+        "experimentation",
+        "statistics",
+        "analytics"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     },
     {
       "name": "marketing-analytics",
       "source": "./plugins/marketing-analytics",
-      "description": "15 interconnected marketing analytics skills — attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review",
-      "version": "1.0.0",
-      "keywords": ["marketing", "analytics", "attribution", "experimentation", "paid-media", "reporting", "clv", "segmentation", "funnel", "email", "web-analytics", "seo", "crm", "social-media", "competitive-intelligence", "compliance", "financial-services"],
-      "license": "MIT"
+      "displayName": "Marketing Analytics",
+      "description": "Fifteen interconnected marketing analytics skills for attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.",
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/marketing-analytics",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "marketing",
+        "analytics",
+        "attribution",
+        "experimentation",
+        "paid-media",
+        "reporting",
+        "clv",
+        "segmentation",
+        "funnel",
+        "email",
+        "web-analytics",
+        "seo",
+        "crm",
+        "social-media",
+        "competitive-intelligence",
+        "voice-of-customer",
+        "compliance",
+        "financial-services"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     },
     {
       "name": "experimentation",
       "source": "./plugins/experimentation",
-      "description": "Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, operating models, and executive evidence briefs",
-      "version": "1.0.0",
-      "keywords": ["experimentation", "ab-testing", "regulated-finance", "email-incrementality", "sequential-testing", "cuped", "causal-inference", "measurement-governance", "compliance"],
-      "license": "MIT"
+      "displayName": "Experimentation",
+      "description": "Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, operating models, and executive evidence briefs.",
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/experimentation",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "experimentation",
+        "ab-testing",
+        "regulated-finance",
+        "email-incrementality",
+        "sequential-testing",
+        "cuped",
+        "causal-inference",
+        "measurement-governance",
+        "compliance",
+        "executive-briefing"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     },
     {
       "name": "campaign-analysis",
       "source": "./plugins/campaign-analysis",
+      "displayName": "Campaign Analysis",
       "description": "Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.",
-      "version": "0.1.0",
-      "keywords": ["campaign-analysis", "campaign-performance", "marketing", "analytics", "measurement", "optimization", "reporting"],
-      "license": "MIT"
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/campaign-analysis",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "campaign-analysis",
+        "campaign-performance",
+        "marketing",
+        "analytics",
+        "measurement",
+        "optimization",
+        "reporting"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     },
     {
       "name": "knowledge-base",
       "source": "./plugins/knowledge-base",
+      "displayName": "Knowledge Base",
       "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
-      "version": "0.1.0",
-      "keywords": ["knowledge-base", "knowledge-management", "documentation", "research", "retrieval", "ask-user", "choice-gate", "ingest", "knowledge-ingestion", "source-preservation", "vaultli", "vault", "frontmatter", "sidecars", "indexing", "skillify", "skill-development", "evals", "strategic-reading", "applied-analysis", "playbooks", "workflow", "resolver", "query", "graph-ops", "citations", "raw-sources", "privacy", "automation", "sample-vault", "plugin-manager", "upstream-sync"],
-      "license": "MIT"
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "knowledge-base",
+        "knowledge-management",
+        "documentation",
+        "research",
+        "retrieval",
+        "ask-user",
+        "choice-gate",
+        "ingest",
+        "knowledge-ingestion",
+        "source-preservation",
+        "vaultli",
+        "vault",
+        "frontmatter",
+        "sidecars",
+        "indexing",
+        "skillify",
+        "skill-development",
+        "evals",
+        "strategic-reading",
+        "applied-analysis",
+        "playbooks",
+        "workflow",
+        "resolver",
+        "query",
+        "graph-ops",
+        "citations",
+        "raw-sources",
+        "privacy",
+        "automation",
+        "sample-vault",
+        "plugin-manager",
+        "upstream-sync"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
+    },
+    {
+      "name": "product-manager",
+      "source": "./plugins/product-manager",
+      "displayName": "Product Manager",
+      "description": "Product management toolkit for discovery, prioritization, roadmapping, PRDs, and stakeholder communication.",
+      "author": {
+        "name": "Brian Weisberg"
+      },
+      "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/product-manager",
+      "repository": "https://github.com/weisberg/agile_agentic_analytics",
+      "license": "MIT",
+      "keywords": [
+        "product-management",
+        "roadmap",
+        "prioritization",
+        "discovery",
+        "prd"
+      ],
+      "category": "Developer Tools",
+      "defaultEnabled": true,
+      "strict": true
     }
   ]
 }

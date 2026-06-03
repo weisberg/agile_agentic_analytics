@@ -1,6 +1,7 @@
 ---
 name: kb-ops-auditor
-description: Audits KB plugin health, vault health, generated artifacts, release readiness, and operational workflows.
+description: >
+  Audits KB plugin health, vault health, generated artifacts, release readiness, and operational workflows.
 tools: read, exec
 ---
 

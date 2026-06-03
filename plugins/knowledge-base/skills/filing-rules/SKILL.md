@@ -13,6 +13,8 @@ tools:
   - write
 mutating: true
 writes_pages: true
+
+disable-model-invocation: false
 ---
 
 # Filing Rules

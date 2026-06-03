@@ -9,6 +9,8 @@ description: >
   causal inference, or uplift modeling. Also trigger on 'did this change work' or
   'how long should we run this test.' If segment-level analysis is needed and
   segments are not defined, suggest running audience-segmentation first.
+
+disable-model-invocation: false
 ---
 
 # A/B Testing & Experimentation

@@ -143,7 +143,7 @@
 ## Plugin: Plugin Manager
 
 Marketplace maintenance workflows for creating, validating, harvesting, syncing,
-and publishing Claude Code plugins.
+and publishing shared Claude Code and Codex plugins.
 
 ### Manage Plugins
 

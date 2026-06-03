@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agile Agentic Analytics Canonical Plugin Catalog Entry",
+  "type": "object",
+  "required": [
+    "name",
+    "displayName",
+    "path",
+    "description",
+    "version",
+    "homepage",
+    "repository",
+    "keywords",
+    "capabilities",
+    "defaultPrompt",
+    "components"
+  ],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "displayName": { "type": "string" },
+    "path": { "type": "string", "pattern": "^plugins/[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "description": { "type": "string" },
+    "version": { "type": "string" },
+    "homepage": { "type": "string", "format": "uri" },
+    "repository": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "capabilities": { "type": "array", "items": { "type": "string" } },
+    "defaultPrompt": { "type": "array", "items": { "type": "string" } },
+    "components": {
+      "type": "object",
+      "properties": {
+        "skills": { "type": "boolean" },
+        "mcp": { "type": "boolean" },
+        "apps": { "type": "boolean" },
+        "hooks": { "type": "boolean" },
+        "agents": { "type": "boolean" },
+        "commands": { "type": "boolean" },
+        "lsp": { "type": "boolean" }
+      }
+    },
+    "codex": { "type": "object" },
+    "claude": { "type": "object" }
+  }
+}

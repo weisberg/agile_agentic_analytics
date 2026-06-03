@@ -2,7 +2,6 @@
 name: metric-steward
 description: "Use this agent to define, reconcile, or review KPI and metric definitions: numerator, denominator, grain, eligibility, attribution window, source of truth, owner, refresh cadence, and governance rules."
 tools: Read, Write, Edit, Bash, Glob, Grep
-color: green
 ---
 
 # Metric Steward

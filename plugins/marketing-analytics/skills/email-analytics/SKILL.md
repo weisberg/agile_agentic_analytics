@@ -11,6 +11,8 @@ description: >
   defined, suggest running audience-segmentation first. All A/B testing is
   delegated to the experimentation skill. Results feed into reporting. In
   financial services mode, content must pass compliance-review before deployment.
+
+disable-model-invocation: false
 ---
 
 # Email Marketing Analytics

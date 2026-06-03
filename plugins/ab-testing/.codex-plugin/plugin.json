@@ -1,0 +1,34 @@
+{
+  "name": "ab-testing",
+  "version": "1.0.0",
+  "description": "Design, analyze, and review A/B tests with statistical rigor.",
+  "author": {
+    "name": "Brian Weisberg"
+  },
+  "homepage": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/ab-testing",
+  "repository": "https://github.com/weisberg/agile_agentic_analytics",
+  "license": "MIT",
+  "keywords": [
+    "ab-testing",
+    "experimentation",
+    "statistics",
+    "analytics"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "A/B Testing",
+    "shortDescription": "Design, size, analyze, and review controlled experiments.",
+    "longDescription": "A/B Testing provides experiment design, sample sizing, result analysis, reporting, and review workflows for statistically rigorous testing.",
+    "developerName": "Brian Weisberg",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/ab-testing",
+    "brandColor": "#2563EB",
+    "defaultPrompt": [
+      "Help me design, size, analyze, or review an A/B test."
+    ]
+  }
+}

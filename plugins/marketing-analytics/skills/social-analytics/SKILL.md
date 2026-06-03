@@ -19,6 +19,8 @@ feeds_into:
   - competitive-intel
   - attribution-analysis
   - reporting
+
+disable-model-invocation: false
 ---
 
 # Social Media Analytics

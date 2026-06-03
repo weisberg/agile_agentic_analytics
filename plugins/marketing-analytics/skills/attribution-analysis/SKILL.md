@@ -1,5 +1,5 @@
 ---
-name: Marketing Mix Modeling & Attribution
+name: attribution-analysis
 description: >
   Use when the user mentions attribution, ROAS optimization, channel contribution,
   marketing mix model, MMM, media mix, budget allocation, budget optimization,
@@ -9,6 +9,8 @@ description: >
   'which channel is driving results' or 'where should we spend more.' If campaign spend
   data is not yet extracted, suggest running data-extraction first. Results feed into
   reporting and paid-media skills.
+
+disable-model-invocation: false
 ---
 
 # Marketing Mix Modeling & Attribution

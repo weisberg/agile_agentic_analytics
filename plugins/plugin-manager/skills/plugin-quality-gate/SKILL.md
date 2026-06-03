@@ -21,6 +21,8 @@ mutating: true
 writes_pages: false
 writes_to:
   - .plugin-manager/reviews/
+
+disable-model-invocation: false
 ---
 
 # Plugin Quality Gate

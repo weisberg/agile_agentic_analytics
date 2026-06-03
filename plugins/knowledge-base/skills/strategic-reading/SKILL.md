@@ -1,7 +1,8 @@
 ---
 name: strategic-reading
 version: 0.1.0
-description: Read a book, article, transcript, or case study through the lens of a specific strategic problem you're facing. Produces an applied playbook that maps the source onto the problem and gives short/medium/long-term recommendations. NOT for general book summaries.
+description: >
+  Read a book, article, transcript, or case study through the lens of a specific strategic problem you're facing. Produces an applied playbook that maps the source onto the problem and gives short/medium/long-term recommendations. NOT for general book summaries.
 triggers:
   - "strategic reading"
   - "read this through the lens of"
@@ -13,6 +14,8 @@ writes_pages: true
 writes_to:
   - concepts/
   - projects/
+
+disable-model-invocation: false
 ---
 
 # strategic-reading - Applied Analysis from Source Texts

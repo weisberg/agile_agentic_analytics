@@ -23,6 +23,8 @@ writes_pages: false
 writes_to:
   - .plugin-manager/skillopt/
   - plugins/
+
+disable-model-invocation: false
 ---
 
 # SkillOpt Training Run

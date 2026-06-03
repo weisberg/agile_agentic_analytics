@@ -1,6 +1,7 @@
 ---
 name: vaultli-maintainer
-description: Maintains the bundled vaultli CLI, Python/Rust parity, sample vault behavior, validation commands, and plugin CI coverage.
+description: >
+  Maintains the bundled vaultli CLI, Python/Rust parity, sample vault behavior, validation commands, and plugin CI coverage.
 tools: read, write, exec
 ---
 

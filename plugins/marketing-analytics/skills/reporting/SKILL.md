@@ -9,6 +9,8 @@ description: >
   This skill consumes outputs from all other skills in the portfolio. In
   financial services mode, all reports containing performance claims must pass
   through compliance-review before distribution.
+
+disable-model-invocation: false
 ---
 
 # Dashboard & Reporting Automation

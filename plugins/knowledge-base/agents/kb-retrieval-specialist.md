@@ -1,6 +1,7 @@
 ---
 name: kb-retrieval-specialist
-description: Tunes KB search, source routing, retrieval benchmarks, graph expansion, briefings, and confidence/freshness reporting.
+description: >
+  Tunes KB search, source routing, retrieval benchmarks, graph expansion, briefings, and confidence/freshness reporting.
 tools: read, write, exec
 ---
 

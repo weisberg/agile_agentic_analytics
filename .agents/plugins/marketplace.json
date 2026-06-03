@@ -1,0 +1,104 @@
+{
+  "name": "agile-agentic-analytics",
+  "interface": {
+    "displayName": "Agile Agentic Analytics"
+  },
+  "plugins": [
+    {
+      "name": "plugin-manager",
+      "source": {
+        "source": "local",
+        "path": "./plugins/plugin-manager"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "lead-analyst",
+      "source": {
+        "source": "local",
+        "path": "./plugins/lead-analyst"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ab-testing",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ab-testing"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "marketing-analytics",
+      "source": {
+        "source": "local",
+        "path": "./plugins/marketing-analytics"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "experimentation",
+      "source": {
+        "source": "local",
+        "path": "./plugins/experimentation"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "campaign-analysis",
+      "source": {
+        "source": "local",
+        "path": "./plugins/campaign-analysis"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "knowledge-base",
+      "source": {
+        "source": "local",
+        "path": "./plugins/knowledge-base"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "product-manager",
+      "source": {
+        "source": "local",
+        "path": "./plugins/product-manager"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

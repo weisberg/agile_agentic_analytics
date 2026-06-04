@@ -37,6 +37,10 @@ discipline without running SkillOpt: gather evidence, separate failures from
 working behavior, make a small bounded patch, validate it, and record what was
 changed or deliberately rejected.
 
+Use the smallest adequate validation surface. This skill should improve the
+target skill and stop; it should not become a plugin release, upstream harvest,
+or full optimization run unless evidence shows the request belongs there.
+
 Escalate to `../skillopt-training-run/SKILL.md` only when the user wants a full
 training loop, repeated rollouts, train/selection/test splits, model or harness
 comparison, slow/meta updates, or best-skill export.
@@ -56,6 +60,8 @@ comparison, slow/meta updates, or best-skill export.
      confusing trigger text, missing output contract, unsafe write scope,
      duplicated instructions, vague advice, missing anti-patterns, or examples
      of successful use worth preserving.
+   - Check whether the skill has routing fixtures. If absent or stale, treat
+     missing coverage as evidence when routing is part of the change.
    - If no concrete evidence exists, do a design review against local skill
      conventions and label the result as judgment-based.
 
@@ -70,11 +76,16 @@ comparison, slow/meta updates, or best-skill export.
    - Apply the smallest useful edit set; default to 1 to 4 focused changes.
    - Prefer localized add, replace, or delete edits over full rewrites.
    - Keep the skill concise and under the repo's existing style.
+   - Add or update `routing-eval.jsonl` only when trigger behavior or routing
+     boundaries change.
    - Do not add new scripts, references, or agents unless deterministic behavior
      or progressive disclosure clearly needs them.
 
 5. **Validation**
    - Run `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin-name> --json`.
+   - Run `npm run render:check` and `npm run validate` when the improvement
+     changes shared plugin metadata, generated manifests, or marketplace
+     surfaces.
    - Run `claude plugin validate plugins/<plugin-name>` when available.
    - Run focused tests for any scripts or fixtures touched.
    - If validation is unavailable, state exactly what was not run.
@@ -110,4 +121,5 @@ Receipt: <path or skipped>
 - Optimizing around one anecdote without saying the evidence is thin.
 - Adding verbose background that belongs in a reference file or nowhere.
 - Removing successful behavior while fixing a failure.
+- Changing trigger/routing behavior without updating routing evidence.
 - Claiming improvement without running available validation.

@@ -43,6 +43,9 @@ A plugin release is ready only when:
 - README, root catalog docs, and upgrade notes reflect the shipped behavior.
 - One-way operations such as push, merge, tag, publish, and marketplace release
   happen only after explicit user approval.
+- Generated files are treated as outputs. If generated manifests or marketplace
+  files are stale, identify the source change in `marketplace.yaml` or
+  `scripts/`, rerender, and validate before release approval.
 
 ## Workflow
 
@@ -55,11 +58,17 @@ A plugin release is ready only when:
    - Inspect `git diff --stat` and relevant file diffs.
    - Classify changes: `docs-only`, `skill`, `script/tool`, `manifest`,
      `marketplace`, or `breaking`.
+   - Separate source files from generated files. Generated JSON should be
+     explainable by `marketplace.yaml` or renderer changes.
    - Flag unrelated edits; do not stage them by accident.
 
 3. **Version policy**
-   - Patch: docs, examples, small skill wording, validation fixes.
-   - Minor: new skills, new bundled tools, new workflow behavior.
+   - No bump: internal-only validation, routing fixture, or docs changes that
+     do not alter installable behavior.
+   - Patch: user-visible docs, examples, small skill wording, or validation
+     fixes.
+   - Minor: new skills, new bundled tools, new workflow behavior, or new user
+     commands.
    - Major: breaking command, path, schema, or install behavior changes.
    - Update `plugins[].version` in `marketplace.yaml`.
    - Run `npm run render` to refresh generated marketplace and manifest files.
@@ -87,6 +96,8 @@ A plugin release is ready only when:
 6. **Release gate**
    - Summarize changed files, validation evidence, version change, and upgrade
      notes.
+   - Include whether generated files are current and whether the release changes
+     Claude, Codex, or both harnesses.
    - Ask before push, PR, tag, publish, or merge.
 
 ## Output Format
@@ -102,6 +113,7 @@ Docs updated:
 - <path>
 Upgrade notes:
 - <note or none>
+Harness impact: Claude|Codex|both|none
 Release gate: ready|blocked|needs-user-approval
 ```
 
@@ -110,5 +122,7 @@ Release gate: ready|blocked|needs-user-approval
 - Bumping generated manifests by hand instead of bumping `marketplace.yaml`.
 - Publishing after tests but before docs reflect the new behavior.
 - Treating ignored/generated artifacts as source files.
+- Bumping a version for internal-only changes without saying why users need an
+  update.
 - Pushing, merging, tagging, or publishing without explicit approval.
 - Hiding upgrade impact from users with existing plugin state.

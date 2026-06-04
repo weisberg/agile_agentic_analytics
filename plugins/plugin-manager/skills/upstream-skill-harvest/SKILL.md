@@ -56,6 +56,9 @@ A harvest or sync is complete only when:
 - Privacy and fork-specific path checks run before the change is presented.
   Do not commit absolute personal paths, emails, private channels, or private
   fork names into plugin deliverables.
+- Imported skills are adapted to this repository's dual Claude Code and Codex
+  packaging model. If plugin metadata, versions, component flags, or installable
+  behavior change, update `marketplace.yaml` and rerender generated manifests.
 - A fresh upstream-diff check is captured so future maintainers can tell
   whether the plugin copy is current, intentionally forked, or stale.
 - A next-review cadence is recorded. Default to monthly for active upstream
@@ -85,8 +88,10 @@ terminology, stop and ask before changing it.
 2. Check `git status --short --branch`. Identify unrelated user edits and leave
    them alone.
 3. Confirm source roots:
-   - `GBRAIN_ROOT` points at the local GBrain checkout.
-   - `GSTACK_ROOT` points at the local GStack checkout.
+   - If using GBrain, `GBRAIN_ROOT` points at the local GBrain checkout.
+   - If using GStack, `GSTACK_ROOT` points at the local GStack checkout.
+   - If the user provided a direct source path, use it and record a stable alias
+     or sanitized repo-relative description.
    Record aliases in files, not resolved absolute paths.
 4. Resolve the source file and target path. Source may be outside this repo;
    target must be under `plugins/`.
@@ -138,8 +143,14 @@ Required adaptation checks:
 - **Sibling files:** import only files that are needed by the target skill.
   Keep `routing-eval.jsonl`, references, scripts, and assets beside the skill
   when they are part of the behavior.
+- **Routing fixtures:** if imported trigger language changes or a new skill is
+  added, add realistic `routing-eval.jsonl` examples for the intended route and
+  any common ambiguous routes.
 - **Plugin fit:** if the workflow is for maintaining plugin sources rather than
   for end users of one plugin, keep it in `plugins/plugin-manager/skills/`.
+- **Generated files:** if the harvest changes plugin metadata, versions, install
+  surfaces, or manifest fields, edit `marketplace.yaml` and run `npm run render`
+  rather than editing generated JSON directly.
 
 ## Phase 4: Record The Ledger
 
@@ -186,6 +197,8 @@ may remain when it is clearly labeled.
 Also run repo-native validation that matches the change:
 
 - Skill-only change: `python3 -m pytest tests/test_plugins/test_upstream_skill_harvest.py`
+- Routing fixture change: `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin> --json`
+- Marketplace or manifest change: `npm run render:check` and `npm run validate`
 - Plugin package change: `claude plugin validate plugins/<plugin>` when
   available
 - KB file-vault artifact change: `vaultli --json validate --root <kb-root>`
@@ -220,6 +233,7 @@ Privacy/path check: pass|fail
 Ledger: plugins/<plugin>/references/upstream-sources.md
 Validation:
 - <command>: pass|fail
+Generated files: changed|unchanged|not-applicable
 Next review: <cadence/date>
 Files changed:
 - <path>
@@ -238,3 +252,4 @@ Files changed:
 - Importing multiple large skills at once without separate ledger entries.
 - Updating a skill without recording the upstream source SHA and adaptation
   notes.
+- Editing generated Claude or Codex manifests by hand during a harvest.

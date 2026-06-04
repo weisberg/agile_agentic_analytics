@@ -1,0 +1,4 @@
+{"intent":"create a new plugin entry and make sure the generated Claude and Codex manifests stay in sync","expected_skill":"manage-plugins"}
+{"intent":"move this maintainer workflow into plugin-manager and update the marketplace source of truth","expected_skill":"manage-plugins"}
+{"intent":"which plugin-manager workflow should handle this plugin maintenance request?","expected_skill":"manage-plugins","ambiguous_with":["plugin-health","plugin-release","skill-improve"]}
+{"intent":"add a new skill folder to an existing plugin and update the plugin docs","expected_skill":"manage-plugins","ambiguous_with":["skill-improve"]}

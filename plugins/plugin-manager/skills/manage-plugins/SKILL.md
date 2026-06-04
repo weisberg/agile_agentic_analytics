@@ -48,6 +48,9 @@ Plugin maintenance is complete only when:
   situations.
 - Cross-plugin maintenance workflows live in the `plugin-manager` plugin unless
   they are meant for end users of one specific plugin.
+- Intent is routed to the narrowest workflow that can complete it; broad
+  management does not absorb release, health, harvest, skill-improvement, or
+  full SkillOpt requests after those are identified.
 - Validation is run, or any unavailable validation command is called out.
 - Existing user edits are left untouched unless the task requires integrating
   them.
@@ -97,8 +100,13 @@ Use this skill as the first stop for plugin work, then route:
    - `plugin-update`
    - `skill-add-or-move`
    - `upstream-harvest`
+   - `skill-improve`
+   - `skillopt-training-run`
    - `marketplace-entry`
    - `validation-or-release`
+   - If the request matches a narrower workflow, route there before editing.
+     Continue only for cross-cutting coordination or when the target workflow
+     returns with an explicit handoff.
 
 3. **Apply the repo convention**
    - Distributable plugins live under `plugins/<plugin-name>/`.
@@ -120,6 +128,12 @@ Use this skill as the first stop for plugin work, then route:
    - Update `marketplace.yaml` when marketplace metadata, versions, or plugin
      entries change.
    - Run `npm run render` to refresh generated Claude Code and Codex files.
+   - Do not hand-edit `.claude-plugin/marketplace.json`,
+     `.agents/plugins/marketplace.json`, `.claude-plugin/plugin.json`, or
+     `.codex-plugin/plugin.json` to fix metadata drift; fix the source file or
+     renderer and rerun.
+   - When skill trigger text or routing intent changes, add or update
+     `routing-eval.jsonl` beside that skill.
    - Update `CLAUDE.md` or `PLUGIN_ARCHITECTURE.md` only for repo-wide
      conventions, not every small plugin change.
 
@@ -138,7 +152,7 @@ Use this skill as the first stop for plugin work, then route:
 
 ```text
 PLUGIN MANAGER RESULT
-Mode: new-plugin|plugin-update|skill-add-or-move|upstream-harvest|marketplace-entry|validation-or-release
+Mode: new-plugin|plugin-update|skill-add-or-move|upstream-harvest|skill-improve|skillopt-training-run|marketplace-entry|validation-or-release
 Plugin: <plugin-name>
 Files changed:
 - <path>
@@ -155,6 +169,8 @@ Notes:
   installable.
 - Hand-editing generated marketplace or manifest JSON instead of updating
   `marketplace.yaml` and rerendering.
+- Continuing as the router after the request clearly belongs to a narrower
+  workflow.
 - Duplicating the same maintainer workflow inside every plugin.
 - Dropping YAML frontmatter while moving skills.
 - Editing unrelated plugin files to make the diff look tidy.

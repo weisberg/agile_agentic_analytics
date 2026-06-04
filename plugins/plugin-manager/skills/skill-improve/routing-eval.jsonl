@@ -1,0 +1,4 @@
+{"intent":"improve this SKILL.md in one bounded pass without running a full training loop","expected_skill":"skill-improve"}
+{"intent":"tighten the trigger text and output format for this skill, then validate it","expected_skill":"skill-improve"}
+{"intent":"repair this skill after a failed plugin-health check, but keep the edit small","expected_skill":"skill-improve","ambiguous_with":["plugin-health"]}
+{"intent":"make this skill better using SkillOpt lessons but do not create train selection or test splits","expected_skill":"skill-improve","ambiguous_with":["skillopt-training-run"]}

@@ -1,0 +1,4 @@
+{"intent":"prepare a plugin release with version bump, render, validation, and upgrade notes","expected_skill":"plugin-release"}
+{"intent":"ship this plugin change after confirming generated manifests are current","expected_skill":"plugin-release"}
+{"intent":"bump the plugin version in marketplace.yaml and rerender both harness manifests","expected_skill":"plugin-release"}
+{"intent":"before we push and merge, verify release readiness and approval gates","expected_skill":"plugin-release","ambiguous_with":["manage-plugins"]}

@@ -1,0 +1,4 @@
+{"intent":"harvest this GStack skill into the knowledge-base plugin and record the upstream source","expected_skill":"upstream-skill-harvest"}
+{"intent":"refresh a plugin skill from $GBRAIN_ROOT while preserving frontmatter and ledger notes","expected_skill":"upstream-skill-harvest"}
+{"intent":"diff our plugin copy against the upstream skill and classify whether it needs refresh","expected_skill":"upstream-skill-harvest"}
+{"intent":"import this external SKILL.md but scrub private paths and add routing fixtures","expected_skill":"upstream-skill-harvest","ambiguous_with":["manage-plugins","skill-improve"]}

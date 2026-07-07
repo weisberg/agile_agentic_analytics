@@ -74,7 +74,7 @@ def load_transactions(
     if date_format is not None:
         df["date"] = pd.to_datetime(df["date"], format=date_format)
     else:
-        df["date"] = pd.to_datetime(df["date"], infer_datetime_format=True)
+        df["date"] = pd.to_datetime(df["date"])
 
     # Ensure amount is numeric
     df["amount"] = pd.to_numeric(df["amount"], errors="coerce")

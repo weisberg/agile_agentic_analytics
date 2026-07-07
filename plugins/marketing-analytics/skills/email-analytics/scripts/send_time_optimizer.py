@@ -640,13 +640,26 @@ def generate_send_time_report(
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    sends_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("workspace/raw/email_sends.csv")
-    out_path = Path("workspace/analysis/send_time_heatmap.json")
+    parser = argparse.ArgumentParser(description="Generate send-time performance heatmaps and recommendations.")
+    parser.add_argument(
+        "sends_path",
+        nargs="?",
+        default=Path("workspace/raw/email_sends.csv"),
+        type=Path,
+        help="Path to email_sends.csv.",
+    )
+    parser.add_argument(
+        "--output",
+        default=Path("workspace/analysis/send_time_heatmap.json"),
+        type=Path,
+        help="Path for the generated send-time JSON report.",
+    )
+    args = parser.parse_args()
 
     report = generate_send_time_report(
-        sends_csv_path=sends_path,
-        output_path=out_path,
+        sends_csv_path=args.sends_path,
+        output_path=args.output,
     )
     print(f"Send-time report generated: {len(report.recommendations)} recommendations")

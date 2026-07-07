@@ -13,6 +13,7 @@ description: >
   customer-facing output in an FS workspace.
 tools: Read, Grep, Glob
 model: sonnet
+effort: medium
 ---
 
 # Compliance Screener — Advisory First-Pass Reviewer

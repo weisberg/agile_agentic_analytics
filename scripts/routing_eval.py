@@ -382,13 +382,13 @@ def evaluate(
                 sk, err = resolver.resolve(expected_ref, record_plugin)
                 if err:
                     errors.append(err)
-                else:
+                elif sk is not None:
                     accepted.append(sk.qualified)
             for alt in rec.get("ambiguous_with", []) or []:
                 sk, err = resolver.resolve(alt, record_plugin)
                 if err:
                     errors.append(err)
-                else:
+                elif sk is not None:
                     accepted.append(sk.qualified)
 
             forbidden_q: str | None = None
@@ -397,7 +397,7 @@ def evaluate(
                 sk, err = resolver.resolve(forbidden_ref, record_plugin)
                 if err:
                     errors.append(err)
-                else:
+                elif sk is not None:
                     forbidden_q = sk.qualified
 
             ranking = scorer.rank(intent)

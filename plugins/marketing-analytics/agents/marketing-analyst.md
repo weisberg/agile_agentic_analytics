@@ -13,6 +13,7 @@ description: >
   skills — it invokes them in order and interprets their outputs.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
+effort: high
 ---
 
 # Marketing Analyst — Workflow Orchestrator

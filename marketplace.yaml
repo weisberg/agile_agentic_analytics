@@ -68,7 +68,7 @@ plugins:
       mcp: false
       apps: false
       hooks: false
-      agents: false
+      agents: true
     codex:
       interface:
         shortDescription: Maintain and validate Codex and Claude plugin packages.
@@ -189,7 +189,7 @@ plugins:
       mcp: false
       apps: false
       hooks: false
-      agents: false
+      agents: true
     codex:
       interface:
         shortDescription: Run marketing analytics workflows across channels and lifecycle stages.

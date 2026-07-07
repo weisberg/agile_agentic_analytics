@@ -6,7 +6,14 @@ description: |
   creating a plugin, adding or moving plugin skills, checking plugin manifests,
   updating marketplace entries, validating packaging, preparing a plugin release,
   or deciding whether work belongs in a plugin, a plugin-manager workflow, or a
-  shared template.
+  shared template. Trigger here for "create a new plugin entry", "generated
+  Claude and Codex manifests stay in sync", "move this maintainer workflow into
+  plugin-manager", "marketplace source of truth", "plugin maintenance request",
+  or "add a new skill folder to an existing plugin and update the plugin docs".
+  Use plugin-health for audit-only conformance checks, plugin-release for final
+  version bump / publish handoff, skill-improve for a bounded edit to one
+  existing skill, and upstream-skill-harvest only for importing or refreshing a
+  skill from an external upstream checkout.
 triggers:
   - "manage plugins"
   - "create plugin"

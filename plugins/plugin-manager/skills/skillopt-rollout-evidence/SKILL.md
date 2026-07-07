@@ -54,6 +54,10 @@ agent to reread huge transcripts, private content, or full terminal logs.
    - Keep task records stable with `id`, `prompt`, `expected`, `score_type`,
      `verifier`, and notes.
    - Separate train, selection, and test evidence.
+   - For the standing release-cycle flywheel, run
+     `scripts/collect_flywheel_evidence.py --skip-pytest` after CI has produced
+     `coverage.xml`, or omit `--skip-pytest` to collect strict audit, routing
+     eval, and pytest coverage in one local pass.
 
 4. **Run trajectories**
    - Execute the skill or simulate the skill workflow consistently for each task.
@@ -86,6 +90,8 @@ Score: <score>/<max> (<percent or rubric total>)
 Artifacts:
 - .plugin-manager/skillopt/<run-id>/rollouts/<step>/trajectories.jsonl
 - .plugin-manager/skillopt/<run-id>/rollouts/<step>/rollout-summary.md
+- .plugin-manager/skillopt/<run-id>/standing-evidence/standing-evidence.json
+- .plugin-manager/skillopt/<run-id>/standing-evidence/standing-evidence.md
 Failures:
 - <failure mode and task ids>
 ```

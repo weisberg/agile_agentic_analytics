@@ -4,8 +4,14 @@ version: 0.1.0
 description: |
   Release and upgrade workflow for marketplace plugins. Use when validating,
   versioning, documenting, publishing, creating a PR for, or preparing upgrade
-  notes for plugin changes. Borrows GStack ship/document-release discipline and
-  GBrain upgrade hygiene.
+  notes for plugin changes. Trigger here for "prepare a plugin release with
+  version bump, render, validation, and upgrade notes", "ship this plugin change
+  after confirming generated manifests are current", "bump the plugin version in
+  marketplace.yaml and rerender both harness manifests", or "before we push and
+  merge, verify release readiness and approval gates". Use manage-plugins for
+  ordinary plugin maintenance or skill-folder creation before a release exists,
+  and plugin-quality-gate only for second-opinion review, not release execution.
+  Borrows GStack ship/document-release discipline and GBrain upgrade hygiene.
 triggers:
   - "release plugin"
   - "ship plugin"

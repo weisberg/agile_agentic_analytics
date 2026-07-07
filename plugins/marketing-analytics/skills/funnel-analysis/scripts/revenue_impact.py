@@ -448,21 +448,45 @@ def save_revenue_impact(
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
     from build_funnel import FunnelResult, UserFunnelResult
     from funnel_stats import (
-        FunnelStats,
         BottleneckScore,
+        FunnelStats,
         compute_funnel_stats,
     )
 
-    funnel_results_path = sys.argv[1] if len(sys.argv) > 1 else "workspace/analysis/funnel_results.json"
-    bottleneck_path = sys.argv[2] if len(sys.argv) > 2 else "workspace/analysis/bottleneck_ranking.json"
-    revenue_data_path = sys.argv[3] if len(sys.argv) > 3 else "workspace/raw/revenue.csv"
-    output_path = sys.argv[4] if len(sys.argv) > 4 else "workspace/analysis/revenue_impact.json"
+    parser = argparse.ArgumentParser(
+        description="Estimate revenue impact scenarios for funnel bottleneck improvements."
+    )
+    parser.add_argument(
+        "funnel_results_path",
+        nargs="?",
+        default="workspace/analysis/funnel_results.json",
+        help="Path to funnel_results.json from build_funnel.py.",
+    )
+    parser.add_argument(
+        "bottleneck_path",
+        nargs="?",
+        default="workspace/analysis/bottleneck_ranking.json",
+        help="Path to bottleneck_ranking.json from funnel_stats.py.",
+    )
+    parser.add_argument(
+        "revenue_data_path",
+        nargs="?",
+        default="workspace/raw/revenue.csv",
+        help="Path to revenue CSV data.",
+    )
+    parser.add_argument(
+        "output_path",
+        nargs="?",
+        default="workspace/analysis/revenue_impact.json",
+        help="Path for the generated revenue impact JSON.",
+    )
+    args = parser.parse_args()
 
     # Load funnel results
-    with open(funnel_results_path, "r") as f:
+    with open(args.funnel_results_path, "r") as f:
         raw = json.load(f)
 
     user_results = [
@@ -488,7 +512,7 @@ if __name__ == "__main__":
     )
 
     # Load bottleneck ranking
-    with open(bottleneck_path, "r") as f:
+    with open(args.bottleneck_path, "r") as f:
         bottleneck_raw = json.load(f)
 
     bottlenecks = [
@@ -505,7 +529,7 @@ if __name__ == "__main__":
     ]
 
     # Load revenue data
-    revenue_data = load_revenue_data(revenue_data_path)
+    revenue_data = load_revenue_data(args.revenue_data_path)
 
     # Compute funnel stats (needed for estimate_revenue_impact)
     funnel_stats = compute_funnel_stats(funnel_result)
@@ -518,7 +542,7 @@ if __name__ == "__main__":
         funnel_result=funnel_result,
     )
 
-    save_revenue_impact(report, output_path)
+    save_revenue_impact(report, args.output_path)
 
     print(f"Revenue impact report for '{report.funnel_name}'")
     print(f"Total current revenue: {report.currency} {report.total_current_revenue:,.2f}")

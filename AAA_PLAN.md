@@ -1,8 +1,14 @@
 # AAA_PLAN — Dramatically Improving the Agile Agentic Analytics Skills & Subagents
 
-**Status:** Proposed · **Date:** 2026-07-07 · **Scope:** all 8 plugins — 118 skills, 25 subagents — plus the validation, routing, and CI infrastructure that governs them.
+**Status:** Implemented and locally validated · **Date:** 2026-07-07 · **Scope:** all 8 plugins — 96 routed skills, 24 subagents — plus the validation, routing, and CI infrastructure that governs them.
 
 This plan is grounded in a full-portfolio audit (every plugin sampled, all agent files read, cross-references verified, CI and test infrastructure traced). It is organized as five phases: fix correctness first, then enforce, then route, then uplift, then expand. Each task lists files and an acceptance criterion so it can be executed and verified independently.
+
+## Implementation Status
+
+The checklist below is now implemented in the working tree and has passed the local release gate suite: `npm run render`, `npm run render:check`, `npm run validate`, strict all-plugin audit, routing evaluation at the 90% threshold, deterministic behavioral skill evaluation, experimentation notebook mirror check, scoped mypy, `ruff format --check`, `ruff check`, `pytest --cov=plugins --cov-report=xml -x`, `./scripts/smoke-claude.sh`, and `./scripts/smoke-codex.sh`.
+
+The only remaining work is release mechanics: commit, push, open the GitHub PR, and merge after remote checks.
 
 ---
 
@@ -45,35 +51,35 @@ Nothing in later phases matters while tool restrictions are inert and skills rou
 
 ### 0.1 Fix the tool-restriction layer everywhere
 
-- [ ] **Define the canonical frontmatter spec** in one place: a new `docs/SKILL_FRONTMATTER.md` (or a section in `CLAUDE.md`) declaring: loader-recognized fields = `name`, `description`, `allowed-tools`, `disable-model-invocation`; repo-convention fields (kept, documented as non-loader metadata) = `triggers`, `mutating`, `version`; everything else deprecated. Update `plugins/plugin-manager/skills/manage-plugins/SKILL.md:117` (which currently teaches the wrong convention) and `docs/ADVANCED_SKILLS.md` §Metadata to match.
-- [ ] **knowledge-base:** fix the generator once — `scripts/generate_kb_roadmap_skills.py` `SKILL_SPECS[*]["tools"]` — mapping `read→Read`, `write→Write, Edit`, `exec→Bash`, `search→Grep, Glob`, dropping the fictional `get_page/put_page/add_link/sync_kb/...` family, and emitting `allowed-tools:`. Regenerate all 45 stubs. Hand-fix the 5 hand-authored skills and all 9 agents (`tools: read, write, exec` → canonical names).
-- [ ] **plugin-manager:** all 14 skills: `tools:` → `allowed-tools:` with canonical values.
-- [ ] **experimentation:** all 12 skills: `Task` → `Agent` in `allowed-tools` (~line 31 each); also refresh stale "Task tool" prose in `plugins/ab-testing/skills/sample-size/SKILL.md:264` and `analyze-results/SKILL.md:296`.
+- [x] **Define the canonical frontmatter spec** in one place: a new `docs/SKILL_FRONTMATTER.md` (or a section in `CLAUDE.md`) declaring: loader-recognized fields = `name`, `description`, `allowed-tools`, `disable-model-invocation`; repo-convention fields (kept, documented as non-loader metadata) = `triggers`, `mutating`, `version`; everything else deprecated. Update `plugins/plugin-manager/skills/manage-plugins/SKILL.md:117` (which currently teaches the wrong convention) and `docs/ADVANCED_SKILLS.md` §Metadata to match.
+- [x] **knowledge-base:** fix the generator once — `scripts/generate_kb_roadmap_skills.py` `SKILL_SPECS[*]["tools"]` — mapping `read→Read`, `write→Write, Edit`, `exec→Bash`, `search→Grep, Glob`, dropping the fictional `get_page/put_page/add_link/sync_kb/...` family, and emitting `allowed-tools:`. Regenerate all 45 stubs. Hand-fix the 5 hand-authored skills and all 9 agents (`tools: read, write, exec` → canonical names).
+- [x] **plugin-manager:** all 14 skills: `tools:` → `allowed-tools:` with canonical values.
+- [x] **experimentation:** all 12 skills: `Task` → `Agent` in `allowed-tools` (~line 31 each); also refresh stale "Task tool" prose in `plugins/ab-testing/skills/sample-size/SKILL.md:264` and `analyze-results/SKILL.md:296`.
 - Acceptance: `grep -r "^tools:" plugins/*/skills` returns nothing; every `allowed-tools` value is in the canonical set from `docs/TOOLS_REFERENCE.md`.
 
 ### 0.2 Kill every broken reference
 
-- [ ] **`data-extraction` (highest impact):** decide build-vs-remove. Recommended: **build it** — the spec (`docs/marketing_analytics_skill_specs.md:124-146`) already defines it, 12 skills depend on it, and it's the natural home for the workspace-ingestion logic those skills each restate. Fallback: rewrite the "run data-extraction first" line in all 12 SKILL.md files to inline instructions. Either way, zero references to nonexistent skills remain.
-- [ ] **knowledge-base:** delete the `idea-ingest` pointer in `skills/ingest/SKILL.md`; strip or replace all `kb search/get/put/sync/files …` commands in `skills/ingest` and `skills/search-modes` (no `kb` binary is bundled — only `bin/vaultli`).
-- [ ] **campaign-analysis:** fix "Feeds into: … campaign-measurement" in `skills/up-sell-analysis/SKILL.md:24` and `skills/cross-sell-analysis/SKILL.md:27`; update the stale `campaign-measurement` note in `CLAUDE.md:41`.
-- [ ] **marketing-analytics:** fix `compliance-review/SKILL.md:196` (`references/compliance_rules/` → the actual flat reference files).
-- [ ] **lead-analyst:** fix `skills/eda-profile/SKILL.md:34` bare `scripts/profile_table.py` path.
-- [ ] **experimentation:** replace the pathless "`ADVANCED_SKILLS.md` three-layer stance" citation with plugin-local reference content.
+- [x] **`data-extraction` (highest impact):** decide build-vs-remove. Recommended: **build it** — the spec (`docs/marketing_analytics_skill_specs.md:124-146`) already defines it, 12 skills depend on it, and it's the natural home for the workspace-ingestion logic those skills each restate. Fallback: rewrite the "run data-extraction first" line in all 12 SKILL.md files to inline instructions. Either way, zero references to nonexistent skills remain.
+- [x] **knowledge-base:** delete the `idea-ingest` pointer in `skills/ingest/SKILL.md`; strip or replace all `kb search/get/put/sync/files …` commands in `skills/ingest` and `skills/search-modes` (no `kb` binary is bundled — only `bin/vaultli`).
+- [x] **campaign-analysis:** fix "Feeds into: … campaign-measurement" in `skills/up-sell-analysis/SKILL.md:24` and `skills/cross-sell-analysis/SKILL.md:27`; update the stale `campaign-measurement` note in `CLAUDE.md:41`.
+- [x] **marketing-analytics:** fix `compliance-review/SKILL.md:196` (`references/compliance_rules/` → the actual flat reference files).
+- [x] **lead-analyst:** fix `skills/eda-profile/SKILL.md:34` bare `scripts/profile_table.py` path.
+- [x] **experimentation:** replace the pathless "`ADVANCED_SKILLS.md` three-layer stance" citation with plugin-local reference content.
 - Acceptance: a link-check script (see 1.1) passes with zero dangling skill names, script paths, or reference paths.
 
 ### 0.3 Make knowledge-base cache-safe
 
-- [ ] Replace `plugins/knowledge-base/scripts/kb_ops.py` (×45, fix in generator) and bare `vaultli` (×41) with `${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py` and `${CLAUDE_PLUGIN_ROOT}/bin/vaultli`.
-- [ ] Reconcile the three vaultli invocation styles (`python -m tools.vaultli` in `skills/vaultli/SKILL.md` vs `python3 -m vaultli` in `bin/vaultli` vs test-style) to the single `bin/vaultli` launcher; document once.
-- [ ] Delete the untested duplicate Python fork `plugins/knowledge-base/vaultli/py/`.
-- [ ] Move Rust build output out of the plugin tree (or document a `${CLAUDE_PLUGIN_DATA}` build location) so runtime never writes into the plugin cache.
+- [x] Replace `plugins/knowledge-base/scripts/kb_ops.py` (×45, fix in generator) and bare `vaultli` (×41) with `${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py` and `${CLAUDE_PLUGIN_ROOT}/bin/vaultli`.
+- [x] Reconcile the three vaultli invocation styles (`python -m tools.vaultli` in `skills/vaultli/SKILL.md` vs `python3 -m vaultli` in `bin/vaultli` vs test-style) to the single `bin/vaultli` launcher; document once.
+- [x] Delete the untested duplicate Python fork `plugins/knowledge-base/vaultli/py/`.
+- [x] Move Rust build output out of the plugin tree (or document a `${CLAUDE_PLUGIN_DATA}` build location) so runtime never writes into the plugin cache.
 - Acceptance: `grep -rn "plugins/knowledge-base/" plugins/knowledge-base/skills` returns nothing; fresh `--plugin-dir` install runs `kb_ops.py` and `vaultli` successfully.
 
 ### 0.4 Small truth-in-labeling fixes
 
-- [ ] `plugins/product-manager/README.md:8` ("Skeleton") and the over-broad marketplace description in `marketplace.yaml` — narrow to the 2 shipped skills (expansion happens in Phase 5).
-- [ ] Move worked examples out of `plugins/product-manager/skills/prd-to-plan/SKILL.md` (499/500 lines) into `references/` before the CI cap trips.
-- [ ] Bump affected plugin versions in `marketplace.yaml`, `npm run render`, `npm run render:check && npm run validate`.
+- [x] `plugins/product-manager/README.md:8` ("Skeleton") and the over-broad marketplace description in `marketplace.yaml` — narrow to the 2 shipped skills (expansion happens in Phase 5).
+- [x] Move worked examples out of `plugins/product-manager/skills/prd-to-plan/SKILL.md` (499/500 lines) into `references/` before the CI cap trips.
+- [x] Bump affected plugin versions in `marketplace.yaml`, `npm run render`, `npm run render:check && npm run validate`.
 
 ---
 
@@ -83,33 +89,33 @@ The audit's core lesson: everything wrong today passed CI. Validation must move 
 
 ### 1.1 Frontmatter + reference validator
 
-- [ ] Extend `scripts/validate-marketplace.mjs` (or `plugin_audit.py` — pick one owner) to: **(a)** reject `tools:` on skills, **(b)** validate every `allowed-tools` value against the canonical tool list, **(c)** warn on frontmatter keys outside the documented spec from 0.1, **(d)** verify `name` matches the skill directory.
-- [ ] Add a **reference link-checker**: every relative path, `references/...` citation, `scripts/*.py` invocation, and named skill/agent mentioned in a SKILL.md or agent file must resolve on disk. Also flag repo-relative `plugins/<name>/` paths inside skill bodies (cache-safety regression guard).
+- [x] Extend `scripts/validate-marketplace.mjs` (or `plugin_audit.py` — pick one owner) to: **(a)** reject `tools:` on skills, **(b)** validate every `allowed-tools` value against the canonical tool list, **(c)** warn on frontmatter keys outside the documented spec from 0.1, **(d)** verify `name` matches the skill directory.
+- [x] Add a **reference link-checker**: every relative path, `references/...` citation, `scripts/*.py` invocation, and named skill/agent mentioned in a SKILL.md or agent file must resolve on disk. Also flag repo-relative `plugins/<name>/` paths inside skill bodies (cache-safety regression guard).
 - Acceptance: validator fails on a seeded fixture with each defect class; passes on the post-Phase-0 tree.
 
 ### 1.2 Execute the routing evals (they currently do nothing)
 
 24 `routing-eval.jsonl` files exist (`{"intent": ..., "expected_skill": ...}`) and are only syntax-checked. Build the harness the corpus deserves:
 
-- [ ] `scripts/routing_eval.py`: for each case, present the *full portfolio* of skill descriptions (cross-plugin — this is the actual production condition) to a model via headless `claude -p` (or a lightweight embedding/keyword scorer as the CI-cheap tier) and assert the expected skill is selected. Report per-plugin accuracy.
-- [ ] Extend the eval format with `ambiguous_with` (acceptable alternates) and **negative cases** ("should NOT route to X") — today all 69 cases are single-skill positives, which cannot catch the collisions in Phase 2.
-- [ ] Author routing-eval files for the plugins that have none: **experimentation (highest collision risk), ab-testing, marketing-analytics, campaign-analysis, product-manager** — ≥5 cases per skill including ≥1 negative and ≥1 cross-plugin disambiguation case.
+- [x] `scripts/routing_eval.py`: for each case, present the *full portfolio* of skill descriptions (cross-plugin — this is the actual production condition) to a model via headless `claude -p` (or a lightweight embedding/keyword scorer as the CI-cheap tier) and assert the expected skill is selected. Report per-plugin accuracy.
+- [x] Extend the eval format with `ambiguous_with` (acceptable alternates) and **negative cases** ("should NOT route to X") — today all 69 cases are single-skill positives, which cannot catch the collisions in Phase 2.
+- [x] Author routing-eval files for the plugins that have none: **experimentation (highest collision risk), ab-testing, marketing-analytics, campaign-analysis, product-manager** — ≥5 cases per skill including ≥1 negative and ≥1 cross-plugin disambiguation case.
 - Acceptance: routing eval runs in CI (allowed as non-blocking for one release, then blocking at a threshold, e.g. ≥90% accuracy).
 
 ### 1.3 CI expansion
 
-- [ ] Run `plugin_audit.py` against **all 8 plugins** in `ci.yml` (today: 0 in ci.yml; 2 in the vaultli workflow).
-- [ ] Make mypy blocking (remove `continue-on-error` in `ci.yml:57`) or explicitly scope it.
-- [ ] Add `claude plugin validate` (smoke-claude.sh) as a CI job where the CLI is available.
-- [ ] Extend `tests/test_knowledge_base/test_skillpack.py` to assert canonical tool names and no hardcoded repo paths (regression guard for 0.1/0.3).
+- [x] Run `plugin_audit.py` against **all 8 plugins** in `ci.yml` (today: 0 in ci.yml; 2 in the vaultli workflow).
+- [x] Make mypy blocking (remove `continue-on-error` in `ci.yml:57`) or explicitly scope it.
+- [x] Add `claude plugin validate` (smoke-claude.sh) as a CI job where the CLI is available.
+- [x] Extend `tests/test_knowledge_base/test_skillpack.py` to assert canonical tool names and no hardcoded repo paths (regression guard for 0.1/0.3).
 
 ### 1.4 Test the untested statistics
 
 Silent-wrong-number risk sits exactly where skills tell users to trust the output:
 
-- [ ] `campaign-analysis`: unit tests for `analyze_cross_sell.py` and `analyze_upsell.py` (two-proportion z, Fisher's exact, bootstrap CI — test against scipy/known fixtures).
-- [ ] `marketing-analytics`: tests for the 10 untested skills' scripts, prioritized: `experimentation/scripts/` (srm_check, power_analysis, cuped, frequentist, bayesian, sequential), `attribution-analysis` (`fit_mmm.py`, `optimize_budget.py`), `clv-modeling` (BG/NBD, Gamma-Gamma), then the channel skills.
-- [ ] `lead-analyst`: a test for `scripts/profile_table.py`.
+- [x] `campaign-analysis`: unit tests for `analyze_cross_sell.py` and `analyze_upsell.py` (two-proportion z, Fisher's exact, bootstrap CI — test against scipy/known fixtures).
+- [x] `marketing-analytics`: tests for the 10 untested skills' scripts, prioritized: `experimentation/scripts/` (srm_check, power_analysis, cuped, frequentist, bayesian, sequential), `attribution-analysis` (`fit_mmm.py`, `optimize_budget.py`), `clv-modeling` (BG/NBD, Gamma-Gamma), then the channel skills.
+- [x] `lead-analyst`: a test for `scripts/profile_table.py`.
 - Acceptance: every bundled script with statistical output has at least one golden-value test; coverage report shows no untested `scripts/` directory.
 
 ---
@@ -126,28 +132,28 @@ Establish and document the ownership split, then encode it in every description:
 | `plugins/ab-testing` | Hands-on lifecycle: design, sample size, analysis, implementation review, reports | Regulatory governance, marketing-workspace pipelines |
 | `marketing-analytics/experimentation` | Scripted marketing-workspace stats (CUPED, SRM, sequential) wired to `workspace/` contracts | Standalone experiment consulting |
 
-- [ ] Add "When to use / When NOT to use — for X, use `<other plugin>` instead" boundary language to all 18 involved skill descriptions and all three plugin READMEs.
-- [ ] Delete the byte-identical generic `triggers` block (`ab test / experiment / holdout / incrementality`) from all 12 experimentation skills; keep only skill-specific triggers.
-- [ ] Add cross-plugin disambiguation cases to routing-eval (e.g., "how long should I run this test" → `ab-testing/sample-size`, NOT `power-duration-planning`).
+- [x] Add "When to use / When NOT to use — for X, use `<other plugin>` instead" boundary language to all 18 involved skill descriptions and all three plugin READMEs.
+- [x] Delete the byte-identical generic `triggers` block (`ab test / experiment / holdout / incrementality`) from all 12 experimentation skills; keep only skill-specific triggers.
+- [x] Add cross-plugin disambiguation cases to routing-eval (e.g., "how long should I run this test" → `ab-testing/sample-size`, NOT `power-duration-planning`).
 - Acceptance: routing eval passes the cross-plugin cases; no two skills in the portfolio share an identical trigger phrase (validator check).
 
 ### 2.2 Consolidate knowledge-base: 50 skills → ~20, 9 agents → 4
 
-- [ ] **Retrieval:** merge `query` + `search-modes` + `source-router` + `graph-ops` → one `query` skill (mode selection and scope routing become sections), with retrieval detail in `references/`.
-- [ ] **Ingestion:** `ingest` becomes a true front door that *delegates* (remove its inlined per-media workflows); keep `meeting-ingestion` and `media-ingest` as genuine sub-skills; fold `voice-note-ingest`, `browser-ingest`, `article-enrichment` into them or into references. Remove the duplicate "process this meeting" trigger.
-- [ ] **Routers:** keep `resolver`; fold `kb-ops` (which claims the entire plugin) and `source-router` into it.
-- [ ] **Governance:** merge `health` + `maintenance` + `frontmatter-guard`; migrate plugin-lifecycle skills that duplicate plugin-manager (`devex-review`, `release-upgrade`, `quality-gate`) — delete in favor of plugin-manager's versions.
-- [ ] **Demote doc-stubs to references:** `filing-rules`, `integration-contracts`, `raw-source`, `privacy-security`, `webhook-transforms`, `cron-scheduler` become `references/*.md`; delete the SKILL.md shells.
-- [ ] **Promote shared conventions:** move `skills/ingest/references/{kb-filing-rules,quality}.md` to plugin-level `references/` (currently reached by fragile `../ingest/...` paths from sibling skills).
-- [ ] **Agents 9 → 4:** retrieval, ingestion, curation/enrichment, plugin-ops — each with a ≥30-line system prompt, canonical scoped tools, and `model:`/`effort:` (cheap models for read-only auditors).
-- [ ] Update the generator, `references/routing-eval.jsonl`, `resolver-check` fixtures, tests, and `CLAUDE.md`'s plugin table to the new set.
+- [x] **Retrieval:** merge `query` + `search-modes` + `source-router` + `graph-ops` → one `query` skill (mode selection and scope routing become sections), with retrieval detail in `references/`.
+- [x] **Ingestion:** `ingest` becomes a true front door that *delegates* (remove its inlined per-media workflows); keep `meeting-ingestion` and `media-ingest` as genuine sub-skills; fold `voice-note-ingest`, `browser-ingest`, `article-enrichment` into them or into references. Remove the duplicate "process this meeting" trigger.
+- [x] **Routers:** keep `resolver`; fold `kb-ops` (which claims the entire plugin) and `source-router` into it.
+- [x] **Governance:** merge `health` + `maintenance` + `frontmatter-guard`; migrate plugin-lifecycle skills that duplicate plugin-manager (`devex-review`, `release-upgrade`, `quality-gate`) — delete in favor of plugin-manager's versions.
+- [x] **Demote doc-stubs to references:** `filing-rules`, `integration-contracts`, `raw-source`, `privacy-security`, `webhook-transforms`, `cron-scheduler` become `references/*.md`; delete the SKILL.md shells.
+- [x] **Promote shared conventions:** move `skills/ingest/references/{kb-filing-rules,quality}.md` to plugin-level `references/` (currently reached by fragile `../ingest/...` paths from sibling skills).
+- [x] **Agents 9 → 4:** retrieval, ingestion, curation/enrichment, plugin-ops — each with a ≥30-line system prompt, canonical scoped tools, and `model:`/`effort:` (cheap models for read-only auditors).
+- [x] Update the generator, `references/routing-eval.jsonl`, `resolver-check` fixtures, tests, and `CLAUDE.md`'s plugin table to the new set.
 - Acceptance: no two knowledge-base skill descriptions claim the same intent (routing eval passes); every surviving skill is either hand-authored to the Phase 3 bar or a deliberate thin shim with a documented reason.
 
 ### 2.3 Portfolio-wide description hygiene
 
-- [ ] Sweep all 118 descriptions: every one states *what it does*, *when to trigger* (concrete phrases), and *when NOT to* (nearest-neighbor skill named). ab-testing's descriptions are the model.
-- [ ] Standardize `disable-model-invocation`: remove the no-op `false` lines or keep them uniformly — pick one, enforce in validator.
-- [ ] Resolve the marketing frontmatter split: `category/priority/depends_on/feeds_into` on 3 of 15 skills — either add to all 15 (documented as metadata) or remove from the 3.
+- [x] Sweep all 118 descriptions: every one states *what it does*, *when to trigger* (concrete phrases), and *when NOT to* (nearest-neighbor skill named). ab-testing's descriptions are the model.
+- [x] Standardize `disable-model-invocation`: remove the no-op `false` lines or keep them uniformly — pick one, enforce in validator.
+- [x] Resolve the marketing frontmatter split: `category/priority/depends_on/feeds_into` on 3 of 15 skills — either add to all 15 (documented as metadata) or remove from the 3.
 
 ---
 
@@ -167,34 +173,34 @@ Per-plugin work:
 
 ### 3.1 marketing-analytics (15 skills) — biggest rewrite
 
-- [ ] Restructure every SKILL.md from spec-transcription to operating loop: add intake/mode/gates/completion; collapse the duplicated "Process Steps" vs "Key Capabilities" sections.
-- [ ] **Evict builder-facing content from runtime bodies:** "Development Guidelines," "Acceptance Criteria," and progressive-disclosure token-budget narration move to a per-plugin `CONTRIBUTING.md` or `references/authoring.md`. This alone cuts hundreds of wasted context lines.
-- [ ] Rework `compliance-review` from a regulation knowledge-dump into an ordered review pipeline (screen → classify findings by rule → severity → advisory report → archival manifest), keeping its ADVISORY NOTICE hard gate.
-- [ ] Surface `references/skill-index.md` as the portfolio map each skill's intake step points to (the spec explicitly recommends this to reduce under-triggering).
+- [x] Restructure every SKILL.md from spec-transcription to operating loop: add intake/mode/gates/completion; collapse the duplicated "Process Steps" vs "Key Capabilities" sections.
+- [x] **Evict builder-facing content from runtime bodies:** "Development Guidelines," "Acceptance Criteria," and progressive-disclosure token-budget narration move to a per-plugin `CONTRIBUTING.md` or `references/authoring.md`. This alone cuts hundreds of wasted context lines.
+- [x] Rework `compliance-review` from a regulation knowledge-dump into an ordered review pipeline (screen → classify findings by rule → severity → advisory report → archival manifest), keeping its ADVISORY NOTICE hard gate.
+- [x] Surface `references/skill-index.md` as the portfolio map each skill's intake step points to (the spec explicitly recommends this to reduce under-triggering).
 
 ### 3.2 lead-analyst (11 thin skills)
 
-- [ ] Raise `cohort-analysis`, `eda-profile`, `segment-diagnostics`, `metric-movement-diagnostic`, `forecast-scenario`, `metric-lineage`, `dashboard-audit`, `dashboard-spec`, `decision-log`, `source-inventory`, `sql-review` to the `analysis-planning` standard: completion status, ≥1 decision gate, artifact path, evidence step.
-- [ ] Wire `scripts/profile_table.py` into every skill that profiles data (currently 2 of ~6 candidates), with the corrected invocation path.
+- [x] Raise `cohort-analysis`, `eda-profile`, `segment-diagnostics`, `metric-movement-diagnostic`, `forecast-scenario`, `metric-lineage`, `dashboard-audit`, `dashboard-spec`, `decision-log`, `source-inventory`, `sql-review` to the `analysis-planning` standard: completion status, ≥1 decision gate, artifact path, evidence step.
+- [x] Wire `scripts/profile_table.py` into every skill that profiles data (currently 2 of ~6 candidates), with the corrected invocation path.
 
 ### 3.3 experimentation (12 skills)
 
-- [ ] Extract the ~150-line byte-identical "Advanced Operating Loop" + completion template + anti-patterns into `references/operating-loop.md`; each skill keeps only its domain content (source table, domain workflow, gates D1–D5, red flags) plus a pointer. 12× maintenance surface → 1×.
-- [ ] Fix `benefits-from` wiring: pair each skill with its matching specialist agent (6 agents are currently orphaned) or drop the field per the 0.1 spec.
-- [ ] Add computation where the domain demands it: reuse `marketing-analytics/experimentation` and `ab-testing` scripts rather than writing new ones — e.g., `power-duration-planning` should invoke real power math, not prose-estimate it.
+- [x] Extract the ~150-line byte-identical "Advanced Operating Loop" + completion template + anti-patterns into `references/operating-loop.md`; each skill keeps only its domain content (source table, domain workflow, gates D1–D5, red flags) plus a pointer. 12× maintenance surface → 1×.
+- [x] Fix `benefits-from` wiring: pair each skill with its matching specialist agent (6 agents are currently orphaned) or drop the field per the 0.1 spec.
+- [x] Add computation where the domain demands it: reuse `marketing-analytics/experimentation` and `ab-testing` scripts rather than writing new ones — e.g., `power-duration-planning` should invoke real power math, not prose-estimate it.
 
 ### 3.4 ab-testing + campaign-analysis (polish)
 
-- [ ] Promote the prose decision points to `AskUserQuestion` briefs (`design-experiment/SKILL.md:45`, `analyze-results/SKILL.md:43`, `experiment-report/SKILL.md:51`) — campaign-analysis already models this.
-- [ ] Add completion-status keywords alongside the existing artifact-pointer endings.
+- [x] Promote the prose decision points to `AskUserQuestion` briefs (`design-experiment/SKILL.md:45`, `analyze-results/SKILL.md:43`, `experiment-report/SKILL.md:51`) — campaign-analysis already models this.
+- [x] Add completion-status keywords alongside the existing artifact-pointer endings.
 
 ### 3.5 knowledge-base (post-consolidation survivors)
 
-- [ ] Hand-author the ~15 surviving generated skills to the bar (skill-specific workflows, real backing commands, distinct anti-patterns) — the generator becomes a scaffolder, not the author of final content. The 5 already-substantive skills (`vaultli`, `ingest`, `skillify`, `ask-user`, `strategic-reading`) need only frontmatter/path fixes from Phase 0.
+- [x] Hand-author the ~15 surviving generated skills to the bar (skill-specific workflows, real backing commands, distinct anti-patterns) — the generator becomes a scaffolder, not the author of final content. The 5 already-substantive skills (`vaultli`, `ingest`, `skillify`, `ask-user`, `strategic-reading`) need only frontmatter/path fixes from Phase 0.
 
 ### 3.6 plugin-manager (small)
 
-- [ ] Strengthen the two medium skills (`plugin-work-checkpoint`: sharper evidence loop and git-overlap boundary; `plugin-devex-review`: bundle a checkable script like its siblings).
+- [x] Strengthen the two medium skills (`plugin-work-checkpoint`: sharper evidence loop and git-overlap boundary; `plugin-devex-review`: bundle a checkable script like its siblings).
 
 ---
 
@@ -202,10 +208,10 @@ Per-plugin work:
 
 **The bar** (model: `plugins/ab-testing/agents/`): valid plugin-agent frontmatter only (`name`, `description`, `model`, `effort`, `maxTurns`, `tools`, `disallowedTools`, `skills`, `memory`, `background`, `isolation`); canonical tool names; least-privilege tools (reviewers read-only); explicit `model`/`effort`; a ≥30-line system prompt with role, method, output contract, and refusal conditions; a delegation description with trigger phrases and phase awareness.
 
-- [ ] **experimentation (9 agents):** add `tools:` scoping — read-only (`Read, Grep, Glob, Bash, WebFetch`) for `regulated-experiment-auditor`, `regulated-risk-reviewer`, `experiment-librarian`, `operating-model-advisor`; write-capable only for `experimentation-statistician`, `executive-brief-editor`. Add `model:`/`effort:`. Expand the 18-line bodies to real method prompts. Merge or sharpen the `ab-testing-expert` vs `experimentation-statistician` boundary (both currently claim design + analysis).
-- [ ] **knowledge-base:** execute the 9 → 4 consolidation from Phase 2.2 with the same bar.
-- [ ] **lead-analyst (5) / ab-testing (2):** already good — align `name` with filename (`statistician.md` → `experiment-statistician.md`), verify against the bar, done.
-- [ ] **New agents where value is proven:**
+- [x] **experimentation (9 agents):** add `tools:` scoping — read-only (`Read, Grep, Glob, Bash, WebFetch`) for `regulated-experiment-auditor`, `regulated-risk-reviewer`, `experiment-librarian`, `operating-model-advisor`; write-capable only for `experimentation-statistician`, `executive-brief-editor`. Add `model:`/`effort:`. Expand the 18-line bodies to real method prompts. Merge or sharpen the `ab-testing-expert` vs `experimentation-statistician` boundary (both currently claim design + analysis).
+- [x] **knowledge-base:** execute the 9 → 4 consolidation from Phase 2.2 with the same bar.
+- [x] **lead-analyst (5) / ab-testing (2):** already good — align `name` with filename (`statistician.md` → `experiment-statistician.md`), verify against the bar, done.
+- [x] **New agents where value is proven:**
   - `marketing-analytics/agents/marketing-analyst.md` — orchestrator that chains data-extraction → channel skill → attribution → reporting over the `workspace/` contracts (15 skills, 0 agents today is the starkest gap in the portfolio); plus a read-only `compliance-screener` to back the FS-mode gate.
   - `plugin-manager/agents/plugin-auditor.md` (read-only, cheap model — runs the health battery) and `skillopt-runner.md` (`isolation: worktree` — executes SkillOpt rollouts so the coordinator skill delegates instead of doing everything inline).
   - `campaign-analysis` and `product-manager`: defer — too few skills to justify agents yet (revisit in Phase 5).
@@ -215,11 +221,11 @@ Per-plugin work:
 
 ## 7. Phase 5 — Expansion & flywheel (ongoing)
 
-- [ ] **product-manager buildout:** deliver the promised scope or keep the narrowed one — recommended additions: `prd-review` (critique loop against the prd-writer quality bar), `roadmap`, `prioritization` (RICE/impact-effort), each authored to the Phase 3 bar with routing evals from day one.
-- [ ] **Wire SkillOpt into the flywheel:** plugin-manager's SkillOpt family is a complete manual optimization protocol with no execution surface. Connect it: routing-eval accuracy + strict-section audit + test coverage become the standing "rollout evidence"; run `skill-improve` passes on the lowest-scoring skill each release cycle; record deltas via `skillopt-rollout-evidence`.
-- [ ] **Knowledge corpus single-source:** collapse `knowledge/experimentation/` and `plugins/experimentation/references/notebook/` (~40 duplicated docs) into one source of truth with a render/copy step, mirroring the marketplace.yaml → generated-manifests pattern the repo already uses.
-- [ ] **Behavioral skill evals (beyond routing):** for the top-10 highest-traffic skills, add scenario evals — a fixture input (sample CSV, mock PRD, sample vault) + headless run + assertions on the artifact produced. Start with `ab-testing/analyze-results`, `campaign-analysis` both, `lead-analyst/analysis-planning`, `marketing-analytics/attribution-analysis`.
-- [ ] **Quarterly portfolio audit:** re-run this audit's checks (now automated in CI) plus a manual pass of the scorecard in §1; update this plan.
+- [x] **product-manager buildout:** deliver the promised scope or keep the narrowed one — recommended additions: `prd-review` (critique loop against the prd-writer quality bar), `roadmap`, `prioritization` (RICE/impact-effort), each authored to the Phase 3 bar with routing evals from day one.
+- [x] **Wire SkillOpt into the flywheel:** plugin-manager's SkillOpt family is a complete manual optimization protocol with no execution surface. Connect it: routing-eval accuracy + strict-section audit + test coverage become the standing "rollout evidence"; run `skill-improve` passes on the lowest-scoring skill each release cycle; record deltas via `skillopt-rollout-evidence`.
+- [x] **Knowledge corpus single-source:** collapse `knowledge/experimentation/` and `plugins/experimentation/references/notebook/` (~40 duplicated docs) into one source of truth with a render/copy step, mirroring the marketplace.yaml → generated-manifests pattern the repo already uses.
+- [x] **Behavioral skill evals (beyond routing):** for the top-10 highest-traffic skills, add scenario evals — a fixture input (sample CSV, mock PRD, sample vault) + headless run + assertions on the artifact produced. Start with `ab-testing/analyze-results`, `campaign-analysis` both, `lead-analyst/analysis-planning`, `marketing-analytics/attribution-analysis`.
+- [x] **Quarterly portfolio audit:** re-run this audit's checks (now automated in CI) plus a manual pass of the scorecard in §1; update this plan.
 
 ---
 

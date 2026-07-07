@@ -763,15 +763,34 @@ def save_funnel_stats(
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
     from build_funnel import FunnelResult, UserFunnelResult
 
-    funnel_results_path = sys.argv[1] if len(sys.argv) > 1 else "workspace/analysis/funnel_results.json"
-    bottleneck_output_path = sys.argv[2] if len(sys.argv) > 2 else "workspace/analysis/bottleneck_ranking.json"
-    stats_output_path = sys.argv[3] if len(sys.argv) > 3 else "workspace/analysis/funnel_stats.json"
+    parser = argparse.ArgumentParser(
+        description="Compute funnel conversion confidence intervals and bottleneck rankings."
+    )
+    parser.add_argument(
+        "funnel_results_path",
+        nargs="?",
+        default="workspace/analysis/funnel_results.json",
+        help="Path to funnel_results.json from build_funnel.py.",
+    )
+    parser.add_argument(
+        "bottleneck_output_path",
+        nargs="?",
+        default="workspace/analysis/bottleneck_ranking.json",
+        help="Path for the generated bottleneck ranking JSON.",
+    )
+    parser.add_argument(
+        "stats_output_path",
+        nargs="?",
+        default="workspace/analysis/funnel_stats.json",
+        help="Path for the generated funnel stats JSON.",
+    )
+    args = parser.parse_args()
 
     # Load FunnelResult from JSON
-    with open(funnel_results_path, "r") as f:
+    with open(args.funnel_results_path, "r") as f:
         raw = json.load(f)
 
     user_results = [
@@ -799,8 +818,8 @@ if __name__ == "__main__":
     funnel_stats = compute_funnel_stats(funnel_result)
     bottlenecks = rank_bottlenecks(funnel_stats)
 
-    save_funnel_stats(funnel_stats, stats_output_path)
-    save_bottleneck_ranking(bottlenecks, bottleneck_output_path)
+    save_funnel_stats(funnel_stats, args.stats_output_path)
+    save_bottleneck_ranking(bottlenecks, args.bottleneck_output_path)
 
     print(f"Funnel stats computed for '{funnel_stats.funnel_name}'")
     print(

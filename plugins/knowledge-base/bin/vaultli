@@ -2,8 +2,10 @@
 set -euo pipefail
 
 plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-release_bin="$plugin_root/vaultli/rs/target/release/vaultli"
-debug_bin="$plugin_root/vaultli/rs/target/debug/vaultli"
+cache_home="${XDG_CACHE_HOME:-${HOME:-/tmp}/.cache}"
+data_root="${CLAUDE_PLUGIN_DATA:-$cache_home/agile-agentic-analytics/knowledge-base}"
+release_bin="$data_root/vaultli-target/release/vaultli"
+debug_bin="$data_root/vaultli-target/debug/vaultli"
 
 supports_full_cli() {
   "$1" --help 2>/dev/null | grep -q "federated-search"
@@ -17,12 +19,33 @@ if [[ -x "$debug_bin" ]] && supports_full_cli "$debug_bin"; then
   exec "$debug_bin" "$@"
 fi
 
-if command -v python3 >/dev/null 2>&1; then
+exec_python_vaultli() {
+  local python_bin="$1"
+  shift
   if [[ -n "${PYTHONPATH:-}" ]]; then
-    exec env PYTHONPATH="$plugin_root:$PYTHONPATH" python3 -m vaultli "$@"
+    exec env PYTHONPATH="$plugin_root:$PYTHONPATH" "$python_bin" -m vaultli "$@"
   fi
-  exec env PYTHONPATH="$plugin_root" python3 -m vaultli "$@"
+  exec env PYTHONPATH="$plugin_root" "$python_bin" -m vaultli "$@"
+}
+
+try_python_vaultli() {
+  local python_bin="$1"
+  shift
+  if [[ -n "$python_bin" ]] && command -v "$python_bin" >/dev/null 2>&1 && "$python_bin" -c "import yaml" >/dev/null 2>&1; then
+    exec_python_vaultli "$python_bin" "$@"
+  fi
+}
+
+try_python_vaultli "${PYTHON:-}" "$@"
+try_python_vaultli python3 "$@"
+try_python_vaultli python "$@"
+
+if command -v uv >/dev/null 2>&1; then
+  if [[ -n "${PYTHONPATH:-}" ]]; then
+    exec env PYTHONPATH="$plugin_root:$PYTHONPATH" uv run --no-project --with PyYAML python -m vaultli "$@"
+  fi
+  exec env PYTHONPATH="$plugin_root" uv run --no-project --with PyYAML python -m vaultli "$@"
 fi
 
-echo "vaultli: no bundled binary found and python3 is unavailable" >&2
+echo "vaultli: no bundled binary found and no Python with PyYAML is available" >&2
 exit 127

@@ -605,22 +605,41 @@ def save_funnel(funnel: FunnelResult, filepath: str | Path) -> None:
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    events_path = sys.argv[1] if len(sys.argv) > 1 else "workspace/raw/events.csv"
-    definition_path = sys.argv[2] if len(sys.argv) > 2 else "workspace/config/funnel_definition.json"
-    output_path = sys.argv[3] if len(sys.argv) > 3 else "workspace/analysis/funnel_results.json"
+    parser = argparse.ArgumentParser(
+        description="Build a configured or inferred conversion funnel from event-level data."
+    )
+    parser.add_argument(
+        "events_path",
+        nargs="?",
+        default="workspace/raw/events.csv",
+        help="Path to the event-level CSV file.",
+    )
+    parser.add_argument(
+        "definition_path",
+        nargs="?",
+        default="workspace/config/funnel_definition.json",
+        help="Optional funnel definition JSON/YAML path; inferred when missing.",
+    )
+    parser.add_argument(
+        "output_path",
+        nargs="?",
+        default="workspace/analysis/funnel_results.json",
+        help="Path for the generated funnel results JSON.",
+    )
+    args = parser.parse_args()
 
-    events_df = load_events(events_path)
+    events_df = load_events(args.events_path)
 
-    definition_file = Path(definition_path)
+    definition_file = Path(args.definition_path)
     if definition_file.exists():
         funnel_def = load_funnel_definition(definition_file)
     else:
         funnel_def = infer_funnel_definition(events_df)
 
     result = build_funnel(events_df, funnel_def)
-    save_funnel(result, output_path)
+    save_funnel(result, args.output_path)
 
     print(
         f"Funnel '{result.funnel_name}' built: {result.total_entered} entered, "

@@ -641,14 +641,27 @@ def generate_list_health_report(
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    sends_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("workspace/raw/email_sends.csv")
-    out_path = Path("workspace/analysis/list_health.json")
+    parser = argparse.ArgumentParser(description="Generate email list hygiene, inactivity, and re-engagement metrics.")
+    parser.add_argument(
+        "sends_path",
+        nargs="?",
+        default=Path("workspace/raw/email_sends.csv"),
+        type=Path,
+        help="Path to email_sends.csv.",
+    )
+    parser.add_argument(
+        "--output",
+        default=Path("workspace/analysis/list_health.json"),
+        type=Path,
+        help="Path for the generated list health JSON report.",
+    )
+    args = parser.parse_args()
 
     report = generate_list_health_report(
-        sends_csv_path=sends_path,
-        output_path=out_path,
+        sends_csv_path=args.sends_path,
+        output_path=args.output,
     )
     print(
         f"List health report generated: "

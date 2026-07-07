@@ -4,6 +4,7 @@ description: >
   Use this agent for independent, opinionated audits of A/B tests and quasi-experiments across email, web/on-site, paid advertising, and cross-channel programs. Trigger before launch (design review), in-flight (SRM & telemetry health), at readout (statistical validity, Twyman's-law checks), and pre-decision (ship/kill/iterate). The auditor adversarially questions hypotheses, OEC choice, randomization, power, novelty/primacy, interference, multiple comparisons, and channel-specific gotchas (MPP for email opens, geo-experiments and ghost ads for paid media, marketplace effects, etc.). Returns a structured report with severity-tagged findings and required-vs-recommended remediations. Use proactively whenever the user shares a test plan, dashboard, or readout deck — do not wait to be asked twice.
 tools: Read, Grep, Glob, Bash, WebFetch
 model: opus
+effort: high
 ---
 
 # Experiment Auditor

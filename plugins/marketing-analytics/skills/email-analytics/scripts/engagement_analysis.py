@@ -691,11 +691,11 @@ def analyze_subject_lines(
     grouped = grouped[grouped["delivered"] >= min_sample_size]
 
     if len(grouped) < 2:
-        results = []
+        single_subject_results: list[dict[str, Any]] = []
         for _, row in grouped.iterrows():
             delivered = int(row["delivered"])
             clicks = int(row["clicks"])
-            results.append(
+            single_subject_results.append(
                 {
                     "subject_line": str(row[subject_column]),
                     "delivered": delivered,
@@ -705,7 +705,7 @@ def analyze_subject_lines(
                     "significant": False,
                 }
             )
-        return results
+        return single_subject_results
 
     # Build contingency table: rows = subject lines, cols = [clicked, not_clicked]
     contingency = np.array(
@@ -731,7 +731,7 @@ def analyze_subject_lines(
         )
 
     # Sort by CTDR descending
-    results.sort(key=lambda x: x["ctdr"], reverse=True)
+    results.sort(key=lambda x: float(x["ctdr"]), reverse=True)
     return results
 
 
@@ -812,13 +812,28 @@ def generate_engagement_report(
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    sends_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("workspace/raw/email_sends.csv")
-    out_path = Path("workspace/analysis/email_engagement.json")
+    parser = argparse.ArgumentParser(
+        description="Generate email engagement metrics and click-to-delivered-rate analysis."
+    )
+    parser.add_argument(
+        "sends_path",
+        nargs="?",
+        default=Path("workspace/raw/email_sends.csv"),
+        type=Path,
+        help="Path to email_sends.csv.",
+    )
+    parser.add_argument(
+        "--output",
+        default=Path("workspace/analysis/email_engagement.json"),
+        type=Path,
+        help="Path for the generated engagement JSON report.",
+    )
+    args = parser.parse_args()
 
     report = generate_engagement_report(
-        sends_csv_path=sends_path,
-        output_path=out_path,
+        sends_csv_path=args.sends_path,
+        output_path=args.output,
     )
     print(f"Engagement report generated: overall_ctdr={report.overall_ctdr}")

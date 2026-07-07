@@ -485,7 +485,7 @@ vaultli ships with two implementations that share the same user-facing contract:
 | Area | Rust implementation | Python implementation |
 |---|---|---|
 | Role | Primary implementation for agents and normal CLI use | Reference implementation and parity oracle |
-| Invocation | Build from `rs/` with Cargo, then run `target/release/vaultli` | Run with `PYTHONPATH=<parent-of-vaultli> python -m vaultli` |
+| Invocation | Build from `rs/` with `CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target"`, then run `bin/vaultli` | Run with `PYTHONPATH=<parent-of-vaultli> python -m vaultli` |
 | Strength | Fast startup, typed modules, standalone compiled binary | Easy to inspect, debug, and compare behavior |
 | Command surface | Same subcommands and flags as Python | Same subcommands and flags as Rust |
 | Verification | Unit, integration, and parity tests | Pytest coverage for core and CLI workflows |

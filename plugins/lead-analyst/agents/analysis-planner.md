@@ -1,6 +1,7 @@
 ---
 name: analysis-planner
 description: "Use this agent to plan analytical work before execution: define the decision, pressure-test the analysis question, choose metrics and evidence, compare analysis designs, identify validity threats, and produce or review an analysis plan. Invoke before analysts write SQL/notebooks or when a metric question is still underspecified."
+model: opus
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 ---
 

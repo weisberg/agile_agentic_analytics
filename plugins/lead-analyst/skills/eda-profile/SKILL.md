@@ -13,26 +13,76 @@ You are the exploratory data profiler. Your job is to make the dataset legible
 before analysis: what it contains, what shape it has, what looks risky, and what
 questions it can support.
 
-This skill produces a profile, not a business conclusion. If the user needs a
-trust verdict, route to `data-quality-audit`; if they need a recommendation,
-route to `analysis-brief`.
+This skill produces a profile, not a business conclusion, and is read-only over
+the data. It does not issue a trust verdict — if the user needs "can we rely on
+this for a decision", route to `data-quality-audit`. If they need a recommendation
+from the data, route to `analysis-brief`. If the data is event-level and the goal
+is retention/lifecycle, hand off to `cohort-analysis`.
+
+Read `references/data-quality-checklist.md` for the risk lens applied here.
 
 ## Workflow
 
-1. **State intended context.** Note what the user hopes to learn and whether the
-   profile is exploratory or decision-bound.
-2. **Profile structure.** Capture row count, columns, types, candidate keys,
-   date coverage, and likely grain.
-3. **Check completeness.** Missingness by column, obvious default values, blank
-   categories, and fields needed for joins.
-4. **Inspect distributions.** Numeric ranges, quantiles, categorical cardinality,
-   top values, rare values, and outliers.
-5. **Inspect time and cohorts.** Coverage by date, partial periods, gaps, spikes,
-   and cohort availability.
-6. **Name useful next cuts.** Suggest the first 3-5 analyses that would be worth
-   doing, and the cuts that would be misleading.
-7. **Save profile if useful.** For CSV/TSV, use `scripts/profile_table.py` for a
-   quick dependency-free profile, then add analyst interpretation.
+### Phase 1: State Intended Context
+
+Note what the user hopes to learn and whether the profile is exploratory or
+decision-bound. A profile that will feed an executive metric earns more scrutiny
+than one that will guide the next exploratory cut. Locate the file(s) under
+`workspace/`, `data/`, `analysis/`, or the path the user gives.
+
+### Phase 2: Run the Profiler (Evidence Before Interpretation)
+
+For any CSV/TSV, run the bundled standard-library profiler first, then layer
+analyst interpretation on top of its output:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/profile_table.py" path/to/file.csv
+```
+
+It reports row count, column count, columns, duplicate full rows, per-column
+missing counts, distinct-count (capped at 1001), and example values — a
+dependency-free evidence pack. For non-CSV sources (warehouse tables, parquet,
+notebooks), gather the equivalent facts with the tools available and state which
+you could not compute.
+
+### Phase 3: Profile Structure and Grain
+
+1. From the distinct counts and examples, propose the **likely grain** (one row
+   per what: event, session, user, order, account-day?). Grain is the single most
+   load-bearing fact — every later cut depends on it.
+2. Identify candidate keys (columns whose distinct count ≈ row count) and date
+   columns, and confirm the date coverage window.
+
+### Phase 4: Completeness, Distributions, Time
+
+1. **Completeness.** Missingness by column, obvious sentinel/default values
+   (`0`, `-1`, `1900-01-01`, `unknown`), blank categories, and fields needed for
+   joins. Flag missingness that clusters by time or segment, not just overall.
+2. **Distributions.** Numeric ranges, quantiles, categorical cardinality, top and
+   rare values, and outliers. Check outliers against business reality before
+   calling them errors.
+3. **Time coverage.** Coverage by date, partial or trailing periods, gaps, and
+   spikes. A partial final day masquerades as a decline.
+
+### Phase 5: Decision Gate — Grain and Decision-Readiness
+
+If the likely grain is ambiguous (e.g. duplicate keys suggest either a fanned-out
+join or a legitimately finer grain), STOP and confirm with `AskUserQuestion`
+before you recommend any cut:
+
+- **Grain** — one row per <entity A> / <entity B> / genuinely event-level.
+- **Next move** — proceed to a data-quality verdict, start an analysis, or gather
+  more source context.
+
+Hard STOP rule: if duplicates at the apparent key are >1% and unexplained, do not
+label the dataset "ready for analysis" — surface it as a blocking anomaly and
+route to `data-quality-audit`.
+
+### Phase 6: Name Useful Next Cuts
+
+Suggest the first 3-5 analyses worth doing given what the data supports, and
+explicitly name the cuts that would be **misleading** with this data (post-hoc
+segments, immature periods, missing denominators).
 
 ## Output Format
 
@@ -44,18 +94,41 @@ route to `analysis-brief`.
 **Date coverage:** ...
 **Decision readiness:** Exploration only / Conditional / Ready for next audit
 
-## Structure
+## Structure And Grain
 ## Completeness
 ## Distributions
 ## Time Coverage
 ## Anomalies And Risks
 ## Useful Next Cuts
+## Cuts To Avoid
 ```
+
+Save the profile to `workspace/analysis/lead-analyst/profiles/` if `workspace/`
+exists, otherwise `analysis/lead-analyst/profiles/`, using:
+
+```text
+YYYYMMDD-HHMMSS-eda-<slug>.md
+```
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Likely grain: <one line>
+Next skill: /lead-analyst:data-quality-audit | cohort-analysis | analysis-brief
+Open concerns: <none or list — e.g. unexplained duplicates, partial final period>
+```
+
+Use `DONE_WITH_CONCERNS` when the profile is complete but anomalies limit what
+the data can support; `BLOCKED` when the file cannot be read or parsed;
+`NEEDS_CONTEXT` when grain must be confirmed before recommending cuts.
 
 ## Anti-Patterns
 
 - Turning EDA into a recommendation without decision framing.
-- Reporting distributions without naming likely grain.
+- Reporting distributions without naming the likely grain.
 - Ignoring missingness patterns by time or segment.
 - Treating outliers as errors without checking business reality.
+- Reading a partial trailing period as a real decline.
 - Producing dozens of observations with no next analytical move.

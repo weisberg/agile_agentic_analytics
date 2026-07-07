@@ -77,9 +77,26 @@ For most requests, return:
 ```
 
 When the user asks for a file, or when the analysis is substantial, write the
-brief under `workspace/analysis/lead-analyst/` if that workspace exists. If it
-does not exist, create `analysis/lead-analyst/` in the project root and save a
-dated Markdown file there.
+brief under `workspace/analysis/lead-analyst/briefs/` if that workspace exists,
+otherwise `analysis/lead-analyst/briefs/`, using the filename format:
+
+```text
+YYYYMMDD-HHMMSS-brief-<slug>.md
+```
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Answer: <one line>
+Next skill: /lead-analyst:executive-readout | analysis-review | decision-log
+Open concerns: <none or list — e.g. data-quality caveats, weak evidence>
+```
+
+Use `DONE_WITH_CONCERNS` when the answer stands but data-quality caveats limit
+confidence; `BLOCKED` when a load-bearing metric is undefined or evidence is
+missing; `NEEDS_CONTEXT` when the decision must be clarified before analyzing.
 
 ## Anti-Patterns
 

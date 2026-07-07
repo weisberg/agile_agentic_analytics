@@ -6,256 +6,133 @@ description: >
   checkout flow, signup flow, onboarding funnel, activation funnel, abandonment,
   cart abandonment, form abandonment, user flow, step completion, or funnel
   comparison. Also trigger on 'where are we losing people' or 'why is conversion
-  low.' If segment-level funnel comparison is needed and segments are not
-  defined, suggest running audience-segmentation first. Behavioral event data
-  typically comes from web-analytics. CRO hypotheses feed into experimentation
-  for A/B testing. Results feed into reporting and paid-media (landing page
-  optimization) skills.
+  low.' For site traffic sources and session behavior use web-analytics; for
+  running the A/B test that validates a CRO fix use the experimentation skill;
+  this skill measures step-by-step drop-off and prioritizes bottlenecks. If event
+  data is not yet in the workspace, run data-extraction first.
 
 disable-model-invocation: false
 ---
 
-# Funnel Analysis & Conversion Optimization
+# Funnel Analysis
 
-Multi-step funnel tracking, bottleneck identification, and revenue impact
-estimation.
+Multi-step funnel construction, statistical drop-off analysis, bottleneck ranking,
+revenue-impact estimation, and CRO hypothesis generation.
 
-| Property       | Value                                                          |
-| :------------- | :------------------------------------------------------------- |
-| Skill ID       | funnel-analysis                                                |
-| Priority       | P1 — Tactical (direct conversion impact)                       |
-| Category       | Conversion Analytics                                           |
-| Depends On     | data-extraction, web-analytics                                 |
-| Feeds Into     | experimentation (CRO hypotheses), reporting, paid-media (landing page optimization) |
+## Contract
 
-## Objective
+**Role:** Advisory analyst. Measures conversion and proposes CRO hypotheses; does
+not ship page changes or run the experiments. All statistics run in deterministic
+Python scripts.
 
-Automate multi-step conversion funnel analysis with statistical significance
-testing on drop-off rates, cohort-based funnel comparison, and automated
-bottleneck identification. Estimate revenue impact per funnel improvement to
-enable prioritization. Support both linear (e.g., landing page to signup to
-activation) and branching funnels (e.g., multiple entry points converging to
-purchase).
+**Mode:**
+- `quick` — construct funnel + stage conversion rates with CIs.
+- `standard` (default) — add bottleneck ranking, revenue impact, CRO hypotheses.
+- `deep` — add segment comparison and time-to-convert / survival analysis.
 
-## Process Steps
+**When to use:** step-by-step drop-off, checkout/signup/onboarding funnels,
+bottleneck prioritization, CRO backlog generation.
 
-1. **Validate inputs.** Load `workspace/raw/events.csv` and verify required
-   columns (`user_id`, `event_name`, `timestamp`). If a funnel definition file
-   is provided, parse the step sequence and time-window constraints. Otherwise,
-   infer the funnel from the most common event sequences.
+**When NOT to use:** for traffic sources and session flows use `web-analytics`;
+for running the A/B test that validates a fix use the **experimentation** skill;
+for email-sequence conversion use `email-analytics`. See
+`../../references/skill-index.md` for the portfolio map.
 
-2. **Construct the funnel.** Execute `scripts/build_funnel.py` to assign users
-   to funnel stages based on event sequences. Apply time-window filtering so
-   that users who do not complete the next step within the configured window are
-   counted as dropped. Support both strict (ordered) and relaxed (any-order)
-   step matching.
+**Evidence required (inputs):**
+- `workspace/raw/events.csv` — `user_id`, `event_name`, `timestamp` (+ optional
+  properties). Required. If absent, STOP and run **data-extraction** first.
+- `workspace/config/funnel_definition.json` — step sequence, time windows,
+  matching mode (optional; auto-inferred if absent).
+- `workspace/processed/segments.json` — from audience-segmentation (optional;
+  enables cohort comparison).
+- `workspace/raw/revenue.csv` — revenue per converter (recommended; enables impact
+  estimation).
 
-3. **Compute stage-by-stage metrics.** Execute `scripts/funnel_stats.py` to
-   calculate conversion rates at each stage with Wilson score confidence
-   intervals. Compute overall funnel conversion rate and per-stage drop-off
-   rates.
+**Depends on:** data-extraction, web-analytics (event stream). **Feeds into:**
+experimentation, reporting, paid-media. Builder detail in
+`references/authoring-notes.md`.
 
-4. **Compare cohorts (if segments available).** If
-   `workspace/processed/segments.json` is present, compute funnel metrics per
-   segment and run chi-squared tests to identify statistically significant
-   differences between segments at each stage.
+**Hard STOP (data integrity):** if `events.csv` is missing required columns, or
+the inferred/declared funnel has a step with zero entering users, stop and report
+— a funnel that can't be constructed yields meaningless conversion rates.
 
-5. **Identify bottlenecks.** Rank stages by composite bottleneck score:
-   `drop_off_rate * sqrt(volume) * revenue_proximity`. Output the ranked list
-   to `workspace/analysis/bottleneck_ranking.json`.
+Parse `$ARGUMENTS` for inline paths, funnel definition, or window overrides.
 
-6. **Estimate revenue impact.** Execute `scripts/revenue_impact.py` using
-   historical revenue-per-converter data. For each bottleneck stage, project the
-   revenue gain from a 1, 5, and 10 percentage-point improvement in conversion
-   rate. Use conservative estimates (50th percentile of improvement range).
+## Workflow
 
-7. **Analyze time-to-convert.** Compute median and distribution of time between
-   consecutive funnel stages. Identify stages where longer dwell times correlate
-   with higher abandonment. Flag stages with bimodal time distributions that may
-   indicate distinct user intent patterns.
+1. **Validate inputs.** Load `events.csv`; verify `user_id`, `event_name`,
+   `timestamp`. Apply the Hard STOP gate.
 
-8. **Generate CRO hypotheses.** For each identified bottleneck, produce a
-   structured CRO hypothesis with: observation, hypothesis, suggested test type,
-   expected impact estimate, and priority score. Output to
-   `workspace/analysis/cro_hypotheses.json`.
+2. **Funnel-definition gate (AskUserQuestion).** When no
+   `funnel_definition.json` is supplied and multiple plausible step sequences
+   exist, ask before constructing:
+   - **Question:** "Which funnel should I measure?"
+   - **Options:** (a) *Provide the step sequence* — user names ordered steps and
+     time window; (b) *Infer from top event sequences* — I derive the dominant
+     path and show it for confirmation; (c) *A named standard funnel* (checkout /
+     signup / onboarding). Skip when a definition file is present.
 
-9. **Generate report.** Compile all results into
-   `workspace/reports/funnel_report.html` with an interactive funnel
-   visualization, stage-level drill-downs, cohort comparisons, bottleneck
-   rankings, revenue impact projections, and CRO hypothesis backlog.
+3. **Construct.** Run `scripts/build_funnel.py`: assign users to stages, apply
+   the time-window filter (users who don't reach the next step within the window
+   count as dropped), support strict (ordered) and relaxed (any-order) matching.
 
-## Key Capabilities
+4. **Stage metrics.** Run `scripts/funnel_stats.py`: stage conversion rates with
+   Wilson score CIs, absolute and relative drop-off, overall funnel conversion.
 
-### Funnel Construction
+5. **Segment comparison** (deep mode, if `segments.json` present). Compute per-
+   segment funnel metrics; chi-squared tests at each stage with Bonferroni
+   correction across >2 segments.
 
-- Define funnels from event sequences with configurable time windows between
-  steps.
-- Support both strict (ordered) and relaxed (any order) step sequences.
-- Handle session-based and user-based funnel aggregation.
-- Accept funnel definitions as JSON or YAML step sequences, allowing
-  configuration without code changes.
-- Support both GA4 event export format and generic event CSV for maximum data
-  source flexibility.
+6. **Rank bottlenecks.** Composite score
+   `drop_off_rate * sqrt(volume) * revenue_proximity`. Write
+   `workspace/analysis/bottleneck_ranking.json`.
 
-Refer to `references/funnel_methodology.md` for funnel construction rules,
-time-window handling, and event matching logic.
+7. **Estimate revenue impact.** Run `scripts/revenue_impact.py` with historical
+   revenue-per-converter; project the gain from 1/5/10 pp conversion improvements
+   at the 50th-percentile (conservative) estimate.
 
-### Stage-by-Stage Analysis
+8. **Time-to-convert** (deep mode). Median/percentile time between stages;
+   right-censor users still in funnel; flag stages where dwell correlates with
+   abandonment and bimodal distributions.
 
-- Compute stage-wise conversion rates with Wilson score confidence intervals
-  (more accurate than normal approximation at low rates).
-- Calculate absolute and relative drop-off rates at each stage.
-- Compare funnel performance across segments, cohorts, or time periods with
-  chi-squared tests.
-- Support period-over-period funnel comparison to detect trend changes.
+9. **CRO hypotheses.** For each bottleneck emit {observation, hypothesis, test
+   type, expected impact, priority} to `workspace/analysis/cro_hypotheses.json`.
 
-### Bottleneck Identification
+10. **Report.** Write outputs and the interactive HTML funnel report.
 
-- Rank bottlenecks by composite score:
-  `drop_off_rate * sqrt(volume) * revenue_proximity`.
-- The scoring formula is documented and adjustable via configuration.
-- Surface the top bottlenecks with contextual data: traffic volume, drop-off
-  rate, confidence interval, and estimated revenue at stake.
+## Output Format
 
-Refer to `references/funnel_methodology.md` for the bottleneck scoring formula,
-weighting rationale, and calibration guidance.
+Artifacts:
 
-### Revenue Impact Estimation
+| File | Contents |
+|------|----------|
+| `workspace/analysis/funnel_results.json` | Stage conversion rates, drop-offs, CIs |
+| `workspace/analysis/bottleneck_ranking.json` | Priority-ranked bottlenecks with impact |
+| `workspace/analysis/cro_hypotheses.json` | Test ideas linked to findings |
+| `workspace/analysis/time_to_convert.json` | Per-stage time distributions and censoring |
+| `workspace/reports/funnel_report.html` | Interactive funnel with drill-down |
 
-- Estimate revenue impact per stage improvement using historical
-  revenue-per-converter.
-- Project gains at 1, 5, and 10 percentage-point improvement scenarios.
-- Use conservative estimates: 50th percentile of improvement range, not
-  optimistic projections.
-- Express impact in both absolute revenue and percentage of total funnel
-  revenue.
+**Financial services mode:** account-opening funnels see 50–70% abandonment;
+KYC/AML and suitability steps are mandatory. Never recommend removing or shortening
+a compliance/disclosure/consent step. Regulated-step CRO must target UX clarity,
+progress indicators, and save-and-resume, not step elimination. CRO copy that will
+be published routes through **compliance-review**.
 
-### CRO Hypothesis Generation
+**Completion status:**
+- `DONE` — funnel constructed, metrics + bottlenecks + hypotheses written.
+- `DONE_WITH_CONCERNS` — e.g., no revenue data (impact omitted), thin volume at a
+  stage, inferred funnel unconfirmed.
+- `BLOCKED` — Hard STOP tripped (bad/missing events); state the fix.
+- `NEEDS_CONTEXT` — funnel definition unresolved by the user.
 
-- Generate a structured CRO hypothesis backlog from bottleneck analysis.
-- Each hypothesis includes: observation, root cause hypothesis, suggested test
-  type (A/B, multivariate, redirect), expected impact, and priority score.
-- Map common bottleneck patterns to proven CRO interventions.
+## Anti-Patterns
 
-Refer to `references/cro_patterns.md` for common CRO patterns and hypothesis
-templates organized by funnel stage.
-
-### Time-to-Convert Analysis
-
-- Compute median and percentile distributions of time between funnel stages.
-- Handle censored data: users still in funnel at analysis time are right-censored.
-- Identify stages where delays correlate with abandonment using survival
-  analysis techniques.
-- Detect bimodal time distributions that may signal distinct user cohorts or
-  intent patterns.
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File | Description | Required |
-| :--- | :---------- | :------- |
-| `workspace/raw/events.csv` | Event-level data with `user_id`, `event_name`, `timestamp`, and optional properties | Yes |
-| `workspace/processed/segments.json` | Segment definitions from audience-segmentation for cohort comparison | No |
-| `workspace/raw/revenue.csv` | Revenue per converter for impact estimation | No (recommended) |
-| `workspace/config/funnel_definition.json` | Step sequence, time windows, and matching mode | No (auto-inferred if absent) |
-
-### Outputs
-
-| File | Description |
-| :--- | :---------- |
-| `workspace/analysis/funnel_results.json` | Stage-by-stage conversion rates, drop-offs, confidence intervals |
-| `workspace/analysis/bottleneck_ranking.json` | Priority-ranked bottleneck list with impact estimates |
-| `workspace/analysis/cro_hypotheses.json` | Generated test ideas linked to bottleneck findings |
-| `workspace/analysis/time_to_convert.json` | Per-stage time distributions, medians, and censoring stats |
-| `workspace/reports/funnel_report.html` | Interactive funnel visualization with drill-down |
-
-## Cross-Skill Integration
-
-Funnel analysis sits at the intersection of behavioral analytics and
-experimentation:
-
-- **experimentation:** CRO hypotheses generated by this skill feed directly
-  into the experimentation skill as test candidates for A/B testing.
-- **web-analytics:** Web analytics provides the behavioral event stream from
-  which funnels are constructed. Page-level and session-level data are the
-  primary funnel inputs.
-- **audience-segmentation:** Segment definitions enable cohort-level funnel
-  comparison, revealing which user groups experience the worst drop-off.
-- **paid-media:** Landing page performance is a key funnel entry point.
-  Funnel entry-stage analysis feeds back into paid media landing page
-  optimization.
-- **reporting:** Funnel conversion trends, bottleneck rankings, and CRO
-  progress are included in executive dashboards and periodic reports.
-
-## Financial Services Considerations
-
-When operating in financial services mode:
-
-- Account opening funnels in financial services see 50-70% abandonment;
-  KYC/AML verification steps are mandatory and cannot be optimized away.
-- Funnel optimization must preserve all required regulatory disclosure steps
-  and consent flows. Never recommend removing or shortening compliance steps.
-- Investment product purchase funnels must maintain suitability questionnaire
-  integrity. CRO hypotheses must not suggest reducing the number of suitability
-  questions.
-- Optimization recommendations for regulated steps should focus on UX clarity,
-  progress indicators, and save-and-resume functionality rather than step
-  elimination.
-
-## Development Guidelines
-
-1. Use Wilson score intervals for conversion rate CIs (more accurate than
-   normal approximation at low rates). See `references/funnel_methodology.md`.
-
-2. Funnel definitions must be configurable without code changes. Store as
-   JSON or YAML step sequences in `workspace/config/funnel_definition.json`.
-
-3. Time-to-convert analysis must handle censored data (users still in funnel
-   at analysis time). Use Kaplan-Meier estimation where appropriate.
-
-4. Revenue impact should use conservative estimates: 50th percentile of
-   improvement range, not optimistic projections.
-
-5. Support both GA4 event export format and generic event CSV to maximize
-   data source flexibility.
-
-6. Bottleneck scoring formula must be documented and adjustable. Default to
-   `drop_off_rate * sqrt(volume) * revenue_proximity`.
-
-7. All statistical computations must be deterministic Python scripts using
-   `scipy.stats` and `numpy`. Never let the LLM estimate conversion rates or
-   p-values directly.
-
-8. Chi-squared tests for segment comparison must apply Bonferroni correction
-   when testing across more than two segments simultaneously.
-
-## Scripts
-
-| Script | Purpose |
-| :----- | :------ |
-| `scripts/build_funnel.py` | Funnel construction from event sequences with time window filtering |
-| `scripts/funnel_stats.py` | Conversion rates, CIs, chi-squared comparison, bottleneck scoring |
-| `scripts/revenue_impact.py` | Revenue projection per stage improvement |
-
-## Reference Files
-
-| Reference | Content |
-| :-------- | :------ |
-| `references/funnel_methodology.md` | Funnel construction rules, confidence interval formulas, bottleneck scoring |
-| `references/cro_patterns.md` | Common CRO patterns and hypothesis templates by funnel stage |
-
-## Acceptance Criteria
-
-- Funnel construction correctly handles time-window constraints (users who do
-  not complete within the window are counted as dropped).
-- Wilson score CIs are statistically accurate: coverage verified via simulation
-  at 95% nominal level.
-- Bottleneck ranking agrees with manual expert assessment on 80%+ of top-3
-  bottleneck identifications.
-- Revenue impact estimates are within 25% of actual observed revenue change
-  when a bottleneck is subsequently fixed.
-- Funnel comparison correctly identifies statistically significant differences
-  between segments at p < 0.05.
-- End-to-end pipeline from raw events to funnel report executes in under 60
-  seconds for 1M-row event datasets.
+- Quoting conversion rates from a funnel that couldn't be validly constructed.
+- Normal-approximation CIs at low conversion rates instead of Wilson score.
+- Optimistic revenue projections — always use the conservative 50th-percentile
+  estimate.
+- Ranking bottlenecks by raw drop-off alone, ignoring volume and revenue
+  proximity.
+- Recommending removal of a regulated step to lift conversion.
+- Segment chi-squared tests across many segments without Bonferroni correction.
+- Letting the model estimate conversion rates or p-values instead of the scripts.

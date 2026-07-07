@@ -14,9 +14,11 @@ triggers:
   - "validate all plugins"
   - "check skill conformance"
   - "doctor plugin"
-tools:
-  - read
-  - exec
+allowed-tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
 mutating: false
 writes_pages: false
 
@@ -44,7 +46,7 @@ plain summary for humans, specific remediation hints for every failure.
 1. **Preflight**
    - Run `git status --short --branch`.
    - Identify whether the user asked for one plugin or the whole marketplace.
-   - Read `plugins/plugin-manager/references/gbrain-gstack-learnings.md` if
+   - Read `${CLAUDE_PLUGIN_ROOT}/references/gbrain-gstack-learnings.md` if
      changing the audit shape.
 
 2. **Run the audit**
@@ -53,7 +55,7 @@ plain summary for humans, specific remediation hints for every failure.
    npm run render:check
    npm run validate
 
-   python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py \
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" \
      --plugin <plugin-name> \
      --json
    ```

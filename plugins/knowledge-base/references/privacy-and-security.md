@@ -23,5 +23,4 @@
 4. Keep raw private content out of checkpoints and review artifacts.
 5. Require approval before changing scope from personal/team to public.
 
-Use `privacy-security` for the workflow and `publish` for final sharing gates.
-
+Use `health` for vault/privacy audits and `publish` for final sharing gates.

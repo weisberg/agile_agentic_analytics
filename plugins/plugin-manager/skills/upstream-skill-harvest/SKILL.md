@@ -16,10 +16,13 @@ triggers:
   - "update from gstack"
   - "diff upstream skill"
   - "record skill source"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:
@@ -33,7 +36,7 @@ disable-model-invocation: false
 ## Placement Rule
 
 This is a plugin-manager maintenance skill. Keep it at
-`plugins/plugin-manager/skills/upstream-skill-harvest/SKILL.md`, not in
+`skills/upstream-skill-harvest/SKILL.md`, not in
 `$CODEX_HOME/skills` and not inside the target plugin it is harvesting into.
 
 Use this skill to maintain plugin skills. The imported runtime capability still
@@ -147,7 +150,7 @@ Required adaptation checks:
   added, add realistic `routing-eval.jsonl` examples for the intended route and
   any common ambiguous routes.
 - **Plugin fit:** if the workflow is for maintaining plugin sources rather than
-  for end users of one plugin, keep it in `plugins/plugin-manager/skills/`.
+  for end users of one plugin, keep it in this plugin's `skills/` directory.
 - **Generated files:** if the harvest changes plugin metadata, versions, install
   surfaces, or manifest fields, edit `marketplace.yaml` and run `npm run render`
   rather than editing generated JSON directly.
@@ -179,11 +182,11 @@ user-provided version for this repository.
 Run the bundled checker on the target. For a knowledge-base plugin skill:
 
 ```bash
-python3 plugins/plugin-manager/skills/upstream-skill-harvest/scripts/harvest_check.py \
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/upstream-skill-harvest/scripts/harvest_check.py" \
   --source "$GBRAIN_ROOT/skills/<slug>/SKILL.md" \
-  --target "plugins/knowledge-base/skills/<slug>/SKILL.md" \
-  --ledger "plugins/knowledge-base/references/upstream-sources.md" \
-  --target-name "plugins/knowledge-base/skills/<slug>/SKILL.md" \
+  --target "<target-plugin-root>/skills/<slug>/SKILL.md" \
+  --ledger "<target-plugin-root>/references/upstream-sources.md" \
+  --target-name "<target-plugin-root>/skills/<slug>/SKILL.md" \
   --require-source-frontmatter-keys \
   --kb-terminology \
   --json
@@ -197,7 +200,7 @@ may remain when it is clearly labeled.
 Also run repo-native validation that matches the change:
 
 - Skill-only change: `python3 -m pytest tests/test_plugins/test_upstream_skill_harvest.py`
-- Routing fixture change: `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin> --json`
+- Routing fixture change: `python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" --plugin <plugin> --json`
 - Marketplace or manifest change: `npm run render:check` and `npm run validate`
 - Plugin package change: `claude plugin validate plugins/<plugin>` when
   available

@@ -12,10 +12,13 @@ triggers:
   - "accept or reject skill candidate"
   - "apply skillopt patch"
   - "held-out skill validation"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:

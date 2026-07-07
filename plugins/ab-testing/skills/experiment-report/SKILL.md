@@ -16,6 +16,10 @@ You assume the reader's time is scarce and their patience for hedging is finite.
 
 ---
 
+## Contract
+
+Operate in synthesis/reporting mode. Compose from the design document, analysis artifact, and confirmed audience; do not calculate new results or invent missing numbers. Hard gates are source availability and audience selection: if the analysis or design is missing, block; if the audience is unclear, resolve it once with AskUserQuestion before drafting.
+
 ## When to use this skill
 
 - The user has analyzed results (or has them in hand) and wants a written readout.
@@ -72,16 +76,18 @@ Confirm or gather these before drafting. If any are missing, ask in a single bat
 
 ## Audience selection
 
-Ask the user for the audience. Default is **technical** if they don't answer.
+The audience determines the document's whole shape, so this is a real decision gate — do not guess it. If the user has not named an audience, present it as a structured decision brief using **AskUserQuestion**:
 
-| Audience | What changes |
-|---|---|
-| **Technical** (default) | Full statistical detail; method named; assumptions disclosed; code/artifact references inline; reproducibility appendix; honest about confounds |
-| **Executive** | Lead with business impact and recommendation; one-paragraph methodology; numbers stated in dollars / accounts / users where possible; statistical language translated to plain English; appendix collapsed to a link; no jargon without an immediate gloss |
-| **Mixed** (cross-functional team) | Technical body, executive summary expanded to one full page, "what this means" callouts after each major result |
-| **Regulatory / compliance** | Strictly factual; no marketing language; explicit pre-registration trail; explicit deviations from plan logged; both-arms compliance review status; full methodology, no shortcuts; appendix is the meat, not an afterthought |
+### AskUserQuestion brief — confirm the readout audience
 
-If the user says "make it for the team" or similar, ask one clarifying question. Different audiences want substantively different documents; don't guess.
+- **Question:** "Who is the primary audience for this readout? It changes the structure, depth, and language substantially."
+- **Options** (each option's description states what changes):
+  - **Technical** *(recommended default)* — Full statistical detail; method named; assumptions disclosed; artifact references inline; reproducibility appendix; honest about confounds.
+  - **Executive** — Lead with business impact and recommendation; one-paragraph methodology; numbers in dollars / accounts / users; statistics translated to plain English; appendix collapsed to a link.
+  - **Mixed** *(cross-functional)* — Technical body, executive summary expanded to a full page, "what this means" callouts after each major result.
+  - **Regulatory / compliance** — Strictly factual; no marketing language; explicit pre-registration trail; logged deviations; both-arms compliance status; full methodology; appendix is the substance.
+
+Recommendation and stakes: default to **Technical** only if the user is unreachable — an executive handed a technical report, or a regulator handed a marketing-toned one, is a materially worse outcome than asking once. If the user says "make it for the team" or similar, this brief *is* the clarifying question. State the chosen audience at the top of the report.
 
 ---
 
@@ -104,7 +110,7 @@ If the design directory has a `changelog.md`, summarize any post-launch edits an
 
 ---
 
-## Report Structure
+## Workflow
 
 Generate a Markdown report with the following sections. Adapt depth and ordering to the audience (see *Audience adaptations* below).
 
@@ -281,7 +287,7 @@ For executive audiences: collapse to two lines pointing at the technical report 
 
 ---
 
-## Output contract
+## Output Format
 
 The report is written to the existing experiment directory, alongside design and analysis artifacts:
 
@@ -309,6 +315,7 @@ Recommendation: <SHIP | ITERATE | KILL | EXTEND>
 Pre-registration: <clean | deviation logged>
 Guardrails: <N pass | N watch | N fail>
 Length: ~<word count>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 ```
 
 Plus a short paragraph naming any disclosure the user should expect pushback on (a guardrail watch, a deviation from the registered OEC, a Twyman's-law flag, an exploratory finding the team will want to elevate).
@@ -326,7 +333,7 @@ Plus a short paragraph naming any disclosure the user should expect pushback on 
 
 ---
 
-## Common pitfalls and anti-patterns
+## Anti-Patterns
 
 | Anti-pattern | What you do instead |
 |---|---|
@@ -381,3 +388,16 @@ That last paragraph is the skill's job — name the gap between the user's conte
 - Pre-registration reconciliation is its own section, not a footnote.
 - Disclosures are prominent, not buried. The report's credibility comes from what it admits, not what it claims.
 - Executive ≠ shallow. Translate, don't omit.
+
+---
+
+## Completion status
+
+End every run with one explicit status line, alongside the pointer to the report file:
+
+- **DONE** — report written for the confirmed audience; a single recommendation from {Ship, Iterate, Kill, Extend} is stated and the pre-registration is reconciled.
+- **DONE_WITH_CONCERNS** — delivered, but the report surfaces caveats that qualify the recommendation: guardrail regressions, post-hoc segment claims, or evidence weaker than the ask implied. List them.
+- **BLOCKED** — no analysis artifact or design document to compose from; the skill will not invent numbers. State what is needed.
+- **NEEDS_CONTEXT** — the audience is unconfirmed (see the audience decision gate) or the user's recommendation context is missing. Name exactly what to provide.
+
+The status never replaces the artifact — always give both.

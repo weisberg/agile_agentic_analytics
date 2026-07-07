@@ -4,15 +4,36 @@ Knowledge base workflows for capturing, organizing, retrieving, and maintaining 
 
 ## Skill Portfolio
 
-The plugin ships 50 skills that cover the full KB lifecycle.
+The plugin ships 24 consolidated skills that cover the full KB lifecycle.
 
 | Area | Skills |
 | --- | --- |
-| Core operations | `ask-user`, `kb-ops`, `resolver`, `setup`, `health`, `maintenance`, `dashboard`, `vaultli` |
-| Retrieval and graph | `query`, `search-modes`, `source-router`, `graph-ops`, `briefing`, `reports` |
-| Ingestion | `ingest`, `signal-detector`, `article-enrichment`, `meeting-ingestion`, `media-ingest`, `voice-note-ingest`, `browser-ingest`, `raw-source`, `cold-start`, `migrate`, `archive-crawler` |
-| Knowledge work | `enrich`, `citation-fixer`, `frontmatter-guard`, `filing-rules`, `concept-synthesis`, `book-mirror`, `academic-verify`, `current-research`, `strategic-reading`, `originals`, `task-manager` |
-| Publishing and automation | `publish`, `pdf-export`, `webhook-transforms`, `cron-scheduler`, `background-jobs`, `context-checkpoint`, `privacy-security`, `quality-gate`, `release-upgrade`, `devex-review`, `integration-contracts`, `conflict-resolution`, `sample-vault`, `skillify` |
+| Core operations | `ask-user`, `resolver`, `setup`, `health`, `sample-vault`, `vaultli`, `skillify` |
+| Retrieval and outputs | `query`, `briefing`, `reports` |
+| Ingestion and migration | `ingest`, `meeting-ingestion`, `media-ingest`, `signal-detector`, `migrate` |
+| Curation and synthesis | `enrich`, `citation-fixer`, `concept-synthesis`, `conflict-resolution`, `current-research`, `strategic-reading`, `task-manager` |
+| Publishing and automation | `publish`, `background-jobs` |
+
+## Consolidation Map
+
+Former roadmap skills are intentionally merged into the survivor skills:
+
+| Survivor | Absorbed scope |
+| --- | --- |
+| `resolver` | `kb-ops` routing and operations dispatch |
+| `query` | `search-modes`, `source-router`, `graph-ops` |
+| `health` | `maintenance`, `dashboard`, `frontmatter-guard`, `privacy-security` |
+| `ingest` | ingestion front door and connector/webhook routing |
+| `media-ingest` | `article-enrichment`, `browser-ingest`, `voice-note-ingest`, raw media/source capture |
+| `setup` | `cold-start` |
+| `migrate` | `archive-crawler` |
+| `signal-detector` | `originals` and lightweight signal capture |
+| `concept-synthesis` | `book-mirror` |
+| `current-research` | `academic-verify` |
+| `publish` | `pdf-export` and publication gates |
+| `background-jobs` | `cron-scheduler`, `context-checkpoint` |
+| `skillify` | `quality-gate`, `devex-review`, and skill buildout checks |
+| References | `filing-rules`, `integration-contracts`, `release-upgrade`, `raw-source` |
 
 ## Bundled Tools
 
@@ -27,13 +48,14 @@ The SKILL.md files describe workflows; `scripts/kb_ops.py` is the repeatable
 operating harness behind them. Use it in CI, local debugging, or agent runs:
 
 ```bash
-python3 plugins/knowledge-base/scripts/kb_ops.py resolver-check
-python3 plugins/knowledge-base/scripts/kb_ops.py retrieval-benchmark \
-  --root plugins/knowledge-base/references/samples/mini-vault
-python3 plugins/knowledge-base/scripts/kb_ops.py dashboard \
-  --root plugins/knowledge-base/references/samples/mini-vault
-python3 plugins/knowledge-base/scripts/kb_ops.py maintenance-plan \
-  --root plugins/knowledge-base/references/samples/mini-vault
+CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)/plugins/knowledge-base}"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py" resolver-check
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py" retrieval-benchmark \
+  --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py" dashboard \
+  --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py" maintenance-plan \
+  --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
 ```
 
 The harness intentionally emits JSON so plugin-manager, CI, and future agents
@@ -43,15 +65,10 @@ can route on exact failures instead of parsing prose.
 
 | Agent | Use |
 | --- | --- |
-| `kb-curator` | Maintain page quality, citations, filing, back-links, and schema-aligned page edits. |
-| `kb-researcher` | Compare current facts and primary sources against existing KB context. |
-| `kb-ops-auditor` | Audit plugin health, vault health, generated artifacts, releases, and operational workflows. |
-| `kb-librarian` | Maintain taxonomy, templates, resolver fixtures, naming, and sample vault structure. |
-| `kb-ingestion-operator` | Run ingestion batches with raw-source preservation, privacy gates, and checkpoints. |
-| `kb-citation-auditor` | Audit factual claims, citations, source manifests, quotes, and publication readiness. |
-| `kb-retrieval-specialist` | Tune KB search, retrieval benchmarks, source routing, graph expansion, and freshness reporting. |
-| `kb-enrichment-analyst` | Enrich pages with current state, timelines, contradictions, links, and exact originals. |
-| `vaultli-maintainer` | Maintain vaultli CLI parity, sample vault behavior, validation commands, and CI coverage. |
+| `kb-curation` | Maintain page quality, citations, filing, back-links, conflict resolution, and synthesis workflows. |
+| `kb-ingestion` | Run ingestion and migration batches with raw-source preservation, privacy gates, and checkpoints. |
+| `kb-ops` | Audit plugin/vault health, sample fixtures, generated artifacts, release checks, and operational workflows. |
+| `kb-retrieval` | Tune KB query routing, retrieval benchmarks, graph expansion, freshness reporting, and source-scope boundaries. |
 
 ## References And Fixtures
 
@@ -110,8 +127,9 @@ Reload after edits with `/reload-plugins`. Validate with `claude plugin validate
 Try the bundled CLI after loading the plugin:
 
 ```bash
-vaultli --json root .
-vaultli --json validate --root ./kb
+CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)/plugins/knowledge-base}"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json root .
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
 ```
 
 The Python fallback for `vaultli` requires `PyYAML`; the Rust binary path is
@@ -120,7 +138,8 @@ used automatically when a compatible bundled binary is present.
 Validate the bundled sample vault:
 
 ```bash
-vaultli --json index --root ./plugins/knowledge-base/references/samples/mini-vault
-vaultli --json validate --root ./plugins/knowledge-base/references/samples/mini-vault
-vaultli --json search "renewal risk" --root ./plugins/knowledge-base/references/samples/mini-vault
+CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)/plugins/knowledge-base}"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search "renewal risk" --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
 ```

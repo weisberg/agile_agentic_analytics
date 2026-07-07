@@ -12,10 +12,13 @@ triggers:
   - "build skill evidence"
   - "run skill optimization tasks"
   - "capture rollout evidence"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:

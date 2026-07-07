@@ -15,10 +15,13 @@ triggers:
   - "validate plugin"
   - "publish plugin"
   - "move skill into plugin"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:
@@ -83,7 +86,7 @@ Use this skill as the first stop for plugin work, then route:
   `plugins/<plugin-name>/skills/<skill-name>/SKILL.md` with optional sibling
   `scripts/`, `references/`, or `assets/`.
 - **Move a maintainer skill:** if it manages plugins or the marketplace itself,
-  put it under `plugins/plugin-manager/skills/<skill-name>/`.
+  put it under this plugin's `skills/<skill-name>/` directory.
 - **Validate or publish:** inspect manifests, marketplace entry, skill
   frontmatter, docs, tests, and git status before committing or pushing.
 
@@ -116,7 +119,16 @@ Use this skill as the first stop for plugin work, then route:
    - Plugin skills live under `plugins/<plugin-name>/skills/<skill-name>/SKILL.md`.
    - Shared skill frontmatter must include `name`, `description`, and
      `disable-model-invocation`.
-   - Marketplace-wide maintainer workflows live in `plugins/plugin-manager/`.
+   - To restrict a skill's capabilities, use `allowed-tools` (never `tools`,
+     which is an agent-only field the skill loader ignores) with canonical
+     Claude Code tool names from `docs/TOOLS_REFERENCE.md` (e.g. `Read`,
+     `Write`, `Edit`, `Bash`, `Grep`, `Glob`, `Agent`). Give read-only audit
+     skills `Read`/`Bash`/`Grep`/`Glob` and withhold `Write`/`Edit`.
+   - `triggers`, `mutating`, and `version` are repo-convention metadata only;
+     the Claude Code loader does not read them, so routing rides entirely on the
+     `description`. Keep them for human/tooling use, but never rely on them for
+     invocation or capability behavior.
+   - Marketplace-wide maintainer workflows live in this plugin.
    - Health, release, devex, checkpoint, quality-gate, and upstream sync
      workflows should be shared from `plugin-manager` instead of copied into
      every plugin.
@@ -144,7 +156,7 @@ Use this skill as the first stop for plugin work, then route:
    - Run `python3 -m json.tool` on generated marketplace files or changed JSON
      when debugging schema errors.
    - Run `claude plugin validate plugins/<plugin-name>` when available.
-   - Run `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin-name> --json`.
+   - Run `python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" --plugin <plugin-name> --json`.
    - Run plugin-specific checks such as `harvest_check.py` or `vaultli validate`
      when the plugin provides them.
 

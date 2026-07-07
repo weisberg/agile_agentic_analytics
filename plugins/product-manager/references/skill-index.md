@@ -1,6 +1,6 @@
 # Product Manager Plugin — Skill Index
 
-Skills for product management workflows: discovery, prioritization, roadmapping, and turning requirements into executable agentic plans.
+Skills for authoring product requirements and turning them into executable agentic plans.
 
 ## Skills
 

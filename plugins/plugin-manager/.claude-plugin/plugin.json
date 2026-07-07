@@ -1,7 +1,7 @@
 {
   "name": "plugin-manager",
   "displayName": "Plugin Manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing agent plugins.",
   "author": {
     "name": "Brian Weisberg"

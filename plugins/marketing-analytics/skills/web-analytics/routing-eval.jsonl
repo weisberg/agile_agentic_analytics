@@ -1,0 +1,7 @@
+// marketing-analytics plugin routing fixtures. Cross-plugin cases separate scripted marketing-workspace work from lead-analyst diagnostics and experimentation governance.
+// skill: web-analytics  (>=3 positive, >=1 negative/forbidden, >=1 cross-plugin)
+{"intent": "what's happening on our website — sessions, bounce, and traffic sources in GA4?", "expected_skill": "web-analytics"}
+{"intent": "map the user journey and click paths through the site", "expected_skill": "web-analytics"}
+{"intent": "pull landing-page performance and the UTM breakdown from Google Analytics", "expected_skill": "web-analytics"}
+{"intent": "analyze GA4 site traffic, sessions, and landing pages", "expected_skill": "web-analytics", "forbidden_skill": "marketing-analytics:funnel-analysis"}
+{"intent": "where in the signup funnel are users dropping off?", "expected_skill": "marketing-analytics:funnel-analysis", "forbidden_skill": "web-analytics"}

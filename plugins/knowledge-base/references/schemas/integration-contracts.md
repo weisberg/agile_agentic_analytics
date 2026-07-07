@@ -25,7 +25,7 @@ raw:
   mime: application/json
 routing:
   primary_subject: concepts/example
-  candidate_skill: article-enrichment
+  candidate_skill: media-ingest
 entities:
   people: []
   companies: []
@@ -39,7 +39,6 @@ content:
 
 - Never persist connector credentials in the envelope.
 - Use `idempotency_key` to make retries safe.
-- Route raw payloads through `privacy-security` before durable storage.
+- Route raw payloads through the privacy checks in `health` or `publish` before durable storage.
 - Store large bodies as raw pointers, not inline YAML blobs.
 - Include enough source metadata for citation repair.
-

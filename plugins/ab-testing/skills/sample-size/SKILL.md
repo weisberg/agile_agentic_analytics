@@ -16,6 +16,10 @@ You are the human-facing entry point for power calculations. The `experiment-sta
 
 ---
 
+## Contract
+
+Operate in planning/power mode. Produce a reproducible sample-size artifact with assumptions, sensitivity tables, and business-unit translation. Hard gates are metric type and input clarity: delegate ratio, skewed, clustered, or non-standard sequential designs rather than forcing a weak closed-form; ask once when baseline/MDE/traffic inputs are ambiguous.
+
 ## When to use this skill
 
 - The user is designing a test and asks how many users / days / sessions they need.
@@ -58,7 +62,7 @@ Parse expressions like `"baseline 5% mde 10% relative"` or `"baseline conversion
 
 ---
 
-## The Calculation Pipeline
+## Workflow
 
 ### Step 0 — Identify the metric type
 
@@ -225,7 +229,7 @@ The `analysis.py` is a runnable script that recomputes every number in the repor
 
 ---
 
-## Output contract
+## Output Format
 
 After writing the artifact, return in chat:
 
@@ -253,6 +257,7 @@ Recommended duration: <days>
 
 Warnings: <count>; see artifact
 Artifact: <path>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 ```
 
 Plus a short paragraph naming the one or two assumptions most likely to invalidate this plan (typically: the assumed σ or baseline being too optimistic, the assumed traffic being unstable, the assumed CUPED ρ being unverified).
@@ -261,7 +266,7 @@ Plus a short paragraph naming the one or two assumptions most likely to invalida
 
 ## When to delegate to `experiment-statistician`
 
-This skill handles the common cases inline. Delegate via the Task tool with `intent=power` when:
+This skill handles the common cases inline. Delegate via the Agent tool with `intent=power` when:
 
 - The metric is a **ratio with shared denominator** — needs per-unit data and delta method.
 - The metric is a **heavily skewed continuous** outcome (revenue, time-to-event with long tail) — closed-form overstates power; simulation from the empirical distribution is more honest.
@@ -285,7 +290,7 @@ When you delegate, pass: the metric type, the baseline (and std dev if relevant)
 
 ---
 
-## Common pitfalls and anti-patterns
+## Anti-Patterns
 
 | Pitfall | What the skill does |
 |---|---|
@@ -384,3 +389,16 @@ That highest-risk-assumption paragraph is the most useful single output of the s
 - Warnings explain *why*, not just *that*.
 - Closed-form when transparent; delegate to the statistician when honest.
 - The chat output is a pointer to the artifact, not a replacement for it.
+
+---
+
+## Completion status
+
+End every run with one explicit status line, alongside the pointer to the sample-size artifact:
+
+- **DONE** — sample-size artifact written to `experiments/<slug>/power/` or `analyses/<date>_<slug>-power/`; required inputs were clear, the metric type matched an inline method, and sample, MDE, duration, sensitivities, and business-unit translation are present.
+- **DONE_WITH_CONCERNS** — delivered, but feasibility is qualified: short/long duration risk, optimistic MDE, unverified baseline or CUPED correlation, one-sided test request, or a design adjustment that materially changes the headline n. List each concern.
+- **BLOCKED** — a defensible calculation cannot be produced inline because required numeric inputs are absent or the metric/design requires delegation and no usable data/parameters were provided.
+- **NEEDS_CONTEXT** — baseline, MDE direction/units, available traffic, time window, or metric type is ambiguous after one clarification pass. Name exactly what to provide.
+
+The status never replaces the artifact — always give both.

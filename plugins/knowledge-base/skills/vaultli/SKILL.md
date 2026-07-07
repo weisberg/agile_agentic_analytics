@@ -14,10 +14,11 @@ triggers:
   - "index KB vault"
   - "search vault metadata"
   - "assemble vault context"
-tools:
-  - exec
-  - read
-  - write
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
 mutating: true
 
 disable-model-invocation: false
@@ -36,7 +37,7 @@ Enabled plugin sessions also expose a wrapper at `bin/vaultli`, so normal use
 looks like:
 
 ```bash
-vaultli --json <command> ...
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json <command> ...
 ```
 
 For deeper reference, read only what you need:
@@ -59,8 +60,8 @@ When this skill is used:
   is high quality.
 - Bulk writes are previewed with `--dry-run` and narrowed with `--include` or
   `--exclude` when the tree is large.
-- Every material edit is followed by `vaultli --json index` and
-  `vaultli --json validate`.
+- Every material edit is followed by `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index` and
+  `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate`.
 - Retrieval happens in two stages: search metadata first, then hydrate body or
   source content with `resolve`, `cat`, or `context`.
 - `search --semantic` is token-overlap matching over indexed metadata, not a
@@ -86,8 +87,9 @@ Do not use `vaultli` as the primary tool for:
 - Semantic/vector retrieval expectations. `vaultli` is metadata-first.
 - Editing large binary assets. Store or point to them, then document with a
   sidecar.
-- Replacing citation, privacy, or filing judgment. Pair with `citation-fixer`,
-  `privacy-security`, and `filing-rules` when those concerns matter.
+- Replacing citation, privacy, or filing judgment. Pair with `citation-fixer`
+  and `health`, and read `references/privacy-and-security.md` and
+  `references/kb-filing-rules.md`, when those concerns matter.
 - Automatically fixing validation failures without inspecting what they mean.
 
 ## Core Mental Model
@@ -120,7 +122,7 @@ and put retrievable metadata and prose in markdown.
 Prefer the plugin wrapper:
 
 ```bash
-vaultli --json --help
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json --help
 ```
 
 The wrapper chooses a compatible bundled Rust binary if one has been built,
@@ -153,27 +155,27 @@ depend on the shell's current directory unless root discovery is the task.
 For most maintenance work, run this loop:
 
 ```bash
-vaultli --json root .
-vaultli --json ingest ./kb --root ./kb --dry-run
-vaultli --json index --root ./kb
-vaultli --json validate --root ./kb
-vaultli --json search "retention query" --root ./kb --limit 5
-vaultli --json resolve queries/retention --root ./kb --body --source
-vaultli --json context --root ./kb --id queries/retention --token-budget 2000
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json root .
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --dry-run
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search "retention query" --root ./kb --limit 5
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json resolve queries/retention --root ./kb --body --source
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json context --root ./kb --id queries/retention --token-budget 2000
 ```
 
 If `ingest --dry-run` shows too many changes, narrow it:
 
 ```bash
-vaultli --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql'
-vaultli --json ingest ./kb --root ./kb --dry-run --exclude 'tmp/**'
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql'
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --dry-run --exclude 'tmp/**'
 ```
 
 After reviewing the dry-run, run the write command intentionally:
 
 ```bash
-vaultli --json ingest ./kb --root ./kb --index --include 'queries/*.sql'
-vaultli --json validate --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --index --include 'queries/*.sql'
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
 ```
 
 ### Creating A New Vault
@@ -183,11 +185,11 @@ is missing, add or scaffold a few representative files, refine metadata, then
 index and validate:
 
 ```bash
-vaultli --json init ./kb
-vaultli --json add ./kb/concepts/decision-quality.md --root ./kb
-vaultli --json scaffold ./kb/queries/open_tasks.sql --root ./kb
-vaultli --json index --root ./kb
-vaultli --json validate --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json init ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json add ./kb/concepts/decision-quality.md --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json scaffold ./kb/queries/open_tasks.sql --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
 ```
 
 `.kbroot` may contain conservative YAML defaults:
@@ -242,7 +244,7 @@ tags: [query]
 For a non-markdown asset, keep the source file untouched and create a sidecar:
 
 ```bash
-vaultli --json scaffold ./kb/queries/open_tasks.sql --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json scaffold ./kb/queries/open_tasks.sql --root ./kb
 ```
 
 Expected files:
@@ -276,11 +278,11 @@ metadata.
 Start with a preview, slice large trees, then write in batches:
 
 ```bash
-vaultli --json ingest ./kb --root ./kb --dry-run
-vaultli --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql'
-vaultli --json ingest ./kb --root ./kb --dry-run --exclude 'archive/**'
-vaultli --json ingest ./kb --root ./kb --index --include 'queries/*.sql'
-vaultli --json validate --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --dry-run
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql'
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --dry-run --exclude 'archive/**'
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest ./kb --root ./kb --index --include 'queries/*.sql'
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
 ```
 
 After writing, manually improve generated metadata. The scaffold is allowed to
@@ -291,18 +293,18 @@ be mechanical; the curated KB should not stay mechanical.
 Use `set`, `unset`, and `refresh` for simple frontmatter changes:
 
 ```bash
-vaultli --json set queries/open-tasks status active --root ./kb --index
-vaultli --json set queries/open-tasks scope team --root ./kb --index
-vaultli --json unset queries/open-tasks priority --root ./kb --index
-vaultli --json refresh queries/open-tasks --root ./kb --field tags --index
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json set queries/open-tasks status active --root ./kb --index
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json set queries/open-tasks scope team --root ./kb --index
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json unset queries/open-tasks priority --root ./kb --index
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json refresh queries/open-tasks --root ./kb --field tags --index
 ```
 
 Use manual editing when changing prose, multi-line descriptions, relationship
 lists, or citations. After manual editing:
 
 ```bash
-vaultli --json index --root ./kb
-vaultli --json validate --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
 ```
 
 Avoid ID churn. If an ID changes because a file moved or was renamed, inspect
@@ -313,14 +315,14 @@ Avoid ID churn. If an ID changes because a file moved or was renamed, inspect
 Run validation after every material batch:
 
 ```bash
-vaultli --json validate --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root ./kb
 ```
 
 Common validation failures:
 
 | Code or symptom | Meaning | Usual fix |
 | --- | --- | --- |
-| Missing index | Index has not been built | `vaultli --json index --root <root>` |
+| Missing index | Index has not been built | `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root <root>` |
 | Duplicate IDs | Two pages resolve to the same ID | Rename/move one file or set a distinct ID if supported |
 | Broken source | Sidecar `source` target is missing | Fix path or restore the source asset |
 | Dangling related/depends_on | Relationship points to a missing ID | Correct the ID or remove the stale link |
@@ -335,19 +337,19 @@ and sample 3-5 files before a broad repair.
 Search first:
 
 ```bash
-vaultli --json search "renewal risk" --root ./kb --limit 10
-vaultli --json search --root ./kb --category company --tag renewal-risk
-vaultli --json search "open tasks" --root ./kb --sort priority --order asc
-vaultli --json search "decision quality" --root ./kb --semantic --explain
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search "renewal risk" --root ./kb --limit 10
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search --root ./kb --category company --tag renewal-risk
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search "open tasks" --root ./kb --sort priority --order asc
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search "decision quality" --root ./kb --semantic --explain
 ```
 
 Then hydrate:
 
 ```bash
-vaultli --json show companies/acme-example --root ./kb
-vaultli --json resolve companies/acme-example --root ./kb --body
-vaultli --json resolve queries/open-tasks --root ./kb --body --source
-vaultli cat queries/open-tasks --root ./kb --source
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json show companies/acme-example --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json resolve companies/acme-example --root ./kb --body
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json resolve queries/open-tasks --root ./kb --body --source
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" cat queries/open-tasks --root ./kb --source
 ```
 
 Use `search` to shortlist, `show` for metadata, `resolve` for paths/body/source
@@ -361,9 +363,9 @@ matters. Search results are pointers, not full evidence.
 Use `context` when the next step is synthesis or answering:
 
 ```bash
-vaultli --json context "renewal risk" --root ./kb --limit 5 --token-budget 3000
-vaultli --json context --root ./kb --id companies/acme-example --related --token-budget 4000
-vaultli --json context --root ./kb --id queries/open-tasks --no-dependencies
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json context "renewal risk" --root ./kb --limit 5 --token-budget 3000
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json context --root ./kb --id companies/acme-example --related --token-budget 4000
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json context --root ./kb --id queries/open-tasks --no-dependencies
 ```
 
 `context` is deterministic and useful for reproducible prompts. Still inspect
@@ -375,7 +377,7 @@ missed important records.
 Use federated search when the question crosses source scopes:
 
 ```bash
-vaultli --json federated-search "renewal risk" \
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json federated-search "renewal risk" \
   --vault ./personal-kb \
   --vault ./team-kb \
   --per-vault-limit 5 \
@@ -391,8 +393,8 @@ Use `git-info` when you need to know whether a vault or item is dirty before
 writing, committing, migrating, or publishing:
 
 ```bash
-vaultli --json git-info --root ./kb
-vaultli --json git-info queries/open-tasks --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json git-info --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json git-info queries/open-tasks --root ./kb
 ```
 
 If the target file is dirty and the changes are not yours, read them and work
@@ -403,10 +405,10 @@ with them. Do not overwrite user edits to frontmatter or source assets.
 The Knowledge Base plugin ships a synthetic mini vault:
 
 ```bash
-vaultli --json index --root ./plugins/knowledge-base/references/samples/mini-vault
-vaultli --json validate --root ./plugins/knowledge-base/references/samples/mini-vault
-vaultli --json search --tag renewal-risk --root ./plugins/knowledge-base/references/samples/mini-vault
-vaultli --json context --root ./plugins/knowledge-base/references/samples/mini-vault --id companies/acme-example --related
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search --tag renewal-risk --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json context --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault" --id companies/acme-example --related
 ```
 
 Use this fixture when checking whether the plugin wrapper, Python fallback,
@@ -415,17 +417,19 @@ indexing, validation, sidecars, and retrieval flow are functioning.
 ## Integration With Other KB Skills
 
 - `setup`: create or verify the first vault.
-- `frontmatter-guard`: repair metadata with `validate`, `set`, `unset`,
-  `refresh`, and `index`.
-- `ingest`, `media-ingest`, `article-enrichment`, `meeting-ingestion`: make
-  filed source assets discoverable with sidecars.
-- `query`, `search-modes`, `graph-ops`: use `search`, `resolve`, and `context`
-  as the local retrieval substrate.
-- `raw-source` and `privacy-security`: check source pointers, large assets,
-  `scope`, and sensitivity before broad indexing or publishing.
+- `health`: repair metadata and index/graph state with `validate`, `set`,
+  `unset`, `refresh`, and `index` (health absorbed frontmatter-guard and
+  maintenance).
+- `ingest`, `media-ingest`, `meeting-ingestion`: make filed source assets
+  discoverable with sidecars.
+- `query`: use `search`, `resolve`, and `context` as the local retrieval
+  substrate (query absorbed search-modes, source-router, and graph-ops; see
+  `references/retrieval.md`).
+- `references/raw-source-storage.md` and `references/privacy-and-security.md`:
+  check source pointers, large assets, `scope`, and sensitivity before broad
+  indexing or publishing.
 - `citation-fixer`: hydrate pages with `resolve --body` before repairing gaps.
-- `sample-vault` and `release-upgrade`: keep fixtures, parity, and plugin-health
-  checks current.
+- `sample-vault`: keep fixtures, parity, and plugin-health checks current.
 
 ## Output Format
 
@@ -461,7 +465,7 @@ Gaps: <missing body/source/stale index/privacy constraint>
   `python3` or build the Rust binary.
 - `ModuleNotFoundError: yaml`: install `PyYAML` for the Python fallback.
 - `No .kbroot found`: run from inside a vault or pass the correct root path.
-- `INDEX_MISSING`: run `vaultli --json index --root <root>`.
+- `INDEX_MISSING`: run `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root <root>`.
 - Search misses obvious content: metadata may be too generic, the file may lack
   frontmatter/sidecar, or the index may be stale.
 - Missing source content: check the sidecar `source` field and run `validate`.
@@ -475,12 +479,12 @@ Gaps: <missing body/source/stale index/privacy constraint>
 Before claiming vaultli-related changes are ready:
 
 ```bash
-python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin knowledge-base --json
+python3 "${CLAUDE_PLUGIN_ROOT}/../plugin-manager/skills/plugin-health/scripts/plugin_audit.py" --plugin knowledge-base --json
 uv run --no-project --with pytest --with numpy --with pandas --with pyyaml pytest tests/test_knowledge_base tests/test_plugins
 cargo test --locked
 ```
 
-Run `cargo test --locked` from `plugins/knowledge-base/vaultli/rs`.
+Run `cargo test --locked` from `${CLAUDE_PLUGIN_ROOT}/vaultli/rs`.
 
 The repository also includes `.github/workflows/knowledge-base-vaultli.yml` for
 CI coverage of the Python fallback, sample vault validation, plugin audits, and

@@ -16,6 +16,34 @@ This skill is opinionated. Generic "what is a PRD" advice is everywhere; what's 
 is a skill that consistently produces docs which *survive scrutiny in a real product
 review*. That is the bar.
 
+## Contract
+
+Use this as a write-capable product-document skill. It may draft or revise a
+markdown PRD-class artifact when the user asks for a document; in review mode it
+is advisory and returns findings plus concrete edits. It must not impersonate
+engineering architecture, roadmap prioritization, launch comms, or project
+management.
+
+Hard gate: do not present a PRD as complete when the problem, target user,
+decision to be made, or success metric is missing. Ask once with
+`AskUserQuestion` when available; otherwise ask one consolidated question. If the
+user wants forward progress anyway, continue with visible `[TBD]`,
+`[ASSUMPTION]`, or `[NEEDS RESEARCH]` markers and return
+`DONE_WITH_CONCERNS`.
+
+Intake must classify the request before writing:
+
+- `quick`: one-pager or section draft for discovery or scoping.
+- `standard`: full PRD for a normal feature or product change.
+- `deep`: net-new, multi-quarter, regulated, high-risk, or cross-functional bet.
+- `review`: critique or level up an existing PRD without silently rewriting it.
+
+Evidence requirement: inspect all provided source docs, analytics, research,
+tickets, meeting notes, designs, and prior drafts before making claims. For
+standard/deep PRDs, require at least two independent evidence classes for the
+problem statement or explicitly label the gap. Never invent numbers, citations,
+customer quotes, owners, dates, or legal/compliance positions.
+
 ---
 
 ## 1. Philosophy
@@ -293,22 +321,29 @@ with positioning risk**. It is overkill for internal tooling or incremental feat
 
 ---
 
-## 8. Writing Process
+## Process (§8): Writing Workflow
 
 Follow this order. Do not jump ahead.
 
-1. **Frame** — fill in metadata, write a placeholder TL;DR (you'll rewrite it last).
-2. **Problem first** — write §6.3 Problem with evidence. Stop. Show it. Iterate
+1. **Intake and mode** — parse `$ARGUMENTS`, classify `quick` / `standard` /
+   `deep` / `review`, identify the audience, decision, and artifact path.
+2. **Evidence pass** — read the provided materials and record what supports the
+   problem, user, metrics, constraints, and risks. Mark missing evidence before
+   drafting conclusions.
+3. **Frame** — fill in metadata, write a placeholder TL;DR (you'll rewrite it last).
+4. **Problem first** — write §6.3 Problem with evidence. Stop. Show it. Iterate
    until the user nods. If you skip this step, the rest will be wrong.
-3. **Goals & Non-Goals** — define success and explicitly cut scope. Often the
+5. **Goals & Non-Goals** — define success and explicitly cut scope. Often the
    hardest 30 minutes of the whole doc; do not rush.
-4. **Users & Use Cases** — concrete personas and stories.
-5. **Solution & Requirements** — *now* you may describe the build.
-6. **Metrics, Tradeoffs, Risks, Rollout** — make the bet legible.
-7. **Open Questions** — list every uncertainty surfaced during writing.
-8. **Rewrite the TL;DR last** — it should now write itself.
-9. **Self-review against §10 checklist.**
-10. **Cut 20%.** Almost every PRD is 20% too long on the first pass. Be ruthless.
+6. **Users & Use Cases** — concrete personas and stories.
+7. **Solution & Requirements** — *now* you may describe the build.
+8. **Metrics, Tradeoffs, Risks, Rollout** — make the bet legible.
+9. **Decision gates** — stop for the user on format/size, scope cuts, unresolved
+   metric choice, regulated/legal risk, or cross-functional ownership conflicts.
+10. **Open Questions** — list every uncertainty surfaced during writing.
+11. **Rewrite the TL;DR last** — it should now write itself.
+12. **Self-review against §10 checklist, then cut 20%.** Almost every PRD is
+    20% too long on the first pass. Be ruthless.
 
 ---
 
@@ -362,7 +397,7 @@ fail, fix and re-check.
 
 ---
 
-## 11. Antipatterns to Avoid
+## Anti-Patterns (§11)
 
 These are the ways PRDs fail in practice. Catch them in your own drafts.
 
@@ -388,22 +423,28 @@ These are the ways PRDs fail in practice. Catch them in your own drafts.
 
 ---
 
-## 12. Output Format
+## Output Format (§12)
 
 When invoked, this skill produces a single markdown file. Conventions:
 
 - **Filename:** `prd-<kebab-case-name>.md` unless the user specifies otherwise.
 - **Location:** save to the user's preferred directory; if none, default to the
-    current working directory. Create the file via `create_file` (or `Write` in
-    Claude Code). Do not paste the entire PRD into chat unless explicitly asked —
-    point the user to the file and offer a brief summary plus the top 3 open
-    questions surfaced.
+    current working directory as `./prd-<kebab-case-name>.md`. When revising an
+    existing PRD, write beside the source unless the user names another path.
+    Do not paste the entire PRD into chat unless explicitly asked — point the
+    user to the file and offer a brief summary plus the top 3 open questions.
 - **Section anchors:** use stable H2 headings (verbatim from §6) so other tools
     and skills can address sections by slug.
 - **Status field:** always include and set to `Draft` on first write.
 - **Do not invent specifics.** Names, numbers, dates, citations, customer quotes
     — if not provided or verifiable, use `[TBD]` or `[ASSUMPTION]`. Fabricated
     specifics are the single fastest way to get a PRD rejected by a real team.
+- **Completion status:** end the handback with one of:
+    `DONE` (artifact saved and checklist passes), `DONE_WITH_CONCERNS` (usable
+    artifact with visible assumptions or unresolved low/medium-risk gaps),
+    `NEEDS_CONTEXT` (blocked on user/source input before a responsible draft),
+    or `BLOCKED` (cannot proceed because required source access, policy, or
+    tool capability is unavailable).
 
 ---
 
@@ -425,30 +466,12 @@ of concrete edits ranked by impact. Do not rewrite silently — show your reason
 
 ---
 
-## 14. Two Quick Worked Examples
+## 14. Worked Examples
 
-### 14.1 Bad → Good problem statement
-
-**Bad:**
-> Users have asked for a way to export their data. We should add an export feature.
-
-**Good:**
-> Power users on annual plans (≈8% of accounts, ≈40% of revenue) need to move
-> historical reports out of the platform for compliance audits, which happen
-> quarterly. Today they take screenshots one report at a time — averaging
-> 4.5 hours per audit, per the last 12 months of support tickets (n=47). Three
-> have cited this in churn calls.
-
-The good version names the user, the trigger, the job, the cost, and the evidence.
-Engineering and design now have something to design *for*, not just toward.
-
-### 14.2 Bad → Good goal
-
-**Bad:** *Goal: Make exporting easy.*
-
-**Good:** *Goal: Reduce time-to-export-full-account from 4.5 hours (current
-median, screenshot workflow) to under 5 minutes for 90% of power users, within
-60 days of GA. Measured via the new `export_completed` event, segmented by plan tier.*
+For calibration, see `references/examples.md` — two before/after pairs (a weak vs.
+strong **problem statement**, and a vague vs. falsifiable **goal**) that show the
+specificity, evidence, and measurability this skill demands. Read them when a
+draft's problem statement or goals feel thin, and hold your output to that bar.
 
 ---
 

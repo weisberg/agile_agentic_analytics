@@ -1,57 +1,65 @@
 ---
 name: ingest
 description: >
-  Route content to specialized ingestion skills. Detects input type and delegates.
+  Front door for getting a source into the knowledge base: detect the input type
+  and delegate to the specialized ingestion skill, applying the shared ingestion
+  laws (citation, back-link, raw-source preservation, filing by subject). Trigger
+  on "ingest this", "save this to the knowledge base", "add this source to my
+  KB", "capture this for the KB". This skill routes; it does not re-implement the
+  per-media workflows. For a meeting transcript use meeting-ingestion; for PDFs,
+  articles, video, audio, voice notes, browser captures, screenshots, or repos
+  use media-ingest; for noticing entities in ordinary chat use signal-detector;
+  for bulk import of an existing store use migrate or setup.
 triggers:
   - "ingest this"
-  - "save this to knowledge base"
-  - "save this to KB"
-  - "process this meeting"
-tools:
-  - search
-  - get_page
-  - put_page
-  - add_link
-  - add_timeline_entry
-  - sync_kb
-  - vaultli
+  - "save this to the knowledge base"
+  - "add this source to my kb"
+  - "capture this for the kb"
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
-writes_pages: true
-writes_to:
-  - people/
-  - companies/
-  - concepts/
-  - meetings/
-  - sources/
-
 disable-model-invocation: false
 ---
 
-# Ingest Skill
+# Ingest
 
-Ingest meetings, articles, media, documents, and conversations into the knowledge base.
+The ingestion front door. Detect what the input is, then hand off to the skill
+that owns it. Enforce the shared ingestion laws no matter which sub-skill runs.
 
-> **Filing rule:** Read `references/kb-filing-rules.md` before creating any new page.
+> **Filing rule:** read `references/kb-filing-rules.md` before creating any new
+> page. File by primary subject, not by source format.
 
 ## Contract
 
-- Every fact written to a knowledge base page carries an inline `[Source: ...]` citation with date and provenance.
-- Every entity mention creates a back-link from the entity's page to the page mentioning them (Iron Law).
-- Raw sources are preserved for provenance via `kb files upload-raw` with automatic size routing.
-- State sections are rewritten with current best understanding, never appended to.
-- Entity detection fires on every inbound message; notable entities get pages or updates.
-- File-based KB vaults use the bundled `vaultli` CLI for frontmatter, sidecars,
-  `INDEX.jsonl`, validation, search, and context assembly.
+- Every fact written to a KB page carries an inline `[Source: ...]` citation with date and provenance.
+- Every mention of a person or company that has a page creates a back-link FROM that entity's page TO the page mentioning them (the Iron Law — see `references/quality.md`).
+- Raw sources are preserved for provenance with size-based routing (see `references/raw-source-storage.md`): small text/PDF stays in the vault; large media is stored externally with a `.redirect.yaml` pointer.
+- State sections are rewritten with the current best understanding, never appended to.
+- This skill delegates. It classifies the input and routes; it does not restate each sub-skill's workflow.
+- File-based vaults use the bundled `vaultli` CLI for frontmatter, sidecars, `INDEX.jsonl`, validation, search, and context assembly.
+- Mutating skill: ingestion writes are allowed only after routing, privacy scope, raw-source handling, and filing destination are clear.
 
-> **Convention:** See `references/quality.md` for Iron Law back-linking.
+## Intake And Modes
 
-Every mention of a person or company with a knowledge base page MUST create a
-back-link FROM that entity's page TO the page mentioning them. An unlinked
-mention is a broken KB. See `references/kb-filing-rules.md` for format.
+- Treat `$ARGUMENTS` as the source payload/path/URL plus optional vault root, privacy scope, and desired destination.
+- Quick mode: classify the source and name the owning ingestion skill without writing.
+- Standard mode: route one source through the correct child skill, then verify shared ingestion laws.
+- Deep mode: plan a multi-source import, delegate batches through `migrate`, `setup`, or `background-jobs`, and checkpoint validation.
+- Use `ask-user` when input type, privacy scope, or primary subject is ambiguous.
+
+## Evidence Requirements
+
+- Inspect source metadata, existing matching pages, raw-source destination, and filing rules before creating a page.
+- Verify citations, back-links, raw-source preservation, and vault validation before reporting ingestion complete.
 
 ## Citation Requirements (MANDATORY)
 
-Every fact written to a knowledge base page must carry an inline `[Source: ...]` citation.
+Every fact written to a KB page must carry an inline `[Source: ...]` citation.
 
 - **User's statements:** `[Source: User, {context}, YYYY-MM-DD]`
 - **Meeting data:** `[Source: Meeting "{title}", YYYY-MM-DD]`
@@ -60,271 +68,65 @@ Every fact written to a knowledge base page must carry an inline `[Source: ...]`
 - **Social media:** `[Source: X/@handle, YYYY-MM-DD](URL)` (include link)
 - **Synthesis:** `[Source: compiled from {sources}]`
 
-## Phases
+## Routing
 
-> **Router note:** This skill is a router. For specialized ingestion, see: idea-ingest, media-ingest, meeting-ingestion.
+Classify the input, then delegate:
 
-1. **Confirm the KB storage mode.** If the destination is a file-based vault,
-   find or initialize the vault root with `vaultli --json root .` or
-   `vaultli --json init <path>`.
-2. **Parse the source.** Extract people, companies, dates, and events from the input.
-3. **For each entity mentioned:**
-   - Read the entity's page from the KB to check if it exists
-   - If exists: update compiled_truth (rewrite State section with new info, do not append)
-   - If new: check notability gate, then store the page in the KB with the appropriate type and slug
-4. **Append to timeline.** Add a timeline entry in the KB for each event, with date, summary, and source citation.
-5. **Create cross-reference links.** Link entities in the KB for every entity pair mentioned together, using the appropriate relationship type.
-6. **Back-link all entities.** Update EVERY mentioned entity's page with a back-link to this page (Iron Law).
-7. **Timeline merge.** The same event appears on ALL mentioned entities' timelines. If Alice met Bob at Acme Corp, the event goes on Alice's page, Bob's page, and Acme Corp's page.
-8. **Index and validate file vaults.** For file-based KBs, run
-   `vaultli --json index --root <kb-root>` and
-   `vaultli --json validate --root <kb-root>` after writes.
+| Input | Delegate to |
+| --- | --- |
+| Meeting transcript or notes | `meeting-ingestion` |
+| PDF, book, article, web page, browser capture | `media-ingest` |
+| Video, audio, podcast, voice note | `media-ingest` |
+| Screenshot, image, code repo | `media-ingest` |
+| Entity mention noticed in ordinary chat | `signal-detector` |
+| The user's own original idea or exact phrasing | `signal-detector` |
+| Bulk import of an existing store or archive | `migrate` |
+| First-run vault creation and guided import | `setup` |
+| Connector / webhook payload | see `references/connector-ingestion.md` |
 
-## vaultli Use Cases
+If the type is ambiguous, use `ask-user` with 2-4 options and an escape hatch
+rather than guessing.
 
-Use the bundled `vaultli` CLI whenever ingestion is writing to or reading from a
-file-based KB vault:
+## Workflow
 
-- **New vault:** `vaultli --json init <path>` creates `.kbroot` and `INDEX.jsonl`.
-- **Markdown pages:** `vaultli --json add <file> --root <kb-root>` attaches or refreshes frontmatter and indexes the page.
-- **Non-markdown sources:** `vaultli --json scaffold <file> --root <kb-root>` creates sidecar metadata such as `query.sql.md`.
-- **Bulk metadata:** `vaultli --json ingest <path> --root <kb-root> --dry-run` previews missing metadata before writing.
-- **Retrieval:** `vaultli --json search <query> --root <kb-root>` shortlists records; `resolve`, `cat`, or `context` hydrates the content.
-- **Integrity:** `vaultli --json validate --root <kb-root>` checks stale index state, duplicate IDs, broken sidecars, and dangling refs.
+1. **Confirm the KB storage mode.** For a file-based vault, find or initialize the root with `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json root .` or `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json init <path>`.
+2. **Classify the input** using the routing table and hand off to the owning sub-skill.
+3. **Verify the shared laws held** after the sub-skill runs: every fact cited, every notable entity back-linked (Iron Law), raw source preserved, and pages filed by primary subject.
+4. **Index and validate** the file vault with `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root <kb-root>` and `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root <kb-root>`.
 
-Prefer `vaultli` for file discovery, metadata maintenance, sidecar creation, and
-index validation. Use higher-level KB page tools (`get_page`, `put_page`,
-`add_timeline_entry`, `add_link`) for semantic page updates when they are
-available.
+## Shared Ingestion Laws
 
-## Entity Detection on Every Message
+These hold for every ingestion path and are the reason this front door exists:
 
-Production agents should detect entity mentions on EVERY inbound message. This is
-the signal detection loop that makes the knowledge base compound over time.
+- **File by primary subject, not format.** A page about a person goes in `people/`, a company in `companies/`, a reusable framework in `concepts/`, raw data in `sources/` (see `references/kb-filing-rules.md`).
+- **Back-link every notable entity (Iron Law).** An unlinked mention is a broken KB. The same event appears on every mentioned entity's timeline.
+- **Preserve raw source.** A page without provenance is unverifiable. Route by size per `references/raw-source-storage.md`.
+- **Capture original thinking verbatim.** The user's exact language IS the insight — delegate to `signal-detector`, do not paraphrase.
+- **Test before bulk.** For multi-item ingestion, run 3-5 items first, read the output, fix the approach, then bulk-execute with checkpoints via `background-jobs`.
 
-### Protocol
+## vaultli Use
 
-1. **Scan the message** for entity mentions: people, companies, concepts, original
-   thinking. Fire on every message (no exceptions unless purely operational).
-2. **For each entity detected:**
-   - `kb search "name"` - does a page already exist?
-   - **If yes:** load context with `kb get <slug>`. Use the compiled truth to
-     inform your response. Update the page if the message contains new information.
-   - **If no:** assess notability (see `references/kb-filing-rules.md`). If the entity
-     is worth tracking, create a new page with `kb put <type/slug>` and populate
-     with what you know.
-3. **After creating or updating pages:** sync to the KB and rebuild the file-vault index if applicable:
-   ```bash
-   kb sync --no-pull --no-embed
-   vaultli --json index --root <kb-root>
-   vaultli --json validate --root <kb-root>
-   ```
-4. **Do not block the conversation.** Entity detection and enrichment should happen
-   alongside the response, not before it. The user should not wait for KB writes
-   to get an answer.
+Use the bundled CLI whenever ingestion writes to or reads from a file-based vault:
 
-### What counts as notable
+- **New vault:** `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json init <path>`.
+- **Markdown pages:** `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json add <file> --root <kb-root>`.
+- **Non-markdown sources:** `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json scaffold <file> --root <kb-root>`.
+- **Bulk preview:** `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json ingest <path> --root <kb-root> --dry-run`.
+- **Integrity:** `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root <kb-root>`.
 
-- People the user interacts with or discusses (not random mentions)
-- Companies relevant to the user's work or interests
-- Concepts or frameworks the user references or creates
-- The user's own original thinking (ideas, theses, observations) - highest value
-- See `references/kb-filing-rules.md` for the full notability gate
-
-### What to capture from the user's own thinking
-
-Original thinking is the most valuable signal. Capture exact phrasing - the user's
-language IS the insight. Do not paraphrase.
-
-- Novel observations or theses
-- Frameworks, mental models, heuristics
-- Connections between ideas that others miss
-- Contrarian positions with reasoning
-- Strong reactions to external stimuli (what triggered it and why)
-
-## Media Workflows
-
-Content the user encounters should be captured in the knowledge base. File by
-PRIMARY SUBJECT, not by format (see `references/kb-filing-rules.md`).
-
-### Articles & Web Content
-
-**Input:** URL shared by user, or article mentioned in conversation.
-
-**Process:**
-1. Fetch content (`web_fetch` or equivalent)
-2. Extract: title, author, publication, date, full text
-3. Summarize: executive summary + key arguments (not a rehash)
-4. Extract entities: people, companies, concepts mentioned
-5. **Save raw source** for provenance (see Raw Source Preservation below)
-6. If writing to a file-based vault, use `vaultli add` for markdown or
-   `vaultli scaffold` for non-markdown source sidecars, then rebuild and validate
-   the index.
-7. Analyze for the user: do not just summarize. What is interesting given what you
-   know about them? Flag connections, contradictions, content opportunities.
-
-**Write to:** appropriate directory per filing rules (about a person -> `people/`,
-about a company -> `companies/`, reusable framework -> `concepts/`, raw data -> `sources/`)
-
-### Videos & Podcasts
-
-**Input:** URL (YouTube, podcast, etc.) or local audio/video file.
-
-**Process:**
-1. Get transcript - speaker-diarized if possible (services like Diarize.io provide
-   speaker-labeled, word-level timing)
-2. **Save raw transcript** (both JSON and human-readable TXT)
-3. Analyze: executive summary, key ideas, key quotes with speaker attribution,
-   notable stories/anecdotes, people and companies mentioned
-4. Extract and cross-reference all entities mentioned
-5. **HARD RULE:** every video/podcast knowledge base page MUST link to the raw
-   diarized transcript. A page without transcript links is incomplete.
-
-**Write to:** `media/videos/` or `media/podcasts/` with back-links to all entities.
-
-**Quality bar:**
-- Compelling headline (not "This video discusses...")
-- Executive summary that makes you want to watch/listen
-- Key Ideas as actual insights, not topic labels
-- Verbatim quotes with real speaker names (not "speaker_0")
-- All entities extracted with context and back-linked
-
-### PDFs & Documents
-
-**Input:** File path or URL.
-
-**Process:**
-1. Extract text (OCR if scanned/image PDF)
-2. **Save raw source** for provenance
-3. Summarize: executive summary + key sections + notable data
-4. Extract entities
-5. Cross-reference from entity pages
-
-**Write to:** per filing rules (file by primary subject, not format).
-
-### Screenshots & Images
-
-**Input:** Image file.
-
-**Process:**
-1. Analyze content (OCR for text-heavy images, description for photos)
-2. If tweet screenshot: extract text, author, date, route to social media workflow
-3. If article screenshot: extract text, route to article workflow
-4. If data/chart: extract data points, describe findings
-
-**Write to:** depends on content - route to the appropriate workflow above.
-
-### Meeting Transcripts
-
-**Input:** Transcript from meeting recording service, or manual notes.
-
-**Process:**
-1. Pull full transcript (source of truth - AI summaries are medium-low trust)
-2. **Save raw transcript** for provenance
-3. Write meeting page with YOUR analysis above the line, raw transcript below
-4. **Entity propagation (MANDATORY):** for each attendee and company discussed:
-   - Update their knowledge base page State section if new info surfaced
-   - Append to their Timeline with link to the meeting page
-   - Create page if person/company is notable and has no page yet
-5. A meeting is NOT fully ingested until all entity pages are updated
-
-**Write to:** `meetings/YYYY-MM-DD-short-description.md`
-
-**What makes a good meeting page:**
-- Reveals the real crux, not a bullet dump
-- Connects to existing knowledge base pages (people, companies, deals)
-- Flags what changed (status, decisions, new info)
-- Names tension or what was left unsaid
-- Captures actual dynamic, not performative summary
-
-### Social Media Content
-
-**Input:** Tweet, thread, or social media post.
-
-**Process:**
-1. Fetch full content (thread, quote tweets, context)
-2. If images present: OCR via vision model for full text extraction
-3. Summarize: what is being said, why it matters, who is involved
-4. Extract entities and update knowledge base pages
-5. Include direct link to the original post (MANDATORY for citations)
-
-**Write to:** `media/x/` for daily aggregation, or entity-specific directories
-if the post is primarily about a person/company.
-
-## Raw Source Preservation
-
-Every ingested item must have its raw source preserved for provenance.
-
-For file-based KBs, `vaultli` handles metadata, sidecars, indexing, validation,
-search, and context assembly. It does not replace raw binary/media storage. Use
-it alongside raw source preservation:
-
-```bash
-vaultli --json scaffold <raw-or-source-file> --root <kb-root>
-vaultli --json index --root <kb-root>
-vaultli --json validate --root <kb-root>
-```
-
-**Use `kb files upload-raw` for automatic size routing:**
-```bash
-kb files upload-raw <file> --page <page-slug> --type <type>
-```
-
-- **< 100 MB text/PDF**: stays in git (KB repo `.raw/` sidecar directories)
-- **>= 100 MB OR media** (video, audio, images): uploaded to cloud storage
-  via TUS resumable upload, `.redirect.yaml` pointer left in the KB repo
-
-The `.redirect.yaml` pointer format:
-```yaml
-target: supabase://kb-files/page-slug/filename.mp4
-bucket: kb-files
-storage_path: page-slug/filename.mp4
-size: 524288000
-size_human: 500 MB
-hash: sha256:abc123...
-mime: video/mp4
-uploaded: 2026-04-11T...
-type: transcript
-```
-
-**Accessing stored files:**
-- `kb files signed-url <storage-path>` - generate 1-hour signed URL for viewing/sharing
-- `kb files restore <dir>` - download back to local from cloud storage
-
-Use `put_raw_data` in the KB to store raw API responses and metadata (JSON, not binary).
-
-## Test Before Bulk
-
-When processing multiple items (batch video ingestion, bulk meeting processing, etc.):
-
-1. **Test on 3-5 items first.** Run in test mode if available.
-2. **Read the actual output.** Is the quality good? Are titles compelling (not
-   "This video discusses...")? Are entities extracted and back-linked? Is the
-   format clean?
-3. **Fix what is wrong** in the approach/skill, not via one-off patches.
-4. **Only then: bulk execute** with throttling, commits every 5-10 items.
-
-The marginal cost of testing 3 items first is near zero. The cost of cleaning
-up 100 bad pages is enormous.
-
-## Quality Rules
-
-- Executive summary in compiled_truth must be updated, not just timeline appended
-- State section is REWRITTEN, not appended to. Current best understanding only.
-- Timeline entries are reverse-chronological (newest first)
-- Every person/company mentioned gets a page if notable (see filing rules)
-- Link types: knows, works_at, invested_in, founded, met_at, discussed
-- Source attribution: every timeline entry includes [Source: ...] citation
-- Back-links: every entity mention creates a back-link (Iron Law)
-- Filing: file by primary subject, not format or source (see filing rules)
+Write page bodies, timeline entries, and cross-links by editing markdown with
+`Read`/`Write`/`Edit`, then reindex and validate with `vaultli`.
+Use the wrapper path when executing those commands; bare `vaultli` is only a
+prose shorthand.
 
 ## Anti-Patterns
 
-- **Appending to State sections.** State is rewritten with the current best understanding on every update. Append-only State sections grow stale and contradictory.
-- **Ingesting without back-links.** An unlinked mention is a broken KB. Every entity mentioned must have a back-link from their page to the page mentioning them.
-- **Skipping raw source preservation.** Every ingested item must have its raw source preserved. A knowledge base page without provenance is unverifiable.
-- **Bulk processing without sample test.** Test on 3-5 items first. Fix quality issues in the approach, not via one-off patches.
-- **Paraphrasing the user's original thinking.** The user's exact language IS the insight. Capture verbatim phrasing for ideas, theses, and frameworks.
+- **Re-implementing a sub-skill inline.** Delegate to `meeting-ingestion` or `media-ingest`; do not restate their workflows here.
+- **Ingesting without back-links.** Every notable entity mentioned must have a back-link from its page (Iron Law).
+- **Skipping raw source preservation.** Every ingested item must have recoverable provenance.
+- **Appending to State sections.** State is rewritten with the current best understanding on every update.
+- **Bulk processing without a sample test.** Test on 3-5 items first; fix the approach, not one-off patches.
+- **Paraphrasing the user's original thinking.** Route exact phrasing to `signal-detector` and capture it verbatim.
 
 ## Output Format
 
@@ -332,6 +134,7 @@ up 100 bad pages is enormous.
 INGESTED: [title]
 ==================
 
+Routed to: [meeting-ingestion / media-ingest / signal-detector / migrate / setup]
 Page: [slug]
 Type: [person / company / meeting / media / concept]
 Source: [source description]
@@ -342,16 +145,6 @@ Entities detected: N
 Back-links created: N
 Timeline entries: N
 Raw source: [preserved at path / uploaded to cloud]
+Shared laws verified: [citations / back-links / raw-source / filing]
+Status: [DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT]
 ```
-
-## Tools Used
-
-- Read a page from the KB (get_page)
-- Store/update a page in the KB (put_page)
-- Add a timeline entry in the KB (add_timeline_entry)
-- Link entities in the KB (add_link)
-- Manage file-based KB metadata, sidecars, search, context, index, and validation (vaultli)
-- List tags for a page (get_tags)
-- Tag a page in the KB (add_tag)
-- Store raw data in the KB (put_raw_data)
-- Check backlinks in the KB (get_backlinks)

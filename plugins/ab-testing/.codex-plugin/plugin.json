@@ -1,6 +1,6 @@
 {
   "name": "ab-testing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Design, analyze, and review A/B tests with statistical rigor.",
   "author": {
     "name": "Brian Weisberg"

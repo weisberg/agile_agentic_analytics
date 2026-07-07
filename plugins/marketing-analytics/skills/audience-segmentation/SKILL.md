@@ -5,253 +5,129 @@ description: >
   RFM analysis, behavioral clustering, K-Means, DBSCAN, customer personas,
   segment profiles, retention curves, cohort retention, segment migration,
   customer tiers, high-value customers, at-risk segment, churn cohort,
-  acquisition cohort, engagement tiers, or audience definition. Also trigger
-  on 'group our customers' or 'which customers should we target.' If CLV
-  scores are available from clv-modeling, they enrich segment profiles. Segments
-  feed into experimentation (stratification), email-analytics (targeting),
-  paid-media (lookalike audiences), and reporting skills.
+  acquisition cohort, engagement tiers, or audience definition. Also trigger on
+  'group our customers' or 'which customers should we target.' For predicting a
+  single customer's future value use clv-modeling; for conversion-step drop-off
+  use funnel-analysis; this skill groups customers and tracks cohorts. If
+  transaction data is not yet in the workspace, run data-extraction first.
 
 disable-model-invocation: false
 ---
 
-# Customer Segmentation & Cohort Analysis
+# Audience Segmentation
 
-Automated RFM scoring, behavioral clustering, and cohort retention analysis.
+RFM scoring, behavioral K-Means/DBSCAN clustering, and cohort retention analysis
+that produce interpretable segments, migration matrices, and targeting-ready
+profiles.
 
-| Field | Value |
-|---|---|
-| **Skill ID** | audience-segmentation |
-| **Priority** | P1 — Strategic (used by most downstream skills) |
-| **Category** | Customer Analytics |
-| **Depends On** | data-extraction, clv-modeling (value enrichment) |
-| **Feeds Into** | experimentation (stratification), email-analytics (targeting), paid-media (lookalike), reporting |
+## Contract
 
-## Objective
+**Role:** Advisory analyst. Produces segment assignments and profiles; does not
+launch campaigns. Clustering and scoring run in deterministic Python scripts.
 
-Automate customer segmentation through RFM scoring, behavioral K-Means/DBSCAN
-clustering with silhouette-based cluster count optimization, and cohort-based
-retention analysis. Assign interpretable segment labels, track segment migration
-over time, generate cohort retention curves, and produce segment profiles
-suitable for targeting in email campaigns and paid media lookalike audiences.
+**Mode:**
+- `quick` — RFM scoring + named segments only.
+- `standard` (default) — RFM + behavioral clustering + segment profiles.
+- `deep` — add cohort retention and period-over-period migration tracking.
 
-## Functional Scope
+**When to use:** grouping customers, RFM tiers, behavioral clusters, cohort
+retention curves, segment migration.
 
-- **RFM scoring** — quintile-based recency, frequency, monetary scoring with composite RFM score.
-- **Behavioral clustering** — K-Means and DBSCAN with automated feature scaling and cluster count selection.
-- **Cohort retention** — acquisition cohort definition, retention curve generation, churn rate calculation.
-- **Segment profiling** — demographic, behavioral, and value-based segment descriptions.
-- **Migration tracking** — segment transition matrices showing customer movement between segments over time.
-- **Actionable targeting** — segment-to-campaign mapping recommendations for email and paid media.
+**When NOT to use:** to predict one customer's future revenue use `clv-modeling`;
+for funnel-step conversion use `funnel-analysis`; for sales-lead ranking use
+`crm-lead-scoring`. See `../../references/skill-index.md` for the portfolio map.
 
----
+**Evidence required (inputs):**
+- `workspace/raw/transactions.csv` — `customer_id`, `date`, `amount`, `product`
+  (required). If absent, STOP and run **data-extraction** first.
+- `workspace/raw/behavioral_events.csv` — `user_id`, `event`, `timestamp`,
+  `properties` (optional; enables behavioral clustering).
+- `workspace/analysis/clv_predictions.json` — CLV scores from clv-modeling
+  (optional; enriches profiles).
 
-## RFM Analysis
+**Depends on:** data-extraction; clv-modeling (optional value enrichment).
+**Feeds into:** experimentation, email-analytics, paid-media, reporting. Builder
+detail in `references/authoring-notes.md`.
 
-### Metrics
+**Hard STOP (FS mode):** if operating in financial services, stop before emitting
+segments if any segmentation feature is a prohibited characteristic (race,
+religion, national origin) or a direct proxy. Prohibited-basis targeting is a
+fair-lending violation, not a modeling choice.
 
-- **Recency** — days since last transaction relative to the analysis date.
-- **Frequency** — total transaction count within the analysis window.
-- **Monetary** — total (or average) spend within the analysis window.
+Parse `$ARGUMENTS` for inline paths, cohort dimension, or algorithm overrides.
 
-### Scoring
+## Workflow
 
-1. Compute raw values for every customer.
-2. Assign quintile scores 1-5 per dimension (5 = best). Use `scripts/rfm_scoring.py`.
-3. Derive composite RFM score (e.g., concatenated string "555" or weighted sum).
-4. Map composite scores to named segments using the label mapping in
-   `references/rfm_methodology.md`.
+1. **Validate inputs.** Load transactions (and behavioral events if present).
+   Confirm required columns and a usable date range. Apply the FS Hard STOP gate.
 
-### Named Segments
+2. **RFM scoring.** Run `scripts/rfm_scoring.py`: compute recency, frequency,
+   monetary; assign quintile scores 1–5 (5 = best); derive composite score; map to
+   named segments (Champions, Loyal, Potential Loyalists, At-Risk, Hibernating,
+   Lost) using `references/rfm_methodology.md`.
 
-| Segment | RFM Pattern | Description |
-|---|---|---|
-| Champions | High R, High F, High M | Best customers — recent, frequent, high spend |
-| Loyal | Mid-High R, High F, Mid-High M | Consistent repeat buyers |
-| Potential Loyalists | High R, Low-Mid F, Low-Mid M | Recent customers showing growth potential |
-| At-Risk | Low R, High F, High M | Previously valuable, lapsing |
-| Hibernating | Low R, Low F, Low-Mid M | Inactive but previously engaged |
-| Lost | Very Low R, Low F, Low M | Long-inactive, minimal spend |
+3. **Method gate (AskUserQuestion).** When the user hasn't specified an approach,
+   ask before clustering:
+   - **Question:** "Which segmentation output do you want?"
+   - **Options:** (a) *RFM named segments* — business-interpretable, stable;
+     (b) *Behavioral clusters* — data-driven K-Means/DBSCAN on engagement
+     features; (c) *Both* — produce and reconcile. Default to RFM if the user just
+     says "segment our customers" and no behavioral data exists.
 
-Quintile boundaries should be recomputed monthly to account for distribution
-drift. See `references/rfm_methodology.md` for detailed boundary guidance.
+4. **Behavioral clustering** (if chosen and events exist). Run
+   `scripts/behavioral_clustering.py`: `StandardScaler`, optional PCA (≥95%
+   variance), sweep k∈[2,10], select k by elbow confirmed by silhouette (>0.3),
+   `random_state=42`. DBSCAN alternative: k-distance epsilon, `min_samples` = max(5,
+   1% of rows). See `references/clustering_guide.md`.
 
----
+5. **Cohort retention** (deep mode). Run `scripts/cohort_retention.py`: assign
+   customers to cohorts (acquisition month / first product / first channel), build
+   the retention matrix, compute retention/churn and revenue-per-user. Validate no
+   cell exceeds 100%.
 
-## Behavioral Clustering
+6. **Profile segments.** For each segment record size (count + %), top
+   distinguishing behavioral features, value metrics (avg CLV, AOV, revenue
+   contribution), and recommended action. Write to
+   `workspace/analysis/segment_profiles.json`.
 
-### Feature Engineering
+7. **Migration tracking** (deep mode). Run `scripts/segment_migration.py` across
+   consecutive periods; build a transition matrix (rows sum to 100%); flag notable
+   moves (Champions→At-Risk, Hibernating→Loyal).
 
-Derive features from raw behavioral event data:
+8. **Report.** Write outputs and the HTML segment explorer.
 
-- Session frequency (sessions per week/month)
-- Page depth (avg pages per session)
-- Content affinity (category-level engagement ratios)
-- Channel preference (traffic source distribution)
-- Engagement recency and intensity
+## Output Format
 
-### Algorithms
+Artifacts:
 
-**K-Means**
-
-1. Normalize features with `StandardScaler`.
-2. Optionally reduce dimensionality with PCA (retain >= 95% variance).
-3. Sweep cluster count k in [2, 10].
-4. Select optimal k via elbow method confirmed by silhouette score (target > 0.3).
-5. Fit final model with deterministic `random_state=42`.
-
-**DBSCAN**
-
-1. Normalize features with `StandardScaler`.
-2. Estimate epsilon via k-distance plot (k = 2 * n_features).
-3. Set `min_samples` relative to dataset size (heuristic: 1% of rows, minimum 5).
-4. Evaluate cluster quality via silhouette score on non-noise points.
-
-See `references/clustering_guide.md` for detailed optimization guidance.
-Use `scripts/behavioral_clustering.py` for execution.
-
----
-
-## Cohort Retention Analysis
-
-### Cohort Definition
-
-Cohorts can be defined by:
-
-- **Acquisition month** — the calendar month of a customer's first transaction.
-- **First product** — the product category of the initial purchase.
-- **First channel** — the marketing channel that drove the first conversion.
-
-### Retention Matrix
-
-1. Assign each customer to a cohort based on the chosen dimension.
-2. For each cohort, compute the percentage of customers active in each
-   subsequent period (month or week).
-3. Output as a matrix: rows = cohorts, columns = periods since acquisition.
-
-### Metrics
-
-- **Retention rate** — percentage of cohort still active in period N.
-- **Churn rate** — 1 - retention rate.
-- **Revenue per user** — average revenue per cohort member in period N.
-- **LTV trajectory** — cumulative revenue per user over periods.
-
-Use `scripts/cohort_retention.py` for computation.
-
----
-
-## Segment Profiling
-
-Each segment (RFM-based or cluster-based) must include:
-
-- **Size** — customer count and percentage of total.
-- **Behavioral indicators** — top distinguishing features (e.g., avg session frequency, preferred channel).
-- **Value metrics** — average CLV, average order value, total revenue contribution.
-- **Demographic summary** — if demographic data is available.
-- **Recommended actions** — campaign type, messaging strategy, channel recommendation.
-
-Profiles are written to `workspace/analysis/segment_profiles.json`.
-
----
-
-## Segment Migration Tracking
-
-Track how customers move between segments across consecutive analysis periods.
-
-1. Run segmentation for period T and period T+1 using consistent definitions.
-2. Build a transition matrix: rows = segment in T, columns = segment in T+1.
-3. Each row sums to 100% (all customers accounted for).
-4. Flag notable migrations: Champions to At-Risk, Hibernating to Loyal, etc.
-
-Use `scripts/segment_migration.py` for computation.
-Output to `workspace/analysis/segment_migration.json`.
-
----
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File | Description | Required |
-|---|---|---|
-| `workspace/raw/transactions.csv` | Transaction data: customer_id, date, amount, product | Yes |
-| `workspace/raw/behavioral_events.csv` | Web/app events: user_id, event, timestamp, properties | Optional |
-| `workspace/analysis/clv_predictions.json` | CLV scores from clv-modeling for value enrichment | Optional |
-
-### Outputs
-
-| File | Description |
-|---|---|
-| `workspace/processed/segments.json` | Customer-level segment assignments with profiles |
+| File | Contents |
+|------|----------|
+| `workspace/processed/segments.json` | Customer-level assignments (rfm_segment, rfm_scores, cluster_id/label, cohort, clv_score) |
 | `workspace/analysis/segment_profiles.json` | Aggregate statistics per segment |
 | `workspace/analysis/cohort_retention.json` | Retention matrices by cohort definition |
-| `workspace/analysis/segment_migration.json` | Transition matrices showing segment movement |
-| `workspace/reports/segmentation_report.html` | Interactive segment explorer with charts |
+| `workspace/analysis/segment_migration.json` | Transition matrices |
+| `workspace/reports/segmentation_report.html` | Interactive segment explorer |
 
-### Segment Assignment Schema
+**Financial services mode:** keep an audit trail of segmentation logic and manual
+overrides; align AUM tiering with the firm's stated service model; handle investor
+accreditation under Reg D. If segment definitions feed customer-facing targeting
+copy, route that copy through **compliance-review** before use.
 
-```json
-{
-  "customer_id": "string",
-  "rfm_segment": "string",
-  "rfm_scores": {"recency": 1-5, "frequency": 1-5, "monetary": 1-5},
-  "cluster_id": "int | null",
-  "cluster_label": "string | null",
-  "cohort": "string",
-  "clv_score": "float | null"
-}
-```
+**Completion status:**
+- `DONE` — segments, profiles, and any requested cohort/migration artifacts written.
+- `DONE_WITH_CONCERNS` — e.g., silhouette below 0.3, thin behavioral data, or
+  clustering skipped for lack of events.
+- `BLOCKED` — missing transactions or FS Hard STOP tripped; state the fix.
+- `NEEDS_CONTEXT` — method choice unresolved by the user.
 
----
+## Anti-Patterns
 
-## Cross-Skill Integration
-
-Segmentation is a foundational enabler for most downstream skills:
-
-- **experimentation** — uses segments for stratified randomization and subgroup analysis.
-- **email-analytics** — targets segments with personalized lifecycle flows.
-- **paid-media** — builds lookalike audiences from high-value segments.
-- **clv-modeling** — enriches segments with a value dimension.
-- **reporting** — includes segment trends in executive dashboards.
-- **compliance-review** — validates that segment-based targeting in financial services avoids prohibited discrimination.
-
-When integrating, read segment assignments from `workspace/processed/segments.json`
-and segment profiles from `workspace/analysis/segment_profiles.json`.
-
----
-
-## Financial Services Considerations
-
-- Segmentation criteria **must not** use prohibited characteristics (race, religion, national origin) even indirectly through proxies.
-- Investor accreditation status may be a segmentation dimension but requires special handling under Reg D.
-- AUM-based tiering must align with the firm's stated service model and fiduciary obligations.
-- Segment-based marketing targeting must be documented for fair lending examination readiness.
-- Maintain an audit trail of segmentation logic and any manual overrides.
-
----
-
-## Development Guidelines
-
-1. Use `scikit-learn` for all clustering; provide deterministic random seeds (`random_state=42`) for reproducibility.
-2. RFM quintile boundaries should be recomputed monthly to account for distribution drift.
-3. Behavioral clustering features must be normalized (`StandardScaler`) before distance-based algorithms.
-4. Always produce both statistical clusters and business-interpretable RFM segments; let the user choose.
-5. Segment profiles must include size (count and percentage), top behavioral indicators, and average CLV.
-6. Migration tracking requires consistent segment definitions across periods; document any re-clustering decisions.
-7. Validate that cohort retention matrices never exceed 100% retention.
-8. Validate that segment migration matrix rows sum to 100%.
-9. Write all intermediate DataFrames to workspace paths so downstream skills can consume them.
-10. Include logging at INFO level for key pipeline milestones (scoring complete, clustering fit, etc.).
-
----
-
-## Reference Files
-
-- `references/rfm_methodology.md` — RFM scoring rules, segment label mapping, quintile boundary guidance.
-- `references/clustering_guide.md` — K-Means, DBSCAN, silhouette optimization, feature scaling best practices.
-
-## Scripts
-
-- `scripts/rfm_scoring.py` — RFM computation, quintile assignment, segment labeling.
-- `scripts/behavioral_clustering.py` — Feature engineering, scaling, clustering, silhouette optimization.
-- `scripts/cohort_retention.py` — Cohort definition, retention matrix generation, churn rate calculation.
-- `scripts/segment_migration.py` — Period-over-period segment transition matrix computation.
+- Segmenting on prohibited characteristics or proxies in financial services.
+- Reporting clusters with silhouette below 0.3 as if they were stable segments.
+- Skipping `StandardScaler` before distance-based clustering.
+- Non-deterministic clustering (missing `random_state`) so runs aren't
+  reproducible.
+- Retention matrices exceeding 100% or migration rows not summing to 100% —
+  always validate.
+- Delivering only statistical clusters with no business-interpretable RFM view.
+- Stale quintile boundaries — recompute monthly against current distributions.

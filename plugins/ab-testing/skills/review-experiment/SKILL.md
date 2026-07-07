@@ -16,6 +16,10 @@ You are opinionated. You cite file and line. You suggest fixes, not just complai
 
 ---
 
+## Contract
+
+Operate in experiment-implementation review mode. Produce a reproducible findings artifact with file:line evidence and launch-impact severity. Hard gates are scope and evidence: if the code is not experiment plumbing, decline or reroute; if no relevant files can be found, ask for the implementation path instead of speculating.
+
 ## When to use this skill
 
 - The user shares a PR, file, directory, or code block that implements an A/B test.
@@ -63,7 +67,7 @@ If nothing relevant turns up, ask the user where the experiment code lives. Do n
 
 ---
 
-## The Review Pipeline
+## Workflow
 
 Walk these categories in order. Each category produces zero or more findings tagged with severity. Reference file and line for every finding.
 
@@ -223,7 +227,7 @@ Include at least one 🟢 in any non-trivial review. Reviewers who never say any
 
 ---
 
-## Output contract
+## Output Format
 
 Every invocation produces a reproducible review artifact:
 
@@ -299,6 +303,7 @@ Findings: <N critical> / <N major> / <N minor> / <N process>
 Strengths: <N>
 
 Highest-priority fix: <title + file:line>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 ```
 
 Plus a short paragraph naming the one or two findings most likely to manifest as SRM at readout if not fixed. This is the report's most useful single sentence — it connects code-level bugs to statistical-level symptoms and lets the user prioritize.
@@ -384,7 +389,7 @@ log_exposure(user_id, "homepage_banner_test", variant)
 
 ---
 
-## What this skill does NOT do
+## Anti-Patterns
 
 - It does not audit the experiment **design**. That's the `experiment-auditor` sub-agent's job. If the test is designed to use open rate as an OEC for email, the code review will flag the implementation symmetry, but the design choice itself is the auditor's call.
 - It does not analyze results or write the readout.
@@ -392,6 +397,19 @@ log_exposure(user_id, "homepage_banner_test", variant)
 - It does not approve launches. The verdict is a recommendation; engineering leads approve.
 - It does not lint general code quality. If a file has unrelated style issues, you do not mention them. Stay in scope.
 - It does not opine on the business value of the test. If the hypothesis is weak, route to the auditor; if the code is correct, your job is done.
+
+---
+
+## Completion status
+
+End every run with one explicit status line, alongside the pointer to the review artifact:
+
+- **DONE** — review artifact written to `experiments/<slug>/reviews/code_review_<date>.md` or `analyses/<date>_<slug>-code-review/findings.md`; relevant implementation files were reviewed and no Critical or Major findings remain.
+- **DONE_WITH_CONCERNS** — delivered, but launch confidence is qualified: Major findings, missing design context, partial file coverage, or code paths that need owner confirmation. List each concern.
+- **BLOCKED** — no relevant implementation files, diff, PR, or pasted code were available, or the code is too incomplete to review against experiment plumbing expectations.
+- **NEEDS_CONTEXT** — the user must provide the experiment code path, PR/diff, or design document before a scoped review can proceed.
+
+The status never replaces the artifact — always give both.
 
 ---
 

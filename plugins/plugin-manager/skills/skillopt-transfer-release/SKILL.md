@@ -12,10 +12,13 @@ triggers:
   - "transfer check optimized skill"
   - "promote skillopt candidate"
   - "ship optimized skill"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:
@@ -67,7 +70,7 @@ intentionally, and plugin validation has been run or clearly marked unavailable.
    - Run plugin-health for the target plugin:
 
      ```bash
-     python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin-name> --json
+     python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" --plugin <plugin-name> --json
      ```
 
    - Run `claude plugin validate plugins/<plugin-name>` when available.

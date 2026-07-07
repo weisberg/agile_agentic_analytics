@@ -14,6 +14,10 @@ You assume the user is a practitioner. You do not over-explain basics. You do ex
 
 ---
 
+## Contract
+
+Operate in readout/analysis mode. Produce reproducible numbers, diagnostics, and an artifact directory. Hard gates are data integrity and pre-analysis metric choice: if SRM is critical, stop without lift; if no pre-registration names the primary metric, resolve the OEC before looking at results or label the readout post-hoc.
+
 ## When to use this skill
 
 - The user shares experiment results in any form and asks for analysis, significance, lift, or "the readout."
@@ -63,7 +67,7 @@ State the defaults you used in the report. Do not silently change them.
 
 ---
 
-## The Analysis Pipeline
+## Workflow
 
 Execute these steps in order. Skipping a step requires a one-line justification in the output README.
 
@@ -74,6 +78,16 @@ Before touching the data, check:
 - Was a PRD, test plan, ticket, or `vaultli` note pre-registered? Look in the conversation, the working directory, and (if mentioned) Confluence/Jira/Notion.
 - If a plan exists, **execute that plan first, exactly as specified**. Pre-registered analyses produce the headline result. Anything else is exploratory and gets labeled `EXPLORATORY — POST-HOC` in the output.
 - If no plan exists, say so explicitly in the output README. Do not invent one retroactively.
+
+When no pre-registration exists, which metric is "primary" is a decision that must be made **before** seeing the results, or the analysis is p-hackable. Do not silently pick one. Present a structured decision brief with **AskUserQuestion**:
+
+#### AskUserQuestion brief — confirm the primary metric
+
+- **Question:** "There's no pre-registered plan. Before I analyze, which single metric is the primary decision metric (the OEC), and in which direction is a win? Fixing this now keeps the result honest."
+- **Options:** offer the candidate outcome columns detected in the data as choices (e.g. *conversion rate*, *revenue per user*, *retention*), each described with its unit and implied direction, plus an **"other / let me specify"** option.
+- **Recommendation & stakes:** recommend the metric the change's mechanism most directly targets; note that declaring it after the fact — or reporting several metrics with no primary — invites cherry-picking and will be labeled `EXPLORATORY — POST-HOC` if deferred. Everything not chosen is analyzed as secondary/exploratory.
+
+If the user is unreachable, proceed but label the entire readout post-hoc and name the assumed primary metric prominently.
 
 ### Step 1 — Parse and validate inputs
 
@@ -224,7 +238,7 @@ Bayesian outputs supplement, they do not replace, the frequentist primary when t
 
 ---
 
-## Output contract
+## Output Format
 
 Every invocation produces three things, in this order.
 
@@ -275,6 +289,7 @@ Diagnostics:
   Multiple comp.: <BH-FDR / Bonferroni / n/a>
 
 Artifact: analyses/<dir>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 ```
 
 ### 3. A short interpretation + "what would change this answer" paragraph
@@ -293,7 +308,7 @@ This skill handles 80% of readouts inline. Delegate when:
 - The user wants **always-valid sequential inference** with a non-standard alpha-spending function.
 - The user wants a full **MMM / MTA reconciliation** with experiment-implied lift.
 
-Invoke via the Task tool with a clear intent (`readout`, `cate`, `bayes`, `sequential`) and pass the data path plus method requirements.
+Invoke via the Agent tool with a clear intent (`readout`, `cate`, `bayes`, `sequential`) and pass the data path plus method requirements.
 
 ---
 
@@ -308,7 +323,7 @@ Invoke via the Task tool with a clear intent (`readout`, `cate`, `bayes`, `seque
 
 ---
 
-## Common pitfalls and recoveries
+## Anti-Patterns
 
 | Pitfall | How to recover |
 |---|---|
@@ -369,3 +384,16 @@ treating this as a clean win.
 - The chat message is a pointer to the artifact, not a replacement for it.
 - When uncertain, simulate or bootstrap. When you can't, say so.
 - Pre-registered plans are binding. Exploratory analysis is labeled.
+
+---
+
+## Completion status
+
+End every run with one explicit status line, alongside the pointer to the analysis directory:
+
+- **DONE** — analysis written to `analyses/<date>_<slug>/`; SRM passed and the primary metric read cleanly against a pre-registered (or user-confirmed) plan.
+- **DONE_WITH_CONCERNS** — delivered, but trust is qualified: yellow-flag SRM (0.001 ≤ p < 0.01), a post-hoc primary metric, an underpowered null, or heavy-tailed data forcing a fragile method. List each concern.
+- **BLOCKED** — a hard stop prevented a result: SRM p < 0.001 (assignment broken — no lift produced) or unreadable/corrupt data. State the blocker and what clears it.
+- **NEEDS_CONTEXT** — missing inputs prevented a sound analysis: no variant/outcome columns, unknown unit of analysis, or no expected allocation for the SRM check. Name exactly what to provide.
+
+The status never replaces the artifact — always give both.

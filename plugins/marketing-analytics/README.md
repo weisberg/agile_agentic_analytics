@@ -1,6 +1,6 @@
 # Marketing Analytics Plugin
 
-15 interconnected marketing analytics skills for Claude Code. Covers the full marketing analytics lifecycle from data extraction through attribution, experimentation, and compliance review.
+16 interconnected marketing analytics skills plus two orchestration/review agents for Claude Code. Covers the full marketing analytics lifecycle from data extraction through attribution, experimentation, and compliance review. Every core skill is authored as an operating loop with strict `## Contract` / `## Workflow` / `## Output Format` / `## Anti-Patterns` sections, mode classification (quick/standard/deep), decision gates, and a completion status (`DONE` / `DONE_WITH_CONCERNS` / `BLOCKED` / `NEEDS_CONTEXT`).
 
 ## Installation
 
@@ -14,6 +14,7 @@
 
 | Skill | Command | Description |
 |-------|---------|-------------|
+| Data Extraction | `/marketing-analytics:data-extraction` | Upstream ingestion: lands and normalizes source exports into `workspace/raw/` and `workspace/processed/` |
 | Attribution Analysis | `/marketing-analytics:attribution-analysis` | Bayesian MMM, multi-touch attribution, budget optimization |
 | Experimentation | `/marketing-analytics:experimentation` | A/B testing, CUPED, sequential testing, Bayesian analysis |
 | Paid Media | `/marketing-analytics:paid-media` | Cross-platform ad performance, anomaly detection, creative fatigue |
@@ -40,6 +41,13 @@
 | Competitive Intel | `/marketing-analytics:competitive-intel` | Keyword gap, traffic estimation, ad creative monitoring |
 | VoC Analytics | `/marketing-analytics:voc-analytics` | NPS/CSAT/CES, theme extraction, satisfaction-behavior correlation |
 
+## Agents
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `marketing-analyst` | opus | Orchestrator that chains data-extraction → channel/measurement skills → attribution → reporting over the `workspace/` contracts, verifying each stage's outputs and stopping at real decision points. Tools: Read, Write, Edit, Bash, Grep, Glob. |
+| `compliance-screener` | sonnet | Read-only reviewer backing the financial-services gate. Classifies content and screens it against the compliance-review SEC/FINRA/FCA references; advisory only, always recommends human compliance-officer review. Tools: Read, Grep, Glob. |
+
 ## Architecture
 
 Skills communicate through three mechanisms:
@@ -47,6 +55,8 @@ Skills communicate through three mechanisms:
 1. **Shared Data Contracts** — Canonical schemas in `shared/schemas/data_contracts.md`
 2. **Filesystem State** — Structured workspace directories (`workspace/raw/`, `workspace/processed/`, `workspace/analysis/`, `workspace/reports/`, `workspace/compliance/`)
 3. **Description-Driven Composition** — Each skill's trigger description names prerequisites and downstream consumers
+
+Builder-facing acceptance criteria and engineering conventions for the core skills live in `references/authoring-notes.md` (kept out of the runtime skill bodies). The portfolio map each skill's intake points to is `references/skill-index.md`.
 
 ## Financial Services Mode
 

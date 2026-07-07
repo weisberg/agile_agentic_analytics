@@ -7,239 +7,129 @@ description: >
   conversion tracking, UTM parameters, event tracking, behavioral analysis,
   Mixpanel, Amplitude, user journey, click path, scroll depth, or heatmap data.
   Also trigger on 'what's happening on our website' or 'where is traffic coming
-  from.' If GA4 data is not yet extracted, suggest running data-extraction first.
-  Web metrics feed into funnel-analysis, seo-content, paid-media,
-  audience-segmentation, experimentation (CUPED covariates), and reporting skills.
+  from.' For organic-search / keyword performance use seo-content; for step-by-step
+  conversion drop-off use funnel-analysis; this skill is the foundational
+  behavioral data layer. If GA4 data is not yet in the workspace, run
+  data-extraction first.
 
 disable-model-invocation: false
 ---
 
-# Web Analytics & Behavioral Analysis
+# Web Analytics
 
-GA4 data extraction, behavioral pattern detection, anomaly detection, and
-predictive audiences.
+GA4 extraction, normalized web metrics, seasonal anomaly detection, navigation
+path analysis, and predictive audience scoring — the behavioral data layer other
+skills build on.
 
-| Property       | Value                                                        |
-| :------------- | :----------------------------------------------------------- |
-| Skill ID       | web-analytics                                                |
-| Priority       | P1 — Tactical (foundational data layer)                      |
-| Category       | Digital Analytics                                            |
-| Depends On     | data-extraction                                              |
-| Feeds Into     | funnel-analysis, seo-content, paid-media, audience-segmentation, reporting |
+## Contract
 
-## Objective
+**Role:** Advisory analyst and data layer. Extracts, normalizes, detects
+anomalies, and scores propensity; does not change the site or run experiments.
+All statistics and models run in deterministic Python scripts.
 
-Extract and analyze web behavioral data from GA4 (via the official MCP server
-or API), Mixpanel, and Amplitude. Automate traffic and conversion anomaly
-detection, user behavior pattern identification, session flow analysis, and
-predictive audience creation. Serve as the foundational behavioral data layer
-that feeds funnel analysis, SEO, paid media landing page optimization, and
-segmentation.
+**Mode:**
+- `quick` — normalized metrics + anomaly detection.
+- `standard` (default) — add navigation path and content-affinity analysis.
+- `deep` — add predictive audiences and page-performance correlation.
 
-## Process Steps
+**When to use:** GA4/traffic analysis, anomaly detection, session/path behavior,
+predictive audiences, landing-page performance.
 
-1. **Validate inputs.** Load `ga4_reports.csv` and/or `events.csv` from
-   `workspace/raw/`. Verify required columns (date, source, medium, page_path,
-   sessions, conversions). Normalize UTM parameters: lowercase source/medium,
-   trim whitespace, decode URL-encoded characters.
+**When NOT to use:** organic-search keyword/ranking work → `seo-content`;
+funnel-step drop-off → `funnel-analysis`; clustering customers →
+`audience-segmentation`. See `../../references/skill-index.md`.
 
-2. **Extract GA4 data.** If fresh data is needed, use the google-analytics-mcp
-   server when available; otherwise run `scripts/extract_ga4.py` against the
-   GA4 Data API with the requested dimensions and metrics. Support incremental
-   date range appending without full re-extraction.
+**Evidence required (inputs):**
+- `workspace/raw/ga4_reports.csv` — date, source, medium, page_path, sessions,
+  conversions. Required. If absent, STOP and run **data-extraction** first (or use
+  the google-analytics-mcp server / `scripts/extract_ga4.py` to land it).
+- `workspace/raw/events.csv` — event-level data (optional; enables path analysis).
 
-3. **Compute normalized metrics.** Aggregate raw event data into daily traffic,
-   engagement, and conversion metrics. Write results to
+**Depends on:** data-extraction. **Feeds into:** funnel-analysis, seo-content,
+paid-media, audience-segmentation, experimentation, reporting. Builder detail in
+`references/authoring-notes.md`.
+
+**Hard STOP (analysis validity):** anomaly detection requires ≥8 weeks of history
+for a stable seasonal baseline. If history is shorter, STOP the anomaly step,
+report descriptive trends only, and label the seasonal baseline as unavailable —
+do not emit anomaly flags from an unstable decomposition.
+
+Parse `$ARGUMENTS` for inline paths, date range, or Z-score threshold overrides.
+
+## Workflow
+
+1. **Validate inputs.** Load `ga4_reports.csv` and/or `events.csv`; verify
+   required columns. Normalize UTM parameters (lowercase source/medium, trim,
+   URL-decode).
+
+2. **Extract-source gate (AskUserQuestion).** When fresh data is needed and both
+   a live source and a stale file exist, ask before pulling:
+   - **Question:** "How should I source GA4 data?"
+   - **Options:** (a) *Use the workspace CSV as-is* — fastest, may be stale;
+     (b) *Pull fresh via google-analytics-mcp* — when the MCP server is connected;
+     (c) *Run `scripts/extract_ga4.py`* — Data API fallback with named dimensions.
+   Skip when the workspace file is fresh and sufficient.
+
+3. **Normalize metrics.** Aggregate to daily traffic/engagement/conversion; write
    `workspace/processed/web_metrics.json`.
 
-4. **Run anomaly detection.** Execute `scripts/web_anomaly_detection.py` on the
-   normalized metrics time series. The script applies STL seasonal
-   decomposition (period = 7 days) then flags residuals exceeding the
-   configured Z-score threshold. Requires at least 8 weeks of history for
-   stable seasonal baselines.
+4. **Anomaly detection.** Run `scripts/web_anomaly_detection.py`: STL seasonal
+   decomposition (period=7) then Z-score residual flags. Apply the Hard STOP gate
+   on history length first.
 
-5. **Decompose anomaly root causes.** For each flagged anomaly, break down the
-   deviation by source/medium, device category, geography, and landing page to
-   identify the largest contributing dimension. Suppress known events
-   (holidays, product launches) when a suppression calendar is provided.
+5. **Root-cause decomposition.** For each anomaly, break the deviation down by
+   source/medium, device, geography, and landing page; suppress known events
+   (holidays, launches) when a suppression calendar is provided.
 
-6. **Analyze navigation paths.** Run `scripts/path_analysis.py` to build
-   second-order (bigram) Markov chain transition matrices from session-level
-   page sequences. Identify the top conversion paths, unexpected navigation
-   loops, and dead-end pages.
+6. **Navigation paths.** Run `scripts/path_analysis.py`: second-order (bigram)
+   Markov transition matrices; top conversion paths, loops, dead-ends.
 
-7. **Score content affinity.** For each content category, compute the
-   conversion lift ratio: P(convert | visited category) / P(convert). Rank
-   categories by affinity score. See `references/behavioral_patterns.md`.
+7. **Content affinity & exit pages.** Conversion-lift ratio
+   P(convert|category)/P(convert), ranked; exit-rate ranking weighted by
+   conversion proximity. See `references/behavioral_patterns.md`.
 
-8. **Run exit page analysis.** Rank pages by exit rate weighted by conversion
-   proximity (pages closer to the conversion step in the dominant path receive
-   higher weight).
+8. **Predictive audiences** (deep mode). Run `scripts/predictive_scoring.py`:
+   logistic regression for convert/churn propensity on behavioral features;
+   temporal holdout validation (target AUC > 0.70).
 
-9. **Build predictive audiences.** Run `scripts/predictive_scoring.py` to fit
-   logistic regression models for propensity-to-convert and
-   propensity-to-churn using behavioral features (session count, pages per
-   session, content affinity scores, recency). Validate on a temporal holdout
-   to avoid data leakage.
+9. **Page performance** (deep mode). Correlate load time with bounce rate,
+   segmented by device.
 
-10. **Analyze page performance.** Correlate page load time with bounce rate
-    across pages. Segment by mobile vs. desktop to surface device-specific
-    performance issues.
+10. **Write outputs.**
 
-11. **Write outputs.** Persist all results to the workspace:
-    - `workspace/analysis/web_anomalies.json`
-    - `workspace/analysis/navigation_paths.json`
-    - `workspace/analysis/predictive_audiences.json`
+## Output Format
 
-## Key Capabilities
+Artifacts:
 
-### GA4 Data Extraction
+| File | Contents |
+|------|----------|
+| `workspace/processed/web_metrics.json` | Normalized traffic/engagement/conversion metrics |
+| `workspace/analysis/web_anomalies.json` | Anomalies with root-cause decomposition |
+| `workspace/analysis/navigation_paths.json` | Common paths with conversion correlation |
+| `workspace/analysis/predictive_audiences.json` | Convert/churn propensity scores |
 
-- Connect to GA4 via the official MCP server or Data API for automated report
-  retrieval.
-- Support Mixpanel and Amplitude event export formats for multi-platform
-  analysis.
-- Automated UTM parameter validation and source/medium normalization: handle
-  case differences, trailing spaces, and URL-encoded characters.
-- Incremental data loading: append new date ranges without requiring full
-  re-extraction.
+Report states: history length used, anomaly threshold, path-analysis order, and
+predictive-model holdout AUC (or that scoring was skipped).
 
-Refer to `references/ga4_api.md` for GA4 Data API dimensions, metrics, and
-filter syntax.
+**Financial services mode:** track regulatory disclosure page views for compliance
+verification; authenticated investor-portal analytics require PII handling (GDPR,
+CCPA, SEC); report cookie-consent rate as a data-quality metric; verify required
+disclosures rendered before conversion events. Any customer-facing output routes
+through **compliance-review**.
 
-### Traffic and Conversion Anomaly Detection
+**Completion status:**
+- `DONE` — metrics, anomalies, and requested behavioral artifacts written.
+- `DONE_WITH_CONCERNS` — e.g., short history (anomalies skipped), missing events
+  (no path analysis), or low predictive AUC.
+- `BLOCKED` — no GA4 data and extraction unavailable; state the fix.
+- `NEEDS_CONTEXT` — extraction-source choice unresolved by the user.
 
-- Daily traffic and conversion rate anomaly detection with seasonal adjustment
-  using STL decomposition and Z-score thresholds.
-- Automated root cause decomposition: break anomaly into source, device,
-  geography, and page contributions.
-- Configurable alert thresholds with suppression for known events (holidays,
-  product launches).
+## Anti-Patterns
 
-### Behavioral Pattern Detection
-
-- Identify high-conversion navigation paths using Markov chain transition
-  analysis with second-order (bigram) transitions.
-- Exit page analysis: rank pages by exit rate weighted by conversion proximity.
-- Content affinity scoring: which content categories correlate with downstream
-  conversion.
-
-Refer to `references/behavioral_patterns.md` for Markov chain path analysis
-and content affinity scoring methodology.
-
-### Session Flow Analysis
-
-- Build session-level page sequence models from event data.
-- Identify common navigation paths, unexpected loops, and dead-end pages.
-- Compute path-to-conversion probability for each navigation step.
-
-### Predictive Audience Creation
-
-- Propensity-to-convert scoring via logistic regression on behavioral features.
-- Propensity-to-churn scoring for returning visitors showing declining
-  engagement.
-- Temporal holdout validation to avoid data leakage; target AUC > 0.70.
-
-### Page Performance
-
-- Correlate page load time with bounce rate to quantify speed impact.
-- Segment mobile vs. desktop behavioral differences.
-- Identify high-traffic pages with disproportionately slow load times.
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File | Description | Required |
-| :--- | :---------- | :------- |
-| `workspace/raw/ga4_reports.csv` | GA4 report data from data-extraction or MCP server | Yes |
-| `workspace/raw/events.csv` | Event-level data from GA4, Mixpanel, or Amplitude | No (for path analysis) |
-
-### Outputs
-
-| File | Description |
-| :--- | :---------- |
-| `workspace/processed/web_metrics.json` | Normalized web analytics metrics (traffic, engagement, conversion) |
-| `workspace/analysis/web_anomalies.json` | Detected anomalies with root cause decomposition |
-| `workspace/analysis/navigation_paths.json` | Common user paths with conversion correlation scores |
-| `workspace/analysis/predictive_audiences.json` | Propensity scores for conversion and churn |
-
-## Cross-Skill Integration
-
-Web analytics is the foundational behavioral data source:
-
-- **funnel-analysis:** Builds conversion funnels from web event sequences
-  produced by this skill.
-- **seo-content:** Uses traffic data from this skill to measure organic search
-  performance and content engagement.
-- **paid-media:** Analyzes landing page conversion from ad click-throughs using
-  web metrics and session data.
-- **audience-segmentation:** Incorporates behavioral features (session
-  frequency, content affinity scores) into cluster models.
-- **reporting:** Anomalies detected here surface in executive dashboards.
-  Predictive audience scores feed audience-level reporting.
-- **experimentation:** CUPED variance reduction leverages pre-experiment
-  behavioral data sourced from this skill's pipelines.
-
-## Financial Services Considerations
-
-When operating in financial services mode:
-
-- Financial services websites must track regulatory disclosure page views for
-  compliance verification.
-- Investor portal analytics require authenticated user tracking with PII
-  handling compliant with privacy regulations (GDPR, CCPA, SEC).
-- Cookie consent compliance affects data collection; this skill must flag
-  consent rate as a data quality metric and report on consent-rate trends.
-- Regulatory page visit completeness should be verified: ensure all required
-  disclosures have been rendered before conversion events.
-
-## Development Guidelines
-
-1. Prefer the google-analytics-mcp server for GA4 data when available; fall
-   back to the Data API Python client.
-
-2. Anomaly detection must use at least 8 weeks of history for stable seasonal
-   baselines.
-
-3. Path analysis Markov chains should use second-order (bigram) transitions for
-   more accurate modeling.
-
-4. Predictive audience scoring must validate on a temporal holdout to avoid
-   data leakage.
-
-5. Support incremental data loading: append new date ranges without requiring
-   full re-extraction.
-
-6. UTM parameter normalization must handle common inconsistencies: case
-   differences, trailing spaces, and URL-encoded characters.
-
-7. All statistical and ML computations must be deterministic Python scripts.
-   Never let the LLM perform numerical estimation directly.
-
-## Scripts
-
-| Script | Purpose |
-| :----- | :------ |
-| `scripts/extract_ga4.py` | GA4 report builder with configurable dimensions and metrics |
-| `scripts/web_anomaly_detection.py` | Seasonal decomposition and Z-score anomaly detection on web metrics |
-| `scripts/path_analysis.py` | Markov chain navigation path analysis and conversion path identification |
-| `scripts/predictive_scoring.py` | Logistic regression propensity scoring for conversion and churn |
-
-## Reference Files
-
-| Reference | Content |
-| :-------- | :------ |
-| `references/ga4_api.md` | GA4 Data API dimensions, metrics, and filter syntax |
-| `references/behavioral_patterns.md` | Markov chain path analysis, content affinity scoring methodology |
-
-## Acceptance Criteria
-
-- GA4 data extraction successfully retrieves reports for all standard
-  dimensions and metrics.
-- Anomaly detection achieves false positive rate < 5% on a 90-day historical
-  validation period.
-- Navigation path analysis correctly identifies the top 5 conversion paths
-  verified against manual GA4 exploration.
-- Predictive audience scores achieve AUC > 0.70 on temporal holdout validation
-  for conversion propensity.
+- Emitting anomaly flags from fewer than 8 weeks of history.
+- First-order Markov chains where bigram transitions are specified.
+- Random (non-temporal) holdouts in predictive scoring — they leak the future.
+- Skipping UTM normalization, so `Google` and `google` split traffic.
+- Reporting raw exit rate without conversion-proximity weighting.
+- Letting the model estimate anomaly thresholds or propensity scores instead of
+  the scripts.

@@ -14,6 +14,60 @@ GENERATOR = KB_ROOT / "scripts/generate_kb_roadmap_skills.py"
 SAMPLE_VAULT = KB_ROOT / "references/samples/mini-vault"
 
 
+# Canonical Claude Code tool names (see docs/TOOLS_REFERENCE.md). Skill
+# `allowed-tools` and agent `tools` frontmatter must draw only from this set —
+# no lowercase pseudo-tools (read/write/exec/search) and no fictional KB tools
+# (get_page, put_page, sync_kb, ...).
+CANONICAL_TOOLS = {
+    "Read",
+    "Write",
+    "Edit",
+    "MultiEdit",
+    "Bash",
+    "Grep",
+    "Glob",
+    "Agent",
+    "WebFetch",
+    "WebSearch",
+    "NotebookEdit",
+    "TodoWrite",
+}
+
+
+def read_frontmatter(text: str) -> dict:
+    """Minimal frontmatter reader: handles inline `key: a, b` and YAML `- item` lists."""
+    if not text.startswith("---\n"):
+        return {}
+    end = text.index("\n---", 4)
+    block = text[4:end].splitlines()
+    data: dict = {}
+    i = 0
+    while i < len(block):
+        line = block[i]
+        if line and not line.startswith((" ", "\t")) and ":" in line:
+            key, _, rest = line.partition(":")
+            key = key.strip()
+            rest = rest.strip()
+            if rest:
+                data[key] = rest
+            else:
+                items = []
+                j = i + 1
+                while j < len(block) and block[j].lstrip().startswith("- "):
+                    items.append(block[j].lstrip()[2:].strip().strip('"').strip("'"))
+                    j += 1
+                data[key] = items
+                i = j - 1
+        i += 1
+    return data
+
+
+def tool_values(raw) -> list[str]:
+    if isinstance(raw, list):
+        return [v.strip().strip('"').strip("'") for v in raw if v.strip()]
+    return [v.strip() for v in str(raw).split(",") if v.strip()]
+
+
 def load_generator():
     spec = importlib.util.spec_from_file_location("generate_kb_roadmap_skills", GENERATOR)
     assert spec is not None
@@ -52,8 +106,9 @@ def test_generated_skill_portfolio_has_required_shape() -> None:
     generated_slugs = {spec["slug"] for spec in module.SKILL_SPECS}
     skill_files = sorted((KB_ROOT / "skills").glob("*/SKILL.md"))
 
-    assert len(generated_slugs) == 45
-    assert len(skill_files) >= 50
+    # Phase 2.2 consolidation: 19 generated skills + 5 hand-authored = 24 total.
+    assert len(generated_slugs) == 19
+    assert len(skill_files) == 24
 
     for slug in generated_slugs:
         text = (KB_ROOT / f"skills/{slug}/SKILL.md").read_text(encoding="utf-8")
@@ -63,9 +118,46 @@ def test_generated_skill_portfolio_has_required_shape() -> None:
         assert "## Contract\n" in text
         assert "## Workflow\n" in text
         assert "## Operating System Backing\n" in text
-        assert "scripts/kb_ops.py" in text
+        assert '"${CLAUDE_PLUGIN_ROOT}/scripts/kb_ops.py"' in text
+        assert "plugins/knowledge-base/scripts/kb_ops.py" not in text
         assert "## Output Format\n" in text
         assert "## Anti-Patterns\n" in text
+
+
+def test_all_kb_frontmatter_uses_canonical_tool_names() -> None:
+    """Every KB skill (`allowed-tools`) and agent (`tools`) frontmatter must use
+    only canonical Claude Code tool names, and no skill may use the agent-only
+    `tools:` key."""
+    offenders: list[str] = []
+
+    for skill_file in sorted((KB_ROOT / "skills").glob("*/SKILL.md")):
+        fm = read_frontmatter(skill_file.read_text(encoding="utf-8"))
+        rel = skill_file.relative_to(KB_ROOT)
+        if "tools" in fm:
+            offenders.append(f"{rel}: uses agent-only `tools:` key (should be `allowed-tools:`)")
+        for value in tool_values(fm.get("allowed-tools", [])):
+            if value not in CANONICAL_TOOLS:
+                offenders.append(f"{rel}: non-canonical allowed-tools value {value!r}")
+
+    for agent_file in sorted((KB_ROOT / "agents").glob("*.md")):
+        fm = read_frontmatter(agent_file.read_text(encoding="utf-8"))
+        rel = agent_file.relative_to(KB_ROOT)
+        for value in tool_values(fm.get("tools", [])):
+            if value not in CANONICAL_TOOLS:
+                offenders.append(f"{rel}: non-canonical tools value {value!r}")
+
+    assert not offenders, "\n".join(offenders)
+
+
+def test_no_skill_body_hardcodes_repo_plugin_path() -> None:
+    """No SKILL.md may hardcode the repo-relative `plugins/knowledge-base/` path;
+    cache-safe skills use `${CLAUDE_PLUGIN_ROOT}` instead."""
+    offenders: list[str] = []
+    for skill_file in sorted((KB_ROOT / "skills").glob("*/SKILL.md")):
+        text = skill_file.read_text(encoding="utf-8")
+        if "plugins/knowledge-base/" in text:
+            offenders.append(str(skill_file.relative_to(KB_ROOT)))
+    assert not offenders, "hardcoded repo path in: " + ", ".join(offenders)
 
 
 def test_issue_coverage_maps_all_kb_roadmap_issues() -> None:

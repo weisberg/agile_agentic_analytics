@@ -1,7 +1,7 @@
 # Knowledge Base Release And Upgrade Notes
 
-Use `release-upgrade` and `/plugin-manager:plugin-release` when shipping KB
-plugin changes.
+Use this reference and `/plugin-manager:plugin-release` when shipping KB plugin
+changes.
 
 ## Version Rules
 
@@ -19,7 +19,8 @@ python3 -m json.tool .agents/plugins/marketplace.json
 python3 -m json.tool plugins/knowledge-base/.claude-plugin/plugin.json
 python3 -m json.tool plugins/knowledge-base/.codex-plugin/plugin.json
 claude plugin validate plugins/knowledge-base
-python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin knowledge-base --json
+CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)/plugins/knowledge-base}"
+python3 "${CLAUDE_PLUGIN_ROOT}/../plugin-manager/skills/plugin-health/scripts/plugin_audit.py" --plugin knowledge-base --json
 python3 -m pytest tests/test_knowledge_base tests/test_plugins
 ```
 

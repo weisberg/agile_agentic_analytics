@@ -67,6 +67,28 @@ Severity levels:
 - **Minor** - clarity, reproducibility, or polish issue that should be fixed.
 - **Strength** - something worth preserving.
 
+For a durable handoff, save the review under
+`workspace/analysis/lead-analyst/reviews/` if `workspace/` exists, otherwise
+`analysis/lead-analyst/reviews/`, using the filename format:
+
+```text
+YYYYMMDD-HHMMSS-review-<slug>.md
+```
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Verdict: <reliable | conditional | not reliable | insufficient evidence>
+Next skill: /lead-analyst:metric-contract | data-quality-audit | executive-readout
+Open concerns: <none or list — e.g. unsupported claim, causal overreach>
+```
+
+Use `DONE_WITH_CONCERNS` for a Conditional verdict with fixable issues; `BLOCKED`
+for Not Reliable or when evidence is insufficient to review; `NEEDS_CONTEXT` when
+the claimed decision or artifact is unavailable.
+
 ## Anti-Patterns
 
 - Grading style while ignoring whether the numbers support the decision.

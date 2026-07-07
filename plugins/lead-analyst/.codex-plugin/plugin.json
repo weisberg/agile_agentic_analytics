@@ -1,6 +1,6 @@
 {
   "name": "lead-analyst",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Senior analyst workflows for intake, source inventory, planning, metric contracts, lineage, SQL review, diagnostics, briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.",
   "author": {
     "name": "Brian Weisberg"

@@ -1,7 +1,7 @@
 {
   "name": "product-manager",
-  "version": "0.1.0",
-  "description": "Product management toolkit for discovery, prioritization, roadmapping, PRDs, and stakeholder communication.",
+  "version": "0.1.1",
+  "description": "Product management toolkit for authoring PRDs and turning them into executable, agent-ready implementation plans.",
   "author": {
     "name": "Brian Weisberg"
   },
@@ -10,16 +10,16 @@
   "license": "MIT",
   "keywords": [
     "product-management",
-    "roadmap",
-    "prioritization",
-    "discovery",
-    "prd"
+    "prd",
+    "spec",
+    "agentic-planning",
+    "implementation-plan"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Product Manager",
     "shortDescription": "Write PRDs and turn product ideas into implementation plans.",
-    "longDescription": "Product Manager provides workflows for discovery, prioritization, roadmapping, PRD writing, stakeholder communication, and implementation planning.",
+    "longDescription": "Product Manager ships two skills: prd-writer authors and critiques PRDs, specs, one-pagers, and PR/FAQs; prd-to-plan converts a PRD into a structured PLAN.md for agentic execution with phases, tasks, dependencies, and validation gates.",
     "developerName": "Brian Weisberg",
     "category": "Developer Tools",
     "capabilities": [

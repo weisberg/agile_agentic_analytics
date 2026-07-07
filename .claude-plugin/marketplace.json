@@ -106,7 +106,7 @@
       "name": "marketing-analytics",
       "source": "./plugins/marketing-analytics",
       "displayName": "Marketing Analytics",
-      "description": "Fifteen interconnected marketing analytics skills for attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.",
+      "description": "Sixteen interconnected marketing analytics skills for data extraction, attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.",
       "author": {
         "name": "Brian Weisberg"
       },
@@ -241,7 +241,7 @@
       "name": "product-manager",
       "source": "./plugins/product-manager",
       "displayName": "Product Manager",
-      "description": "Product management toolkit for discovery, prioritization, roadmapping, PRDs, and stakeholder communication.",
+      "description": "Product management toolkit for authoring PRDs and turning them into executable, agent-ready implementation plans.",
       "author": {
         "name": "Brian Weisberg"
       },
@@ -250,10 +250,10 @@
       "license": "MIT",
       "keywords": [
         "product-management",
-        "roadmap",
-        "prioritization",
-        "discovery",
-        "prd"
+        "prd",
+        "spec",
+        "agentic-planning",
+        "implementation-plan"
       ],
       "category": "Developer Tools",
       "defaultEnabled": true,

@@ -13,10 +13,13 @@ triggers:
   - "upgrade plugin"
   - "prepare plugin release"
   - "bump plugin version"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:
@@ -52,7 +55,7 @@ A plugin release is ready only when:
 1. **Preflight**
    - Run `git status --short --branch`.
    - Identify target plugin(s) from changed paths.
-   - Read `plugins/plugin-manager/references/gbrain-gstack-learnings.md`.
+   - Read `${CLAUDE_PLUGIN_ROOT}/references/gbrain-gstack-learnings.md`.
 
 2. **Diff and scope check**
    - Inspect `git diff --stat` and relevant file diffs.
@@ -88,7 +91,7 @@ A plugin release is ready only when:
    - `python3 -m json.tool plugins/<plugin>/.claude-plugin/plugin.json`
    - `python3 -m json.tool plugins/<plugin>/.codex-plugin/plugin.json`
    - `claude plugin validate plugins/<plugin>`
-   - `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin> --json`
+   - `python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" --plugin <plugin> --json`
    - Focused tests for changed scripts.
    - Plugin-specific checks such as `vaultli --json validate` or
      `harvest_check.py` when applicable.

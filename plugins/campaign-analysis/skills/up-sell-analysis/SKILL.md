@@ -21,11 +21,11 @@ disable-model-invocation: false
 **Skill ID:** up-sell-analysis
 **Plugin:** campaign-analysis
 **Category:** Existing-customer campaign measurement
-**Feeds into:** reporting, executive summaries, campaign-measurement
+**Feeds into:** reporting, executive summaries
 
 ---
 
-## What this skill is for
+## Contract
 
 Existing-customer campaigns (up-sell, cross-sell, expansion, re-engagement,
 balance-growth, upgrade) are measured differently than acquisition campaigns.
@@ -241,7 +241,7 @@ campaigns:
 ## Using the helper script
 
 A reference implementation lives at
-`plugins/campaign-analysis/skills/up-sell-analysis/scripts/analyze_upsell.py`
+`${CLAUDE_PLUGIN_ROOT}/skills/up-sell-analysis/scripts/analyze_upsell.py`
 (relative to the repo root). It handles both the holdout and no-holdout
 branches, computes engagement metrics, runs the appropriate test, bootstraps
 a CI, and writes `summary.json`. Use it when the input shape matches the
@@ -250,7 +250,7 @@ metric is a panel of daily balances rather than pre/post), adapt the logic in
 a notebook or script rather than forcing the data into the expected shape.
 
 ```
-python plugins/campaign-analysis/skills/up-sell-analysis/scripts/analyze_upsell.py \
+python "${CLAUDE_PLUGIN_ROOT}/skills/up-sell-analysis/scripts/analyze_upsell.py" \
   --treated path/to/treated.csv \
   --holdout path/to/holdout.csv \
   --metric  path/to/metric.csv \
@@ -274,7 +274,41 @@ See `references/methodology.md` for deeper coverage of:
 
 ---
 
-## Common pitfalls to avoid
+## Output Format
+
+The primary artifact is `report.md` written to
+`workspace/analysis/up-sell/<campaign>/` (alongside `summary.json` and, when the
+inputs support them, `segments.csv` and `engagement_vs_value.csv`). After writing
+it, close with a status line and a completion keyword:
+
+```text
+UP-SELL ANALYSIS
+Campaign: <name>
+Design: <Randomized holdout | Non-randomized comparison | Pre/post only>
+Report: workspace/analysis/up-sell/<campaign>/report.md
+Headline: <incremental lift/customer + 95% CI + p, or descriptive lift only>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+```
+
+Completion status:
+
+- **DONE** — a randomized holdout was present, inputs validated cleanly, and the
+  report carries a causal read (incremental lift, 95% CI, significance test) with
+  no design caveats beyond ordinary sampling error.
+- **DONE_WITH_CONCERNS** — the report was written but the result is qualified.
+  This is the natural status for a **no-holdout pre/post run** (descriptive lift
+  only, not causal), a **non-randomized comparison group**, heavy metric skew,
+  small samples with wide CIs, or post-hoc segment cuts. Name the specific
+  holdout/design caveat in the status and in the report's caveats section.
+- **BLOCKED** — a trustworthy read cannot be produced: treated/holdout overlap
+  (a data error that halts analysis), missing pre- or post-period values for most
+  customers, or a metric that is not comparable across the two time points. State
+  the blocker and the input needed to clear it.
+- **NEEDS_CONTEXT** — required inputs are missing or ambiguous (no treated list,
+  no metric file, undefined campaign window) and could not be resolved. Ask for
+  the specific file or definition before proceeding.
+
+## Anti-Patterns
 
 - Reporting a percent lift without the absolute number, or vice versa.
 - Treating a non-randomized comparison group as a control. Call it a comparison group and flag the bias.

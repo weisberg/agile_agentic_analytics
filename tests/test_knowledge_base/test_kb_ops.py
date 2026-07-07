@@ -32,7 +32,8 @@ def test_resolver_check_has_fixture_for_every_skill() -> None:
     _, payload = run_kb_ops("resolver-check")
 
     assert payload["ok"] is True
-    assert payload["skills"] >= 50
+    # Phase 2.2 consolidation: the KB portfolio is 24 skills (down from 50).
+    assert payload["skills"] == 24
     assert payload["fixtures"] >= payload["skills"]
     assert all(count >= 1 for count in payload["fixture_counts"].values())
     assert not [issue for issue in payload["issues"] if issue["severity"] == "error"]

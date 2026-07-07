@@ -1,0 +1,7 @@
+// marketing-analytics plugin routing fixtures. Cross-plugin cases separate scripted marketing-workspace work from lead-analyst diagnostics and experimentation governance.
+// skill: seo-content  (>=3 positive, >=1 negative/forbidden, >=1 cross-plugin)
+{"intent": "which keywords should we target to grow organic traffic?", "expected_skill": "seo-content"}
+{"intent": "audit our content performance and technical SEO in Search Console", "expected_skill": "seo-content"}
+{"intent": "optimize our pages for AI Overviews and featured snippets", "expected_skill": "seo-content"}
+{"intent": "track our organic keyword rankings and content performance", "expected_skill": "seo-content", "forbidden_skill": "marketing-analytics:competitive-intel"}
+{"intent": "what's happening on our website — traffic sources and landing pages in GA4", "expected_skill": "marketing-analytics:web-analytics", "forbidden_skill": "seo-content"}

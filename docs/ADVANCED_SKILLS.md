@@ -45,6 +45,16 @@ The scanned skill files cover these families:
 
 ## Metadata Conventions
 
+> **Repo note:** The fields catalogued below (`preamble-tier`, `interactive`,
+> `triggers`, `benefits-from`, `hooks`, `gbrain`, and the browser-skill fields)
+> come from the external **gstack** corpus this document distills. They are not
+> all recognized by Claude Code, and several are **not used in this repository**.
+> For skills shipped here, the normative spec is **`docs/SKILL_FRONTMATTER.md`**,
+> which defines what the loader actually reads, what we keep as documented
+> metadata, and what is deprecated. In particular, the capability field is
+> **`allowed-tools`** (a skill field). `tools` is an *agent* field and is a
+> silent no-op on skills — never use it to restrict a skill.
+
 Most skills start with YAML frontmatter. The frontmatter is not decorative; it is
 part routing contract, part capability declaration, and part safety boundary.
 
@@ -1022,6 +1032,12 @@ Then state the hard gate:
 - No destructive actions.
 
 ### 2. Declare Routing Metadata
+
+> **Repo note:** This is the gstack checklist. In THIS repo, follow
+> `docs/SKILL_FRONTMATTER.md`: routing rides on `description` alone;
+> `allowed-tools` (not `tools`) is the capability field; `triggers` is kept as
+> documented metadata only; and `preamble-tier`, `interactive`, `hooks`, and
+> `gbrain` are not part of our shipped skill contract.
 
 Include:
 

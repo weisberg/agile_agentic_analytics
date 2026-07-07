@@ -54,7 +54,26 @@ Use `references/causal-claims-guide.md` before using causal language.
 ```
 
 When writing an artifact, save it under `workspace/reports/lead-analyst/` if
-`workspace/` exists, otherwise `analysis/lead-analyst/readouts/`.
+`workspace/` exists, otherwise `analysis/lead-analyst/readouts/`, using the
+filename format:
+
+```text
+YYYYMMDD-HHMMSS-readout-<slug>.md
+```
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Recommendation: <one line>
+Next skill: /lead-analyst:decision-log
+Open concerns: <none or list — e.g. caveat that changes the action>
+```
+
+Use `DONE_WITH_CONCERNS` when the recommendation stands but a decision-changing
+caveat remains; `BLOCKED` when the underlying analysis is not decision-ready;
+`NEEDS_CONTEXT` when the decision, owner, or timing is unknown.
 
 ## Anti-Patterns
 

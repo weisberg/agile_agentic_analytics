@@ -14,10 +14,13 @@ triggers:
   - "evolve this skill"
   - "self-improve this skill"
   - "run a skill optimization loop"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:

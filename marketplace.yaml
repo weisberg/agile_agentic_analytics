@@ -34,7 +34,7 @@ plugins:
     displayName: Plugin Manager
     path: plugins/plugin-manager
     description: Marketplace maintenance workflows for creating, validating, harvesting, syncing, and publishing agent plugins.
-    version: 0.1.0
+    version: 0.1.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/plugin-manager
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -81,7 +81,7 @@ plugins:
     displayName: Lead Analyst
     path: plugins/lead-analyst
     description: Senior analyst workflows for intake, source inventory, planning, metric contracts, lineage, SQL review, diagnostics, briefs, dashboard work, forecasting, reviews, executive readouts, and decision logs.
-    version: 0.1.0
+    version: 0.1.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/lead-analyst
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -126,7 +126,7 @@ plugins:
     displayName: A/B Testing
     path: plugins/ab-testing
     description: Design, analyze, and review A/B tests with statistical rigor.
-    version: 1.0.0
+    version: 1.0.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/ab-testing
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -156,8 +156,8 @@ plugins:
   - name: marketing-analytics
     displayName: Marketing Analytics
     path: plugins/marketing-analytics
-    description: Fifteen interconnected marketing analytics skills for attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.
-    version: 1.0.0
+    description: Sixteen interconnected marketing analytics skills for data extraction, attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.
+    version: 1.1.0
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/marketing-analytics
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -193,7 +193,7 @@ plugins:
     codex:
       interface:
         shortDescription: Run marketing analytics workflows across channels and lifecycle stages.
-        longDescription: Marketing Analytics packages linked workflows for attribution, experiments, paid media, reporting, CLV, segmentation, funnels, email, web, SEO, CRM, social, VoC, and compliance review.
+        longDescription: Marketing Analytics packages linked workflows for data extraction, attribution, experiments, paid media, reporting, CLV, segmentation, funnels, email, web, SEO, CRM, social, VoC, and compliance review.
     claude:
       defaultEnabled: true
       strict: true
@@ -202,7 +202,7 @@ plugins:
     displayName: Experimentation
     path: plugins/experimentation
     description: Regulated, low-velocity, high-trust experimentation workflows for design, analysis, decision governance, email incrementality, operating models, and executive evidence briefs.
-    version: 1.0.0
+    version: 1.0.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/experimentation
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -239,7 +239,7 @@ plugins:
     displayName: Campaign Analysis
     path: plugins/campaign-analysis
     description: Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.
-    version: 0.1.0
+    version: 0.1.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/campaign-analysis
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -273,7 +273,7 @@ plugins:
     displayName: Knowledge Base
     path: plugins/knowledge-base
     description: Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.
-    version: 0.1.0
+    version: 0.1.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
@@ -331,16 +331,16 @@ plugins:
   - name: product-manager
     displayName: Product Manager
     path: plugins/product-manager
-    description: Product management toolkit for discovery, prioritization, roadmapping, PRDs, and stakeholder communication.
-    version: 0.1.0
+    description: Product management toolkit for authoring PRDs and turning them into executable, agent-ready implementation plans.
+    version: 0.1.1
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/product-manager
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:
       - product-management
-      - roadmap
-      - prioritization
-      - discovery
       - prd
+      - spec
+      - agentic-planning
+      - implementation-plan
     capabilities:
       - Read
       - Write
@@ -355,7 +355,7 @@ plugins:
     codex:
       interface:
         shortDescription: Write PRDs and turn product ideas into implementation plans.
-        longDescription: Product Manager provides workflows for discovery, prioritization, roadmapping, PRD writing, stakeholder communication, and implementation planning.
+        longDescription: 'Product Manager ships two skills: prd-writer authors and critiques PRDs, specs, one-pagers, and PR/FAQs; prd-to-plan converts a PRD into a structured PLAN.md for agentic execution with phases, tasks, dependencies, and validation gates.'
     claude:
       defaultEnabled: true
       strict: true

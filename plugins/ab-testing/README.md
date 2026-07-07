@@ -2,6 +2,25 @@
 
 Design, analyze, and review A/B tests with statistical rigor.
 
+## Scope — when to use this plugin
+
+This plugin owns the **hands-on experiment lifecycle**: designing a test, calculating
+sample size and duration, analyzing results, reviewing implementation code, and writing
+the readout. Reach for it whenever the work is running an actual A/B test end to end.
+
+For neighboring intents, use a different surface instead:
+
+- **Regulated or high-trust governance** — decision reviews beyond significance, compliance
+  and conduct-risk review, experimentation operating models, program design, and calibrated
+  executive/board evidence briefs — use the **experimentation** plugin. It governs; it does
+  not run the sample-size or analysis math (it defers those here).
+- **Scripted marketing-workspace statistics** — CUPED, SRM, sequential tests wired to the
+  `workspace/` data contracts — use **marketing-analytics/experimentation**.
+
+So: "how long should I run this test", "is B significant", "review my bucketing code",
+"write the readout" → this plugin. "Is this test compliant / should we ship given the
+risk / stand up our experimentation program" → the experimentation plugin.
+
 ## Installation
 
 ```

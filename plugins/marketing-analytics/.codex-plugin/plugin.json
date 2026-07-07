@@ -1,7 +1,7 @@
 {
   "name": "marketing-analytics",
-  "version": "1.0.0",
-  "description": "Fifteen interconnected marketing analytics skills for attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.",
+  "version": "1.1.0",
+  "description": "Sixteen interconnected marketing analytics skills for data extraction, attribution, experimentation, paid media, reporting, CLV, segmentation, funnels, email, web analytics, SEO, CRM, social, competitive intel, VoC, and compliance review.",
   "author": {
     "name": "Brian Weisberg"
   },
@@ -32,7 +32,7 @@
   "interface": {
     "displayName": "Marketing Analytics",
     "shortDescription": "Run marketing analytics workflows across channels and lifecycle stages.",
-    "longDescription": "Marketing Analytics packages linked workflows for attribution, experiments, paid media, reporting, CLV, segmentation, funnels, email, web, SEO, CRM, social, VoC, and compliance review.",
+    "longDescription": "Marketing Analytics packages linked workflows for data extraction, attribution, experiments, paid media, reporting, CLV, segmentation, funnels, email, web, SEO, CRM, social, VoC, and compliance review.",
     "developerName": "Brian Weisberg",
     "category": "Developer Tools",
     "capabilities": [

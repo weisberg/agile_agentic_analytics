@@ -12,10 +12,11 @@ triggers:
   - "fresh clone plugin test"
   - "make plugin easier to use"
   - "check plugin quickstart"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:
@@ -31,6 +32,9 @@ disable-model-invocation: false
 
 A devex review produces:
 
+- An automated onboarding-mechanics result from `scripts/devex_check.py`
+  (README/skill coverage, `--plugin-dir` docs, script resolution/compile,
+  frontmatter name match).
 - Fresh-user setup path with concrete commands.
 - Measured or estimated time to first useful success.
 - Missing prerequisites and confusing path names.
@@ -45,6 +49,18 @@ A devex review produces:
    - Run `git status --short --branch` before editing.
 
 2. **Fresh-user path**
+   - Run the bundled onboarding checker first — it mechanizes the checks below
+     (README names every real skill and no phantom skills, `--plugin-dir` is
+     documented, referenced `.py` scripts resolve and compile, frontmatter
+     `name` matches its directory):
+
+     ```bash
+     python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-devex-review/scripts/devex_check.py" --plugin <plugin-name>
+     ```
+
+     Exit `0` = onboarding mechanics pass; exit `1` = fix each `FAIL:` line
+     before continuing. `NOTE:` lines (e.g. non-executable scripts) are hints,
+     not blockers.
    - Verify install command appears in root and plugin docs.
    - Verify local testing command:
      `claude --plugin-dir ./plugins/<plugin-name>`.
@@ -55,7 +71,7 @@ A devex review produces:
 3. **Validation path**
    - Run `claude plugin validate plugins/<plugin-name>` when available.
    - Run `/plugin-manager:plugin-health` or its script:
-     `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin-name> --json`.
+     `python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" --plugin <plugin-name> --json`.
    - Run focused tests for changed scripts.
 
 4. **Experience review**
@@ -92,4 +108,3 @@ Follow-up issues:
 - Requiring private local paths in public plugin instructions.
 - Adding long setup prose instead of a shorter working quickstart.
 - Filing vague issues without repro commands.
-

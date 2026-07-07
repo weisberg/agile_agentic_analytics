@@ -1,7 +1,11 @@
 # KB Automation And Checkpoints
 
-Use this reference for `cron-scheduler`, `background-jobs`, and
-`context-checkpoint`.
+Reference for scheduling and long-running KB work. Recurring-job design (cron
+cadence, quiet hours, idempotent prompts) and resumable checkpointing were
+formerly the `cron-scheduler` and `context-checkpoint` skills; both now live
+here. The runtime home for orchestrating and checkpointing long jobs is the
+`background-jobs` skill. Connector polling contracts are in
+`connector-ingestion.md`.
 
 ## Job Envelope
 

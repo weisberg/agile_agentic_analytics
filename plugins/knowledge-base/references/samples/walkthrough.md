@@ -10,12 +10,12 @@ The synthetic mini vault under `references/samples/mini-vault` demonstrates:
 Expected agent flow:
 
 ```bash
-vaultli --json root plugins/knowledge-base/references/samples/mini-vault
-vaultli --json index --root plugins/knowledge-base/references/samples/mini-vault
-vaultli --json validate --root plugins/knowledge-base/references/samples/mini-vault
-vaultli --json search "renewal risk" --root plugins/knowledge-base/references/samples/mini-vault
-vaultli --json context --root plugins/knowledge-base/references/samples/mini-vault --id companies/acme-example
+CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)/plugins/knowledge-base}"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search "renewal risk" --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault"
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json context --root "${CLAUDE_PLUGIN_ROOT}/references/samples/mini-vault" --id companies/acme-example
 ```
 
 All names are synthetic.
-

@@ -14,10 +14,11 @@ triggers:
   - "make this proper"
   - "add tests and evals for this"
   - "check skill completeness"
-tools:
-  - exec
-  - read
-  - write
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
 mutating: true
 
 disable-model-invocation: false
@@ -43,8 +44,9 @@ knows where the gate stands.
 If the `gbrain` eval or skillify CLI is not installed in the current
 environment, do not invent receipts. Record the missing command as an explicit
 waiver or known gap, then use the closest repo-native validation available
-(`claude plugin validate`, tests, resolver checks, and `vaultli validate` for
-file-based KB artifacts).
+(`claude plugin validate`, tests, resolver checks, and
+`"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate` for file-based KB
+artifacts).
 
 ## The Checklist
 
@@ -93,10 +95,11 @@ description: |
 triggers:
   - "trigger phrase users actually say"
   - "another real trigger"
-tools:
-  - exec
-  - read
-  - write
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
 mutating: false  # true if it writes to the KB or disk
 ---
 ```
@@ -252,8 +255,9 @@ tests.
 - E2E smoke: full pipeline from trigger to side effect.
 - KB filing: add to the relevant KB resolver, filing rule, or `vaultli` index
   flow if the skill writes knowledge base pages or durable KB artifacts.
-- For file-based KBs, use `vaultli index` and `vaultli validate` after changes
-  that create or update indexed artifacts.
+- For file-based KBs, use `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index`
+  and `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate` after changes that
+  create or update indexed artifacts.
 
 ## Phase 7: Verify
 
@@ -264,7 +268,7 @@ gbrain skillify check skills/<slug>/scripts/<slug>.mjs --json | \
 ls ~/.gbrain/.gbrain/eval-receipts/
 gbrain check-resolvable --json | jq .ok
 claude plugin validate plugins/knowledge-base
-vaultli --json validate --root <kb-root>
+"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root <kb-root>
 ```
 
 If `gbrain` commands are unavailable, run the repo-native equivalents and mark

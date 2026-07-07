@@ -15,10 +15,13 @@ triggers:
   - "repair this skill"
   - "upgrade this skill"
   - "make this skill better"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:
@@ -82,7 +85,7 @@ comparison, slow/meta updates, or best-skill export.
      or progressive disclosure clearly needs them.
 
 5. **Validation**
-   - Run `python3 plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --plugin <plugin-name> --json`.
+   - Run `python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-health/scripts/plugin_audit.py" --plugin <plugin-name> --json`.
    - Run `npm run render:check` and `npm run validate` when the improvement
      changes shared plugin metadata, generated manifests, or marketplace
      surfaces.

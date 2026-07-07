@@ -1,11 +1,12 @@
 # Marketing Analytics Plugin — Skill Index
 
-15 interconnected skills for comprehensive marketing analytics. Skills are composable: they communicate through shared data contracts and a structured workspace filesystem.
+16 interconnected skills plus two agents for comprehensive marketing analytics. Skills are composable: they communicate through shared data contracts and a structured workspace filesystem. The six core skills (data-extraction, attribution-analysis, experimentation, paid-media, reporting, compliance-review) are authored as operating loops with strict `## Contract` / `## Workflow` / `## Output Format` / `## Anti-Patterns` sections, mode classification, decision gates, and completion status.
 
 ## Skills by Priority
 
 ### P0 — Foundational
 
+- **data-extraction** — Upstream ingestion: lands CSV/JSON exports, described API pulls, and manual pastes into `workspace/raw/`, validates them against the shared data contracts, and writes normalized copies to `workspace/processed/`. Run first when a downstream skill reports a missing workspace input. Triggers: extract data, pull data from, load CSV/JSON into workspace, connect data source, refresh data, normalize raw data.
 - **attribution-analysis** — Bayesian marketing mix modeling, multi-touch attribution, incrementality measurement. Triggers: attribution, ROAS, MMM, channel contribution, budget optimization, adstock, saturation curves, Shapley value, marketing ROI.
 - **experimentation** — A/B testing, CUPED variance reduction, sequential testing, causal analysis. Triggers: A/B test, experiment, hypothesis test, p-value, confidence interval, CUPED, power analysis, sample size, MDE, sequential test, Bayesian AB test, uplift modeling.
 - **paid-media** — Cross-platform ad performance (Google, Meta, LinkedIn, TikTok, DV360), anomaly detection, creative fatigue. Triggers: paid media, ad performance, Google Ads, Meta Ads, SEM, PPC, ROAS, CPA, CPM, CTR, budget pacing, creative fatigue, negative keywords.
@@ -31,7 +32,7 @@
 ## Skill Dependency Graph
 
 ```
-data-extraction (upstream, external)
+data-extraction (upstream ingestion skill; lands workspace/raw/ + workspace/processed/)
     |
     +-- attribution-analysis <-> experimentation (calibration loop)
     |       |
@@ -66,6 +67,11 @@ data-extraction (upstream, external)
 | `shared/schemas/` | Data contracts shared across all skills |
 | `shared/definitions/` | Marketing taxonomy, metric glossary, benchmarks |
 | `shared/utils/` | Common Python utilities |
+
+## Agents
+
+- **marketing-analyst** (model: opus) — Orchestrator. Chains data-extraction → channel/measurement skills → attribution-analysis → reporting over the `workspace/` contracts, verifying each stage's outputs before advancing and surfacing each skill's decision gates rather than answering them itself. Stops and reports on hard-gate failures, `BLOCKED`/`NEEDS_CONTEXT` from a specialist, real decision points, and the FS-mode compliance gate.
+- **compliance-screener** (model: sonnet, read-only) — Backs the financial-services gate. Classifies customer-facing content and screens it against the compliance-review SEC/FINRA/FCA references, returning severity-tagged findings with rule citations. Advisory only; never certifies; always recommends human compliance-officer review.
 
 ## Financial Services Mode
 

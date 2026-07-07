@@ -28,17 +28,17 @@ Tracked top-level paths in this repository (run `git ls-files | awk -F/ '{print 
 | `plugins/experimentation/` | Experimentation plugin (`agents/`, `references/`, `skills/{advanced-experiment-analysis, compliance-trust-review, early-signal-monitoring, email-incrementality, executive-evidence-brief, experiment-decision-review, experiment-operating-model, measurement-integration, null-results-knowledge-base, personalization-governance, power-duration-planning, safe-experiment-design}`). |
 | `plugins/marketing-analytics/` | Marketing analytics portfolio (`shared/{definitions, schemas, utils}`, `skills/{attribution-analysis, audience-segmentation, clv-modeling, competitive-intel, compliance-review, crm-lead-scoring, email-analytics, experimentation, funnel-analysis, paid-media, reporting, seo-content, social-analytics, voc-analytics, web-analytics}`). |
 | `plugins/lead-analyst/` | Senior analyst plugin (`agents/{analysis-planner, data-quality-auditor, insight-editor, lead-analyst, metric-steward}.md`, `references/{analysis-plan-template, analysis-standards, causal-claims-guide, data-quality-checklist, executive-readout-template, metric-contract-template}.md`, `scripts/profile_table.py`, `skills/{analysis-brief, analysis-intake, analysis-planning, analysis-review, cohort-analysis, dashboard-audit, dashboard-spec, data-quality-audit, decision-log, eda-profile, executive-readout, forecast-scenario, metric-contract, metric-lineage, metric-movement-diagnostic, segment-diagnostics, source-inventory, sql-review}`). |
-| `plugins/product-manager/` | Product management plugin (`agents/`, `commands/`, `skills/{prd-to-plan, prd-writer}`). |
+| `plugins/product-manager/` | Product management plugin (`references/`, `skills/{prd-to-plan, prd-writer}`). |
 | `plugins/campaign-analysis/` | Campaign analysis plugin (`skills/{up-sell-analysis, cross-sell-analysis}`). |
 | `plugins/plugin-manager/` | Plugin marketplace maintenance plugin (`skills/{manage-plugins, plugin-devex-review, plugin-health, plugin-quality-gate, plugin-release, plugin-work-checkpoint, skill-improve, skillopt-training-run, skillopt-rollout-evidence, skillopt-reflection-edits, skillopt-validation-gate, skillopt-slow-meta-update, skillopt-transfer-release, upstream-skill-harvest}`). |
-| `plugins/knowledge-base/` | Knowledge base plugin (`agents/`, `references/`, bundled `vaultli/`, and 50 skills for ingestion, retrieval, graph ops, privacy, automation, publishing, and maintenance). |
+| `plugins/knowledge-base/` | Knowledge base plugin (`agents/`, `references/`, bundled `vaultli/`, and 24 consolidated skills for ingestion, retrieval, curation, publishing, automation, and maintenance). |
 | `knowledge/experimentation/` | Knowledge base material for the experimentation plugin. |
 | `examples/` | Worked example workflows (`clv_segmentation_workflow.md`, `funnel_optimization.md`, `quick_start.md`, `generate_sample_data.py`, `data/`). |
 | `scripts/` | Marketplace renderer, validator, and smoke-test scripts. |
 | `schemas/` | Documentation schemas for the canonical catalog and generated plugin manifests. |
 | `tests/` | Pytest suite (`conftest.py`, `fixtures/`, plugin tests, knowledge-base tests, and per-skill test packages such as `test_audience_segmentation`, `test_email_analytics`, `test_funnel_analysis`, `test_integration`, `test_voc_analytics`, `test_web_analytics`). |
 
-Note: `.claude/` (local Claude settings) and `plugins/campaign-measurement/` exist locally but are not tracked in git. Top-level `agents/`, `bin/`, `hooks/`, and `skills/` are also untracked — git does not preserve empty directories, so these only appear once they contain files.
+Note: `.claude/` (local Claude settings) exists locally but is not tracked in git. Top-level `agents/`, `bin/`, `hooks/`, and `skills/` are also untracked — git does not preserve empty directories, so these only appear once they contain files.
 
 ## Documentation Map
 
@@ -51,6 +51,7 @@ This repository includes official Anthropic Claude Code documentation, a marketi
 | `docs/CREATE_CUSTOM_SUBAGENTS.md` | Subagent design and operation. Use this when adding or changing plugin agents in `plugins/<plugin>/agents/`, deciding whether an agent should be project/user/plugin-scoped, restricting tools, choosing models, or designing automatic delegation behavior. | Built-in agents; `/agents` workflow; scopes and precedence; frontmatter fields; tool restrictions; hooks for subagents; foreground/background execution; context management; example reviewer/debugger/data-scientist agents. |
 | `docs/HOOKS_REFERENCE.md` | Hook lifecycle and schema reference. Use this before adding plugin hooks, skill/agent hooks, or project hooks, and whenever a hook needs to block, approve, transform, notify, run async work, call MCP tools, or use prompt/agent-based evaluation. | Lifecycle; hook locations; matcher patterns; handler fields; stdin JSON input; exit-code and JSON output; all event schemas; prompt hooks; agent hooks; async hooks; security best practices; debugging hooks. |
 | `docs/TOOLS_REFERENCE.md` | Claude Code tool names and behavior. Use this when writing tool allow/deny rules, subagent `tools` or `disallowedTools`, hook matchers, permission settings, or tool-aware skill instructions. | Tool name table; permission requirements; Bash cwd/env behavior; LSP behavior; Monitor tool; PowerShell behavior; checking available tools. |
+| `docs/SKILL_FRONTMATTER.md` | Normative frontmatter specification for all skills and agents in this repo. Use it whenever authoring, reviewing, or validating any `SKILL.md` or `agents/*.md` frontmatter. | Three tiers: loader-recognized skill fields (`name`, `description`, `allowed-tools`, `disable-model-invocation`); repo-convention metadata (`triggers`, `mutating`, `version`); deprecated fields. Canonical tool-name vocabulary (`Agent`, not `Task`); plugin-agent frontmatter allowlist; `tools`→`allowed-tools` migration notes. |
 | `docs/marketing_analytics_skill_specs.md` | Product and implementation specification for the marketing analytics portfolio. Use this when adding, revising, or validating marketing analytics skills, scripts, references, schemas, financial-services behavior, or cross-skill workflows. | SKILL.md format guidance; 15-skill portfolio; priority tiers; portfolio architecture; workspace directory structure; per-skill objectives, trigger descriptions, functional scope, data contracts, scripts, cross-skill integration, financial-services considerations, development guidelines, acceptance criteria; appendices for data contracts and interconnection matrix. |
 | `docs/ADVANCED_SKILLS.md` | Advanced design-pattern reference distilled from the gstack `SKILL.md` corpus. Use this when a skill needs more than basic instructions: routing, evidence gates, AskUserQuestion decisions, review chaining, browser QA, design review, release workflows, memory, safety hooks, or distinctive voice/style. | Core thesis; metadata conventions; generated preamble patterns; AskUserQuestion pattern; voice and prose style; completeness principle; evidence-first workflows; planning/design/browser/review/release/memory/safety patterns; skill-by-skill advanced feature map; authoring checklist. |
 | `templates/skills/COMPONENTS.md` | Index for reusable gstack-style skill and plugin workflow components. Use this before creating or refactoring a skill so the workflow has explicit routing, decision gates, evidence, outputs, safety, and persistence. | Directory structure; 12 type-based catalogs; component ranges 1-101; quick lookup by skill type; links to catalog files under `templates/skills/catalogs/`. |
@@ -62,6 +63,7 @@ This repository includes official Anthropic Claude Code documentation, a marketi
 - Use `docs/CREATE_CUSTOM_SUBAGENTS.md` before changing anything in `agents/`, especially plugin-shipped agents because they support fewer frontmatter fields than project/user agents.
 - Use `docs/HOOKS_REFERENCE.md` before adding hooks or changing hook matchers. Hook event names and matcher semantics are case-sensitive and event-specific.
 - Use `docs/TOOLS_REFERENCE.md` whenever a config references tool names. Tool names in permissions, subagent frontmatter, and hook matchers must match Claude Code's canonical tool names.
+- Use `docs/SKILL_FRONTMATTER.md` as the single source of truth for skill and agent frontmatter. Skills restrict capabilities with `allowed-tools` (never `tools`, which is agent-only); `triggers`/`mutating`/`version` are repo metadata the loader does not read; routing rides entirely on `description`.
 - Use `docs/marketing_analytics_skill_specs.md` as the product requirements document for the `marketing-analytics` plugin. It defines what each skill should do, what files it should read/write, and how skills compose.
 - Use `docs/ADVANCED_SKILLS.md` for advanced skill behavior and style choices before inventing new workflow machinery. It is the narrative companion to the reusable component catalogs in `templates/skills/`.
 - Use `templates/skills/COMPONENTS.md` and `templates/skills/COMPONENT_SAMPLES.md` when authoring skill behavior. The docs in `docs/` define Claude Code packaging and schema rules; the templates define reusable skill workflow patterns.
@@ -317,16 +319,16 @@ judgment.
 
 Knowledge management workflows for file-based vaults, ingestion, retrieval,
 graph operations, provenance, privacy, publishing, automation, and maintenance.
-It includes the bundled `vaultli` CLI, three KB agents, sample vault fixtures,
+It includes the bundled `vaultli` CLI, four KB agents, sample vault fixtures,
 schema references, and an issue coverage ledger.
 
 | Area | Skills |
 |------|--------|
-| Core operations | `ask-user`, `kb-ops`, `resolver`, `setup`, `health`, `maintenance`, `dashboard`, `vaultli` |
-| Retrieval and graph | `query`, `search-modes`, `source-router`, `graph-ops`, `briefing`, `reports` |
-| Ingestion | `ingest`, `signal-detector`, `article-enrichment`, `meeting-ingestion`, `media-ingest`, `voice-note-ingest`, `browser-ingest`, `raw-source`, `cold-start`, `migrate`, `archive-crawler` |
-| Knowledge work | `enrich`, `citation-fixer`, `frontmatter-guard`, `filing-rules`, `concept-synthesis`, `book-mirror`, `academic-verify`, `current-research`, `strategic-reading`, `originals`, `task-manager` |
-| Governance | `publish`, `pdf-export`, `webhook-transforms`, `cron-scheduler`, `background-jobs`, `context-checkpoint`, `privacy-security`, `quality-gate`, `release-upgrade`, `devex-review`, `integration-contracts`, `conflict-resolution`, `sample-vault`, `skillify` |
+| Core operations | `ask-user`, `resolver`, `setup`, `health`, `sample-vault`, `vaultli`, `skillify` |
+| Retrieval and outputs | `query`, `briefing`, `reports` |
+| Ingestion and migration | `ingest`, `meeting-ingestion`, `media-ingest`, `signal-detector`, `migrate` |
+| Curation and synthesis | `enrich`, `citation-fixer`, `concept-synthesis`, `conflict-resolution`, `current-research`, `strategic-reading`, `task-manager` |
+| Publishing and automation | `publish`, `background-jobs` |
 
 ### ab-testing
 

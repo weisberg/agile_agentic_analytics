@@ -2,6 +2,24 @@
 
 Claude Code plugin for regulated, low-velocity, high-trust experimentation. It packages the Experimentation Notebook as references and exposes focused skills for experiment design, analysis, decision governance, email incrementality, compliance review, operating model design, and executive communication.
 
+## Scope — when to use this plugin
+
+This plugin owns **regulated / high-trust experimentation governance**: decision reviews
+that go beyond statistical significance, compliance and conduct-risk review, experimentation
+operating models and program design, calibrated executive evidence, and safe experiment
+design. It governs and advises; it does **not** run the sample-size or analysis computations
+itself.
+
+For neighboring intents, use a different surface instead:
+
+- **Hands-on experiment lifecycle** — designing a standard A/B test, calculating sample size
+  and duration ("how long should I run this test"), analyzing results, reviewing bucketing
+  code, writing the readout — use the **ab-testing** plugin.
+- **Scripted marketing-workspace statistics** — CUPED, SRM, sequential tests wired to the
+  `workspace/` data contracts — use **marketing-analytics/experimentation**.
+
+Each skill's `description` names the specific neighbor to defer to at its boundary.
+
 ## Installation
 
 ```text
@@ -23,14 +41,14 @@ Claude Code plugin for regulated, low-velocity, high-trust experimentation. It p
 | Experiment Operating Model | `/experimentation:experiment-operating-model` | Build CoE, review board, maturity curve, null result repository, and first-year experimentation roadmap. |
 | Executive Evidence Brief | `/experimentation:executive-evidence-brief` | Convert experiment evidence into senior stakeholder decision memos with uncertainty, assumptions, and limitations. |
 | Compliance Trust Review | `/experimentation:compliance-trust-review` | Review experiments for financial services compliance, dark patterns, fairness, disclosures, and trust erosion. |
-| Null Results Knowledge Base | `/experimentation:null-results-knowledge-base` | Capture flat and negative results so they compound into reusable institutional learning. |
+| Null Results Registry | `/experimentation:null-results-registry` | Capture flat, negative, and inconclusive results into an experiment-learnings registry so they compound into institutional memory. |
 
 ## Agents
 
 | Agent | Description |
 | --- | --- |
-| `ab-testing-expert` | End-to-end A/B testing specialist for design, sizing, diagnostics, analysis, and ship/kill/iterate recommendations. |
-| `experimentation-statistician` | Statistical specialist for rigorous experiment analysis and method selection. |
+| `ab-testing-expert` | End-to-end A/B **design consultant** — shapes the whole test (hypothesis, OEC, randomization, sizing, decision rules) across the lifecycle. Pairs with `experimentation-statistician` for the method review. |
+| `experimentation-statistician` | **Analysis and method-review** specialist — selects, computes, and critiques the statistics (power, intervals, CUPED, sequential, ratio metrics) and flags inference errors. Scrutinizes the numbers, not the whole design. |
 | `regulated-experiment-auditor` | Independent auditor for experiment design, implementation, analysis, and decision quality. |
 | `regulated-risk-reviewer` | Compliance, fairness, model risk, conduct risk, disclosure, and trust reviewer. |
 | `email-measurement-specialist` | Email experimentation, Apple MPP, holdouts, fatigue, and delayed outcome specialist. |

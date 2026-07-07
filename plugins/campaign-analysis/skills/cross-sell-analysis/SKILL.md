@@ -24,12 +24,12 @@ disable-model-invocation: false
 **Skill ID:** cross-sell-analysis
 **Plugin:** campaign-analysis
 **Category:** Existing-customer campaign measurement
-**Feeds into:** reporting, executive summaries, campaign-measurement
+**Feeds into:** reporting, executive summaries
 **Sibling skill:** up-sell-analysis (for campaigns that grow existing accounts rather than open new ones)
 
 ---
 
-## What this skill is for
+## Contract
 
 Cross-sell campaigns target current customers and try to get them to take on a
 **new product** they don't already hold — checking customer → add a savings
@@ -271,14 +271,14 @@ ALWAYS use this exact top-level structure:
 ## Using the helper script
 
 A reference implementation lives at
-`plugins/campaign-analysis/skills/cross-sell-analysis/scripts/analyze_cross_sell.py`
+`${CLAUDE_PLUGIN_ROOT}/skills/cross-sell-analysis/scripts/analyze_cross_sell.py`
 (relative to the repo root). It enforces eligibility, computes engagement and
 conversion rates, runs the two-proportion test and Fisher's exact, bootstraps
 a CI on absolute lift, computes value per eligible customer, and writes the
 full output set.
 
 ```
-python plugins/campaign-analysis/skills/cross-sell-analysis/scripts/analyze_cross_sell.py \
+python "${CLAUDE_PLUGIN_ROOT}/skills/cross-sell-analysis/scripts/analyze_cross_sell.py" \
   --treated path/to/treated.csv \
   --holdout path/to/holdout.csv \
   --product-opens path/to/product_opens.csv \
@@ -307,7 +307,44 @@ See `references/methodology.md` for deeper coverage of:
 
 ---
 
-## Common pitfalls to avoid
+## Output Format
+
+The primary artifact is `report.md` written to
+`workspace/analysis/cross-sell/<campaign>/` (alongside `summary.json` and, when
+the inputs support them, `segments.csv` and `engagement_vs_conversion.csv`).
+After writing it, close with a status line and a completion keyword:
+
+```text
+CROSS-SELL ANALYSIS
+Campaign: <name>
+Target product: <name>   Attribution window: <N> days
+Design: <Randomized holdout | Non-randomized comparison | No holdout>
+Report: workspace/analysis/cross-sell/<campaign>/report.md
+Headline: <treated vs holdout conversion + CI + p, or descriptive conversion only>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+```
+
+Completion status:
+
+- **DONE** — a randomized holdout was present, eligibility was enforced, inputs
+  validated cleanly, and the report carries a causal read (conversion-rate test,
+  CI on the absolute lift, value-per-eligible test where value data exists) with
+  no design caveats beyond ordinary sampling error.
+- **DONE_WITH_CONCERNS** — the report was written but the result is qualified.
+  This is the natural status for a **no-holdout run** (descriptive conversion rate
+  only — some opens are always organic), a **non-randomized comparison group**,
+  a conversion-only run with no funded-value data, detected cannibalization,
+  small conversion counts, or post-hoc segment cuts. Name the specific
+  holdout/design caveat in the status and in the report's caveats section.
+- **BLOCKED** — a trustworthy read cannot be produced: treated/holdout overlap
+  (a data error that halts analysis), a missing product-opens file (no way to
+  detect conversion), or eligibility that cannot be enforced because prior
+  holdings are unknown. State the blocker and the input needed to clear it.
+- **NEEDS_CONTEXT** — required inputs are missing or ambiguous (no treated list,
+  no target product code, undefined attribution window) and could not be
+  resolved. Ask for the specific file or definition before proceeding.
+
+## Anti-Patterns
 
 - Computing conversion rate over all treated customers instead of *eligible* treated customers (those who didn't already hold the product). This inflates the denominator and depresses the rate.
 - Reporting clicker conversion rate as if it were the campaign's incremental effect. It isn't — clickers self-selected.

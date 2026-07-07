@@ -53,9 +53,21 @@ jobs:
       - name: Format check with ruff
         run: ruff format --check .
 
+      # Kept non-blocking: mypy currently fails on a duplicate module name
+      # (two scripts named content_analysis.py under marketing-analytics).
+      # Flip to blocking once that collision is resolved (e.g. --explicit-package-bases).
       - name: Type check with mypy
         continue-on-error: true
         run: mypy plugins/
+
+      - name: Audit all plugins (health, manifests, frontmatter)
+        run: python plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --json
+
+      # Non-blocking for one release per AAA_PLAN Phase 1.2; then remove
+      # continue-on-error so routing accuracy below threshold fails the build.
+      - name: Routing eval (deterministic tier)
+        continue-on-error: true
+        run: python scripts/routing_eval.py --format text --threshold 0.85
 
       - name: Run tests with coverage
         run: pytest --cov=plugins --cov-report=xml -x

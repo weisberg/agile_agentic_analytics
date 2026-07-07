@@ -9,21 +9,23 @@ triggers:
   - "apply this to my problem"
   - "what can I learn from this about"
   - "extract a playbook from"
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
-writes_pages: true
-writes_to:
-  - concepts/
-  - projects/
-
 disable-model-invocation: false
 ---
 
 # strategic-reading - Applied Analysis from Source Texts
 
-> **Convention:** see `../ingest/references/quality.md` for citation rules and
+> **Convention:** see `references/quality.md` for citation rules and
 > back-link expectations.
 >
-> **Convention:** see `../ingest/references/kb-filing-rules.md` for filing by
+> **Convention:** see `references/kb-filing-rules.md` for filing by
 > primary subject: `concepts/` for general strategy, `projects/` for
 > problem-tied playbooks.
 
@@ -133,7 +135,7 @@ Phase 5: Write and deliver
       * If problem-specific: projects/<slug>/playbook.md
       * If general strategy: concepts/<slug>.md
   - Use the standard KB write flow.
-  - For file-based KB vaults, run vaultli index and vaultli validate.
+  - For file-based KB vaults, run `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json index --root <kb-root>` and `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json validate --root <kb-root>`.
   - Optional: render to PDF or another shareable format after the KB page is complete.
 ```
 
@@ -173,7 +175,7 @@ Phase 5: Write and deliver
 This skill guarantees:
 
 - Routing matches the canonical triggers in the frontmatter.
-- Output is written under the directories listed in `writes_to:` when applicable.
+- Output is filed under `concepts/` (general strategy) or `projects/` (problem-tied playbooks) per `references/kb-filing-rules.md`.
 - KB citation, filing, and back-link conventions are followed.
 - The output is an applied strategic playbook, not a generic source summary.
 - Privacy contract is preserved: no unnecessary real names, no fork-specific
@@ -185,7 +187,9 @@ section exists for conformance tests.
 ## Output Format
 
 The skill's output shape is documented inline above in "Knowledge base page
-structure". The literal section header here exists for conformance tests.
+structure". End with `Status: DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, or
+`NEEDS_CONTEXT`, plus the page path written. The literal section header here
+exists for conformance tests.
 
 ## Anti-Patterns
 

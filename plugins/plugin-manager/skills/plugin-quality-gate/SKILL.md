@@ -13,10 +13,13 @@ triggers:
   - "benchmark plugin skill"
   - "second opinion on this plugin"
   - "quality gate this skill"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:

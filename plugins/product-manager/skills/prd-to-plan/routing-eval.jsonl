@@ -1,0 +1,7 @@
+// product-manager plugin routing fixtures — PRD authoring vs agentic plan decomposition.
+// skill: prd-to-plan  (>=3 positive, >=1 negative/forbidden, >=1 cross-plugin)
+{"intent": "turn this PRD into a phased execution plan with task dependencies", "expected_skill": "prd-to-plan"}
+{"intent": "decompose this spec into a task graph for sub-agents", "expected_skill": "prd-to-plan"}
+{"intent": "break this product brief down so Claude Code can build it", "expected_skill": "prd-to-plan"}
+{"intent": "convert this PRD into an agentic PLAN.md with validation gates", "expected_skill": "prd-to-plan", "forbidden_skill": "prd-writer"}
+{"intent": "draft the PRD itself for this feature idea", "expected_skill": "prd-writer", "forbidden_skill": "prd-to-plan"}

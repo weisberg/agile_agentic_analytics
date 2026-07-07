@@ -7,265 +7,161 @@ description: >
   fatigue, ad creative, quality score, search terms, negative keywords, bid
   strategy, campaign optimization, ad copy analysis, or audience targeting
   performance. Also trigger on 'how are our ads performing' or 'are we on track
-  with ad spend.' If campaign spend data is not yet extracted, suggest running
-  data-extraction first. Normalized spend data feeds into attribution-analysis
-  for MMM. Results also feed into reporting and funnel-analysis skills.
-category: Channel Analytics
-priority: P0
-depends_on:
-  - data-extraction
-feeds_into:
-  - attribution-analysis
-  - reporting
-  - funnel-analysis
-
+  with ad spend.' If campaign spend data is not yet extracted, run data-extraction
+  first. For cross-channel media mix and budget-reallocation modeling use
+  attribution-analysis; for executive rollups use reporting. Normalized spend feeds
+  attribution-analysis; results feed reporting and funnel-analysis.
 disable-model-invocation: false
 ---
 
 # Paid Media Analytics
 
-Cross-platform ad performance aggregation, anomaly detection, and creative optimization.
-
-## Objective
-
-Unify performance data from Google Ads, Meta Ads, LinkedIn Ads, TikTok Ads, and
-DV360 into a single normalized reporting layer. Automate cross-platform ROAS/CPA
-comparison, anomaly detection on spend and performance metrics, creative fatigue
-identification, budget pacing monitoring, and search term analysis with negative
-keyword recommendations. Produce daily and weekly performance snapshots and flag
-accounts requiring immediate attention.
-
-## Data Normalization
-
-Map platform-specific metrics to a unified taxonomy so that every downstream
-consumer operates on a single schema regardless of data origin.
-
-### Unified metric taxonomy
-
-| Unified Metric | Google Ads        | Meta Ads           | LinkedIn Ads       | TikTok Ads        | DV360              |
-|----------------|-------------------|--------------------|--------------------|--------------------|---------------------|
-| impressions    | Impressions       | impressions        | impressions        | impressions        | impressions         |
-| clicks         | Clicks            | clicks             | clicks             | clicks             | clicks              |
-| spend          | Cost              | spend              | costInLocalCurrency| spend              | revenue             |
-| conversions    | Conversions       | actions (purchase) | externalWebsiteConversions | conversions | totalConversions   |
-| revenue        | ConversionValue   | action_values      | conversionValueInLocalCurrency | value  | totalConversionValue|
-
-### Key normalization rules
-
-- Handle attribution window differences with transparent labeling (Meta 7-day
-  click vs Google 30-day click).
-- Currency normalization for multi-market campaigns — convert all spend and
-  revenue to a single reporting currency using daily FX rates.
-- Deduplicate conversions where multiple platforms claim credit for the same
-  event by flagging overlap windows.
-- Use `scripts/normalize_platforms.py` for deterministic transformation.
-
-See `references/platform_api_mapping.md` for the full metric taxonomy.
-
-## Performance Analysis
-
-### Cross-platform efficiency comparison
-
-Compare ROAS, CPA, CPM, and CPC across platforms, benchmarked against:
-
-- Client-defined targets (from workspace config)
-- Historical rolling averages (7-day, 28-day)
-- Industry benchmarks where available
-
-### Volume vs efficiency matrix
-
-Decompose campaign performance into a 2x2 matrix:
-
-| Quadrant           | Volume | Efficiency | Action                        |
-|--------------------|--------|------------|-------------------------------|
-| Scale winners      | High   | High       | Increase budget               |
-| Efficient niche    | Low    | High       | Test scaling headroom         |
-| Expensive scale    | High   | Low        | Optimize or reduce budget     |
-| Underperformers    | Low    | Low        | Pause or restructure          |
-
-### Automated insight generation
-
-Generate natural-language insights from metric movements:
-
-> "Search CPA increased 23% WoW driven by broad match expansion in Campaign X."
-
-Always attribute the direction, magnitude, period, and root cause.
-
-## Anomaly Detection
-
-Statistical anomaly detection on spend, CPA, CTR, and conversion rate using
-multiple complementary methods.
-
-### Methods
-
-1. **Rolling Z-score** — flag values exceeding a configurable threshold (default
-   |z| > 2.5) relative to a 28-day rolling window.
-2. **Isolation forest** — unsupervised tree-based method for multivariate
-   anomalies that Z-score may miss.
-3. **Seasonal decomposition** — STL decomposition to separate trend, seasonal,
-   and residual components; flag residuals beyond threshold.
-
-See `references/anomaly_detection.md` for method details and tuning guidance.
-
-### Alert configuration
-
-| Metric          | Default threshold | Severity |
-|-----------------|-------------------|----------|
-| Daily spend     | > 150% of plan    | Critical |
-| CPA             | > 2.0 z-score     | High     |
-| CTR             | < -2.0 z-score    | Medium   |
-| Conversion rate | < -2.5 z-score    | High     |
-
-### Root cause drill-down
-
-When an anomaly fires, drill from account level down to campaign, ad group, and
-keyword level to identify the source. Output must include the specific entity
-responsible and the metric delta.
-
-Use `scripts/detect_anomalies.py` for computation.
-
-## Creative Fatigue Detection
-
-Detect declining performance curves per creative and recommend rotation timing.
-
-### Methodology
-
-- Track conversion-weighted CTR (not raw CTR) over the creative's lifetime to
-  avoid incorrectly flagging top-of-funnel awareness creatives.
-- Fit a piecewise regression to the performance curve: plateau phase followed by
-  decay phase.
-- Score each creative's fatigue level from 0 (fresh) to 100 (exhausted).
-- Recommend rotation when projected performance drops below 50% of peak within
-  the next 3 days.
-
-See `references/creative_fatigue.md` for the full detection methodology.
-
-Use `scripts/creative_fatigue.py` for computation.
-
-## Budget Pacing
-
-Track daily spend against plan and project month-end variance.
-
-### Pacing calculation
-
-- Use **exponential smoothing** (not simple linear extrapolation) to handle
-  intra-month spend acceleration patterns.
-- Account for weekday/weekend spend patterns and known events (Black Friday,
-  quarter-end).
-- Generate alerts when projected month-end spend deviates from plan by more than
-  a configurable threshold (default 10%).
-
-### Output
-
-| Field              | Description                                  |
-|--------------------|----------------------------------------------|
-| campaign_id        | Campaign identifier                          |
-| budget_plan        | Monthly budget target                        |
-| spend_to_date      | Actual spend through current date             |
-| projected_spend    | Exponential-smoothing month-end projection   |
-| variance_pct       | (projected - plan) / plan as percentage       |
-| alert_level        | None / Warning / Critical                    |
-
-Use `scripts/budget_pacing.py` for computation.
-
-## Search Term Analysis
-
-Mine search term reports to identify waste and generate negative keyword lists.
-
-### Waste identification
-
-Flag search terms meeting any of:
-
-- High impressions, zero conversions, spend above threshold
-- CPA exceeding 3x campaign average
-- Irrelevant semantic match (brand misspellings, competitor terms if unwanted)
-
-### Negative keyword extraction
-
-- Group flagged terms into thematic clusters.
-- Recommend match type (exact, phrase) based on term specificity.
-- Estimate monthly waste savings per recommended negative keyword.
-
-Use `scripts/search_term_analysis.py` for computation.
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File pattern                                  | Description                              |
-|-----------------------------------------------|------------------------------------------|
-| `workspace/raw/campaign_spend_{platform}.csv` | Platform-specific campaign data from data-extraction |
-| `workspace/raw/search_terms_{platform}.csv`   | Search term reports (Google, Microsoft)  |
-| `workspace/raw/creative_performance_{platform}.csv` | Creative-level metrics             |
-
-### Outputs
-
-| File                                             | Description                                      |
-|--------------------------------------------------|--------------------------------------------------|
-| `workspace/processed/unified_media_performance.csv` | Normalized cross-platform dataset              |
-| `workspace/analysis/media_anomalies.json`        | Flagged anomalies with severity, metric, root cause |
-| `workspace/analysis/creative_fatigue.json`       | Creative health scores and rotation recommendations |
-| `workspace/analysis/negative_keywords.json`      | Recommended negative keywords with waste estimates |
-| `workspace/reports/media_performance_snapshot.html` | Cross-platform performance dashboard           |
-
-### Unified media schema
-
-The normalized output uses the following schema:
-
-| Column        | Type    | Description                            |
-|---------------|---------|----------------------------------------|
-| date          | date    | Reporting date (YYYY-MM-DD)            |
-| platform      | string  | google / meta / linkedin / tiktok / dv360 |
-| campaign_id   | string  | Platform-native campaign identifier    |
-| campaign_name | string  | Human-readable campaign name           |
-| ad_group_id   | string  | Ad group or ad set identifier          |
-| impressions   | integer | Impression count                       |
-| clicks        | integer | Click count                            |
-| spend         | decimal | Spend in reporting currency            |
-| conversions   | decimal | Conversion count                       |
-| revenue       | decimal | Revenue in reporting currency          |
-| cpc           | decimal | Derived: spend / clicks                |
-| ctr           | decimal | Derived: clicks / impressions          |
-| cpa           | decimal | Derived: spend / conversions           |
-| roas          | decimal | Derived: revenue / spend               |
-
-## Cross-Skill Integration
-
-| Skill                | Relationship                                                  |
-|----------------------|---------------------------------------------------------------|
-| data-extraction      | Upstream: provides raw platform CSV files consumed by this skill |
-| attribution-analysis | Downstream: receives normalized spend data for MMM channel decomposition. Budget optimization outputs from attribution-analysis inform pacing targets. |
-| reporting            | Downstream: creative performance and pacing data feed executive dashboards |
-| funnel-analysis      | Downstream: consumes landing page conversion rates from paid media click-throughs |
-
-## Financial Services Considerations
-
-When analyzing paid media for financial services clients:
-
-- Financial product advertising must comply with SEC/FINRA truth-in-advertising
-  rules.
-- Ad creative for investment products must include required risk disclosures.
-  Flag ads missing disclaimers.
-- Audience targeting for financial products must avoid prohibited discriminatory
-  practices (ECOA, fair lending).
-- All ad copy and landing pages must be archived per SEC Rule 17a-4. Trigger
-  `compliance-review` for new creatives.
-
-## Development Guidelines
-
-1. Use MCP servers (`google-analytics-mcp`, `meta-ads-mcp`) for live data where
-   available; fall back to CSV upload.
-2. Anomaly detection must account for day-of-week seasonality and known events
-   (Black Friday, quarter-end) to avoid false positives.
-3. Creative fatigue algorithm must use conversion-weighted CTR, not raw CTR, to
-   avoid flagging top-of-funnel creatives incorrectly.
-4. Budget pacing projection must use exponential smoothing, not simple linear
-   extrapolation, to handle intra-month spend patterns.
-5. All monetary calculations must use `decimal.Decimal` (Python) to avoid
-   floating-point rounding errors.
-6. Support incremental data updates (append new dates) rather than requiring
-   full history reload each time.
-7. Reference files in `references/` for methodology details; keep SKILL.md
-   focused on instructions and contracts.
-8. Scripts in `scripts/` handle deterministic computation; the LLM handles
-   interpretation, insight generation, and recommendation framing.
+**Role:** Fix-allowed within `workspace/processed/`, `workspace/analysis/`, and
+`workspace/reports/`. You normalize cross-platform ad data and run deterministic
+diagnostics on it. **Hard gate: anomaly scores, fatigue curves, and pacing
+projections come from the scripts — never eyeball a z-score or a projection in
+prose.** Monetary math uses `decimal.Decimal`.
+
+## Contract
+
+**When to use**
+- Cross-platform ad performance (ROAS/CPA/CPM/CPC) comparison, spend anomaly
+  detection, creative fatigue, budget pacing, search-term/negative-keyword mining.
+- "How are our ads performing" / "are we pacing to plan" within one or more ad platforms.
+
+**When NOT to use** (route instead)
+- Cross-channel media mix, marginal ROAS, budget reallocation across channels →
+  `attribution-analysis` (this skill supplies its normalized spend).
+- Executive/cross-skill rollup deck → `reporting`.
+- Landing-page/funnel conversion after the click → `funnel-analysis`.
+- Raw platform exports not yet landed → `data-extraction` first.
+
+**Mode classification** (declare which)
+
+| Mode | Trigger | Scope |
+|---|---|---|
+| **Quick** | "how are we pacing / performing today" | Normalize + one diagnostic (pacing or efficiency snapshot). |
+| **Standard** | Weekly performance review | Normalize → efficiency matrix → anomalies → fatigue → pacing → snapshot. |
+| **Deep** | Full audit / optimization | Standard + search-term waste mining, root-cause drill-down, negative-keyword export. |
+
+**Inputs**
+
+| File pattern | Description |
+|---|---|
+| `workspace/raw/campaign_spend_{platform}.csv` | Platform campaign data from data-extraction. |
+| `workspace/raw/search_terms_{platform}.csv` | Search-term reports (Google, Microsoft). |
+| `workspace/raw/creative_performance_{platform}.csv` | Creative-level metrics. |
+
+**Contract references:** `references/platform_api_mapping.md` (full metric
+taxonomy), `references/anomaly_detection.md`, `references/creative_fatigue.md`,
+`shared/schemas/data_contracts.md`.
+
+**Outputs**
+
+| File | Description |
+|---|---|
+| `workspace/processed/unified_media_performance.csv` | Normalized cross-platform dataset (schema below). |
+| `workspace/analysis/media_anomalies.json` | Flagged anomalies with severity, metric, root cause. |
+| `workspace/analysis/creative_fatigue.json` | Creative health scores and rotation recommendations. |
+| `workspace/analysis/negative_keywords.json` | Recommended negatives with waste estimates. |
+| `workspace/reports/media_performance_snapshot.html` | Cross-platform performance dashboard. |
+
+Normalized `unified_media_performance.csv` schema: `date`, `platform`,
+`campaign_id`, `campaign_name`, `ad_group_id`, `impressions`, `clicks`, `spend`,
+`conversions`, `revenue`, and derived `cpc`, `ctr`, `cpa`, `roas`.
+
+## Workflow
+
+Complete each step before the next. If a normalization gate fails, STOP and report.
+
+1. **Land + normalize (HARD GATE).** Confirm `workspace/raw/campaign_spend_{platform}.csv`
+   exists; if missing, **STOP** and run **data-extraction** first. Run
+   `scripts/normalize_platforms.py` to map platform-native metrics to the unified
+   taxonomy (Google `Cost`→spend, Meta `spend`, LinkedIn `costInLocalCurrency`, etc.;
+   see `references/platform_api_mapping.md`). Apply the normalization rules:
+   attribution-window labeling (Meta 7-day click vs Google 30-day click), currency
+   conversion to one reporting currency via daily FX, and conversion dedup across
+   platforms claiming the same event. Write `workspace/processed/unified_media_performance.csv`.
+   If required columns are missing after mapping, STOP — do not fabricate a schema.
+
+2. **Efficiency comparison.** Compare ROAS/CPA/CPM/CPC across platforms against
+   client targets, 7-day and 28-day rolling averages, and industry benchmarks. Place
+   each campaign in the volume×efficiency matrix (scale winners / efficient niche /
+   expensive scale / underperformers) to frame the action.
+
+3. **Anomaly detection.** Run `scripts/detect_anomalies.py` (rolling z-score |z|>2.5 on a
+   28-day window, isolation forest for multivariate anomalies, STL seasonal decomposition).
+   Account for day-of-week seasonality and known events (Black Friday, quarter-end) to
+   suppress false positives. On a fire, drill account → campaign → ad group → keyword and
+   name the responsible entity and the metric delta. Write `media_anomalies.json`.
+
+4. **Creative fatigue.** Run `scripts/creative_fatigue.py` on conversion-weighted CTR
+   (not raw CTR — protects top-of-funnel creatives). Score 0 (fresh) to 100 (exhausted);
+   recommend rotation when projected performance drops below 50% of peak within 3 days.
+   Write `creative_fatigue.json`.
+
+5. **Budget pacing.** Run `scripts/budget_pacing.py` using exponential smoothing (not
+   linear extrapolation) with weekday/weekend and event awareness. Alert when projected
+   month-end spend deviates from plan beyond the threshold (default 10%).
+
+6. **Decision gate — anomaly response.** When a Critical anomaly fires (daily spend >150%
+   of plan, CPA >2σ, or a projected pacing overrun), use **AskUserQuestion** before
+   recommending an intervention: pause the offending entity, cap budget, or monitor one
+   more day? Present the entity, the delta, and the projected waste; do not unilaterally
+   prescribe a spend change.
+
+7. **Search-term mining (Deep mode).** Run `scripts/search_term_analysis.py` to flag waste
+   (high impressions/zero conversions above a spend threshold, CPA >3× campaign average,
+   irrelevant matches), cluster into themes, recommend match type, and estimate monthly
+   savings. Write `negative_keywords.json`.
+
+8. **Snapshot + insights.** Assemble `workspace/reports/media_performance_snapshot.html`.
+   Every generated insight names direction, magnitude, period, and root cause (e.g.
+   "Search CPA +23% WoW driven by broad-match expansion in Campaign X").
+
+9. **FS-mode gate.** For financial-services clients: flag ads missing required risk
+   disclosures, avoid prohibited discriminatory targeting (ECOA/fair lending), and route
+   new creatives/ad copy through **compliance-review** before distribution (archived per
+   SEC Rule 17a-4).
+
+**Cross-skill wiring:** `data-extraction` lands raw files upstream;
+`attribution-analysis` consumes `unified_media_performance.csv` for MMM channel
+decomposition and its budget optimization informs pacing targets; `reporting`
+consumes pacing and creative data; `funnel-analysis` consumes post-click
+landing-page conversion. Support incremental appends rather than full reloads.
+
+## Output Format
+
+```
+## Paid Media — <account / date range>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Mode: Quick | Standard | Deep   Currency: <reporting ccy>
+
+Efficiency: blended ROAS=<v>, CPA=<v> vs target <v>
+Anomalies: <n> flagged (<n> Critical) — top: <entity> <metric> <delta>
+Creative: <n> creatives fatigued (score >70)
+Pacing: projected month-end <v> vs plan <v> (<variance>%) — <alert level>
+Artifacts: workspace/processed/unified_media_performance.csv, workspace/analysis/*.json,
+           workspace/reports/media_performance_snapshot.html
+```
+
+Completion status:
+- `DONE` — normalized and all requested diagnostics written.
+- `DONE_WITH_CONCERNS` — completed with caveats (partial platform coverage, FX
+  gaps, dedup uncertainty); state them.
+- `BLOCKED` — normalization failed (missing columns, unmappable schema); name the file.
+- `NEEDS_CONTEXT` — missing plan/targets, currency choice, or the raw export (state what).
+
+## Anti-Patterns
+
+- **Do not** score anomalies, fatigue, or pacing by eye — scripts compute them.
+- **Do not** flag creative fatigue on raw CTR; use conversion-weighted CTR.
+- **Do not** project pacing with linear extrapolation.
+- **Do not** ignore day-of-week/event seasonality — it manufactures false anomalies.
+- **Do not** double-count conversions when platforms both claim the same event.
+- **Do not** use floats for money; use `decimal.Decimal`.
+- **Do not** prescribe a spend cut on a Critical anomaly without confirming the response.
+- **Do not** ship FS ad creative without a compliance-review pass.
+
+Builder-facing acceptance criteria and engineering conventions live in the
+plugin's `references/authoring-notes.md`, not in this runtime body.

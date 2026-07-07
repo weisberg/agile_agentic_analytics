@@ -5,228 +5,151 @@ description: >
   summary, weekly report, monthly report, data visualization, chart, graph,
   KPI dashboard, marketing scorecard, insight generation, report automation,
   stakeholder update, board deck, or performance review. Also trigger on
-  'summarize our marketing performance' or 'create a deck for leadership.'
-  This skill consumes outputs from all other skills in the portfolio. In
-  financial services mode, all reports containing performance claims must pass
-  through compliance-review before distribution.
-
+  'summarize our marketing performance' or 'create a deck for leadership.' This
+  skill synthesizes the outputs other marketing-analytics skills already wrote to
+  workspace/analysis/ into deliverables. It does not vet metric correctness or
+  data quality — for reviewing whether a dashboard can be relied on, use
+  lead-analyst:dashboard-audit; to land raw data use data-extraction. In financial
+  services mode, reports with performance claims route through compliance-review
+  before distribution.
 disable-model-invocation: false
 ---
 
 # Dashboard & Reporting Automation
 
-Automated executive dashboards, cross-skill synthesis, and natural language
-insight generation.
+**Role:** Fix-allowed within `workspace/reports/`. You are the **terminal
+synthesis layer** — you aggregate analysis other skills already produced and
+translate it into executive narrative. **Hard gate: you do not compute new
+statistics. If a metric is missing, report the gap and name the skill that
+produces it — do not invent the number.**
 
-| Field | Value |
-|---|---|
-| Skill ID | `reporting` |
-| Priority | P0 — Foundational (integration layer for all skills) |
-| Category | Reporting & Visualization |
-| Depends On | All other skills (consumes their outputs) |
-| Feeds Into | `compliance-review` (in FS mode), stakeholder distribution |
+## Contract
 
-## Objective
+**When to use**
+- Aggregating finished `workspace/analysis/*.json` outputs into an executive
+  dashboard, weekly/monthly summary, board deck, or narrative report.
+- Cross-skill KPI synthesis (blended ROAS, portfolio conversion rate, weighted CLV)
+  and priority-ranked natural-language insights.
 
-Serve as the universal reporting layer for the entire skill portfolio. Aggregate
-outputs from every analytical skill into cohesive executive dashboards, weekly
-performance summaries, and ad-hoc analysis reports. Generate natural language
-insights that translate statistical results into business-language
-recommendations. Support HTML interactive dashboards, XLSX data exports, PPTX
-presentation decks, and DOCX narrative reports. Automate recurring report
-generation with configurable schedules and distribution lists.
+**When NOT to use** (route instead)
+- Auditing whether a dashboard's numbers are *trustworthy* (freshness, metric
+  definitions, misleading charts) → `lead-analyst:dashboard-audit`.
+- Producing the underlying analysis (no analysis files exist yet) → run the
+  matching analytics skill first.
+- Landing/normalizing raw data → `data-extraction`.
 
-## Functional Scope
+**Mode classification** (declare which)
 
-- Cross-skill output aggregation and synthesis into unified narratives.
-- Interactive HTML dashboards with plotly/D3.js visualizations.
-- Natural language insight generation: translate stats into business recommendations.
-- Multi-format output: HTML, XLSX (via `xlsx` skill), PPTX (via `pptx` skill),
-  DOCX (via `docx` skill).
-- Anomaly-driven reporting: auto-highlight metrics that deviate from targets or
-  historical trends.
-- Configurable report templates: weekly snapshot, monthly deep-dive, quarterly
-  business review, ad-hoc analysis.
+| Mode | Trigger | Scope |
+|---|---|---|
+| **Quick** | "what's the headline this week" | Aggregate + top-3 insights, no full dashboard. |
+| **Standard** | Weekly/monthly report | Aggregate → insights → charts → HTML dashboard. |
+| **Deep** | QBR / board deck | Standard + multi-format (XLSX/PPTX/DOCX) and FS compliance gate. |
 
-## Data Aggregation
+**Cross-skill synthesis inputs** — this is the explicit consumption loop. Reporting
+discovers every `workspace/analysis/*.json`; the table names what each source
+contributes so the narrative attributes correctly and flags what is missing.
 
-1. Discover and load all `workspace/analysis/*.json` files from completed skill
-   runs using `scripts/aggregate_outputs.py`.
-2. Merge metrics across skills into a unified KPI framework with consistent date
-   alignment.
-3. Compute derived metrics: blended ROAS, portfolio-level conversion rate,
-   weighted CLV.
-4. Validate incoming data against `shared/schemas/data_contracts.md` before
-   processing.
-5. Handle missing or partial data gracefully — report which skills have not yet
-   produced outputs and proceed with available data.
+| Source skill | Consumed from `workspace/analysis/` | Contributes to the report |
+|---|---|---|
+| attribution-analysis | `mmm_channel_contributions.json`, `mmm_budget_optimization.json`, `mmm_diagnostics.json` | Channel contribution, budget reallocation, blended ROAS. |
+| experimentation | `experiment_results.json`, `incrementality_results.json` | Lift, significance, confidence intervals. |
+| paid-media | `media_anomalies.json`, `creative_fatigue.json`, `negative_keywords.json` (+ `processed/unified_media_performance.csv`) | Media ROAS/CPA, spend efficiency, anomalies. |
+| audience-segmentation | segment profiles / migration matrices | Segment mix and movement. |
+| clv-modeling | CLV distributions / cohort retention | Weighted CLV, retention curves. |
+| funnel-analysis | funnel conversion / drop-off | Conversion rates, bottlenecks. |
+| email-analytics | campaign performance / deliverability | Engagement, deliverability. |
+| web-analytics | session / page performance | Traffic and journeys. |
+| seo-content | keyword rankings / organic traffic | Organic trends. |
+| crm-lead-scoring | pipeline / win-rate | Pipeline health. |
+| social-analytics | engagement / sentiment | Share of voice, sentiment. |
+| competitive-intel | market-share / competitor benchmarks | Competitive context. |
+| voc-analytics | NPS / CSAT / theme clusters | Voice-of-customer. |
+| compliance-review | `workspace/compliance/review_report.json` | Required disclaimers / flags (FS mode). |
 
-## Visualization
+**Contract references:** `references/report_templates.md`,
+`references/insight_patterns.md`, `references/visualization_guide.md`,
+`shared/schemas/data_contracts.md`.
 
-1. Generate interactive plotly charts using `scripts/generate_charts.py`:
-   time series, waterfall, funnel, scatter, heatmap.
-2. Apply automated chart selection based on metric type:
-   - **Time series data** -> line chart or area chart.
-   - **Categorical comparisons** -> bar chart or grouped bar chart.
-   - **Part-to-whole relationships** -> stacked bar, treemap, or pie chart.
-   - **Conversion flows** -> funnel chart.
-   - **Correlation analysis** -> scatter plot or heatmap.
-   - **Distribution data** -> histogram or box plot.
-3. Build responsive HTML layouts with drill-down capability and tooltip
-   interactivity.
-4. All charts must use colorblind-safe palettes (see `references/visualization_guide.md`).
-5. All charts must include alt text for screen reader accessibility.
-
-## Insight Generation
-
-1. Run statistical summarization via `scripts/generate_insights.py` to identify
-   top movers, trend reversals, and anomalies across all metrics.
-2. Translate effect sizes and p-values into plain-English recommendations using
-   the pattern library in `references/insight_patterns.md`.
-3. Produce a priority-ranked insight list ordered by business impact magnitude.
-4. Every insight must cite the specific metric, magnitude, and time period — no
-   vague claims.
-5. Flag anomalies that exceed two standard deviations from trailing averages.
-
-## Multi-Format Output
-
-### HTML Dashboard
-- Generate self-contained HTML with inlined CSS/JS and base64-encoded images for
-  offline viewing using `scripts/build_dashboard.py`.
-- Primary outputs:
-  - `workspace/reports/executive_dashboard.html` — interactive cross-skill dashboard.
-  - `workspace/reports/weekly_summary.html` — weekly performance snapshot with insights.
-- HTML must load in under 3 seconds in a modern browser with 50+ charts.
-
-### XLSX Data Export
-- Export underlying data tables to `workspace/reports/data_export.xlsx` for
-  stakeholder manipulation.
-- Delegate to the `xlsx` skill via its SKILL.md conventions.
-
-### PPTX Presentation Deck
-- Produce presentation-ready slides at `workspace/reports/leadership_deck.pptx`
-  from key insights and charts.
-- Delegate to the `pptx` skill via its SKILL.md conventions.
-- Slides must render correctly in both PowerPoint and Google Slides.
-
-### DOCX Narrative Report
-- Produce long-form narrative reports with embedded charts and data tables.
-- Delegate to the `docx` skill via its SKILL.md conventions.
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| Source | Description |
-|---|---|
-| `workspace/analysis/*.json` | All analytical outputs from other skills |
-| `workspace/reports/*.html` | Existing skill-level reports to aggregate |
-| `references/report_templates.md` | Configurable templates for report types |
-| `shared/schemas/data_contracts.md` | Unified metric schema consumed from all skills |
-
-### Outputs
+**Outputs**
 
 | Path | Description |
 |---|---|
-| `workspace/reports/executive_dashboard.html` | Interactive cross-skill dashboard |
-| `workspace/reports/weekly_summary.html` | Weekly performance snapshot with insights |
-| `workspace/reports/data_export.xlsx` | Underlying data tables for all metrics |
-| `workspace/reports/leadership_deck.pptx` | Presentation-ready slide deck |
-
-## Cross-Skill Integration
-
-The reporting skill is the terminal node in most workflow chains. It consumes:
-
-- **attribution-analysis**: MMM contribution decompositions.
-- **experimentation**: Experiment results (lift, significance, confidence intervals).
-- **paid-media**: Media performance metrics (ROAS, CPA, spend efficiency).
-- **audience-segmentation**: Segment profiles and migration matrices.
-- **clv-modeling**: CLV distributions and cohort retention curves.
-- **funnel-analysis**: Funnel conversion rates and drop-off points.
-- **compliance-review**: Compliance flags and required disclaimers.
-- **email-analytics**: Campaign performance, deliverability, engagement.
-- **web-analytics**: Session data, page performance, user journeys.
-- **seo-analytics**: Keyword rankings, organic traffic trends.
-- **crm-analytics**: Pipeline metrics, win rates, account health.
-- **social-media**: Engagement metrics, sentiment scores, share of voice.
-- **competitive-intel**: Market share estimates, competitor benchmarks.
-- **voice-of-customer**: NPS, CSAT, theme clusters.
-
-When producing DOCX, PPTX, or XLSX outputs, delegate to the corresponding skill
-using that skill's SKILL.md conventions rather than generating those formats
-directly.
-
-## Financial Services Considerations
-
-When operating in financial services mode:
-
-1. All reports containing performance claims must pass through
-   `compliance-review` before distribution.
-2. Investment performance reporting must follow GIPS standards where applicable.
-3. Disclaimers and disclosures must appear on every page or slide containing
-   return or performance data.
-4. Reports distributed to external audiences must be archived per SEC Rule 17a-4.
-5. Include regulatory footer on all HTML pages and PDF exports.
-6. Never present back-tested results without clear labeling.
-
-## Reference Files
-
-| File | Purpose |
-|---|---|
-| `references/report_templates.md` | Template configs for weekly/monthly/quarterly reports |
-| `references/visualization_guide.md` | Chart type selection rules, palettes, accessibility |
-| `references/insight_patterns.md` | Pattern library: stats to business language |
-| `shared/schemas/data_contracts.md` | Unified metric schema from all skills |
-
-## Scripts
-
-| Script | Purpose |
-|---|---|
-| `scripts/aggregate_outputs.py` | Discover and merge workspace/analysis files |
-| `scripts/generate_charts.py` | Plotly chart generation with automated type selection |
-| `scripts/generate_insights.py` | Statistical pattern detection and NL templating |
-| `scripts/build_dashboard.py` | Assemble HTML dashboard from charts, tables, narratives |
-
-## Development Guidelines
-
-1. Generate self-contained HTML with inlined CSS/JS and base64-encoded images
-   for offline viewing.
-2. All charts must be accessible: include alt text, use colorblind-safe palettes,
-   support screen readers.
-3. Natural language insights must cite the specific metric, magnitude, and time
-   period — never vague claims.
-4. Template system must be extensible: users should be able to add new report
-   types without modifying core scripts.
-5. Implement progressive report generation: produce a summary within 30 seconds,
-   enrich with deep analysis over the next 2 minutes.
-6. Use the `docx`, `pptx`, and `xlsx` skills via their existing SKILL.md
-   conventions when generating those file types.
-7. All date handling must use ISO 8601 format and be timezone-aware.
-8. Log every aggregation step so users can trace which skill outputs were
-   included and which were missing.
-
-## Acceptance Criteria
-
-- Dashboard aggregates outputs from at least 5 different skill analysis files
-  into a unified view.
-- Interactive HTML dashboard loads in under 3 seconds in a modern browser with
-  50+ charts.
-- Natural language insights correctly identify the top 3 movers by magnitude
-  across all metrics.
-- PPTX output produces presentation-ready slides that render correctly in
-  PowerPoint and Google Slides.
-- Report generation completes within 120 seconds for a full portfolio of skill
-  outputs.
+| `workspace/reports/executive_dashboard.html` | Interactive cross-skill dashboard. |
+| `workspace/reports/weekly_summary.html` | Weekly snapshot with insights. |
+| `workspace/reports/data_export.xlsx` | Underlying data tables (via `xlsx` skill). |
+| `workspace/reports/leadership_deck.pptx` | Slide deck (via `pptx` skill). |
 
 ## Workflow
 
+1. **Aggregate (evidence gate).** Run `scripts/aggregate_outputs.py` to discover and
+   merge every `workspace/analysis/*.json`. Validate incoming data against
+   `shared/schemas/data_contracts.md`. Align dates across skills into one KPI frame and
+   compute derived cross-skill metrics (blended ROAS, portfolio conversion rate, weighted
+   CLV). **Log which skills produced outputs and which are missing** — proceed with what
+   exists; never fabricate a missing skill's numbers.
+
+2. **Coverage gate — decide scope on partial data.** If fewer than the expected sources
+   are present (e.g. a "full portfolio" report but only 2 of the analysis files exist),
+   use **AskUserQuestion**: proceed with a partial report (clearly labeled), or pause
+   until the missing skills run? Name exactly which sources are absent.
+
+3. **Insights.** Run `scripts/generate_insights.py` to detect top movers, trend
+   reversals, and anomalies (flag deviations beyond 2σ of trailing averages). Translate
+   effect sizes and p-values into plain-English recommendations using
+   `references/insight_patterns.md`. Every insight cites the specific metric, magnitude,
+   and time period, and attributes it to its source skill — no vague claims.
+
+4. **Charts.** Run `scripts/generate_charts.py` with automated type selection (time series
+   → line/area; categorical → bar; part-to-whole → stacked/treemap; flows → funnel;
+   correlation → scatter/heatmap; distribution → histogram/box). All charts use
+   colorblind-safe palettes and include alt text (`references/visualization_guide.md`).
+
+5. **Assemble.** Run `scripts/build_dashboard.py` to produce self-contained HTML (inlined
+   CSS/JS, base64 images) at `workspace/reports/executive_dashboard.html` and/or
+   `weekly_summary.html`.
+
+6. **Multi-format (Deep mode).** For XLSX/PPTX/DOCX, delegate to the `xlsx`, `pptx`, and
+   `docx` skills via their SKILL.md conventions — do not generate those formats directly.
+
+7. **FS-mode gate (HARD STOP for distribution).** If the workspace is tagged financial
+   services and the report contains performance or return data, route it through
+   **compliance-review** before distribution. Apply GIPS where applicable, put
+   disclaimers on every page/slide with performance data, never present back-tested
+   results without clear labeling, and add the regulatory footer. Do not mark a
+   customer-facing FS report DONE until compliance-review has run.
+
+## Output Format
+
 ```
-1. User requests a report or dashboard
-2. Run scripts/aggregate_outputs.py to discover and merge analysis files
-3. Run scripts/generate_insights.py to detect patterns and generate narratives
-4. Run scripts/generate_charts.py to produce visualizations
-5. Run scripts/build_dashboard.py to assemble final HTML output
-6. (Optional) Delegate to xlsx/pptx/docx skills for additional formats
-7. (If FS mode) Route through compliance-review before distribution
-8. Write outputs to workspace/reports/
+## Marketing Report — <period / audience>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Mode: Quick | Standard | Deep
+
+Sources synthesized: <n> of <expected> (missing: <skill list>)
+Top movers:
+- <metric> <delta> (<period>) — source: <skill>
+Artifacts: workspace/reports/executive_dashboard.html [+ xlsx/pptx if requested]
+FS gate: N/A | routed through compliance-review (<status>)
 ```
+
+Completion status:
+- `DONE` — aggregated ≥ the requested sources, insights + dashboard written (FS
+  gate cleared where applicable).
+- `DONE_WITH_CONCERNS` — partial-source or stale-data report, clearly labeled;
+  state which sources were missing.
+- `BLOCKED` — no analysis outputs exist to synthesize, or the FS compliance gate
+  returned FAIL; name the blocker.
+- `NEEDS_CONTEXT` — missing the audience, period, or format choice (state what).
+
+## Anti-Patterns
+
+- **Do not** compute new statistics — synthesize what other skills produced.
+- **Do not** invent a missing skill's numbers; report the gap and name the source.
+- **Do not** emit vague insights; cite metric, magnitude, period, and source skill.
+- **Do not** generate XLSX/PPTX/DOCX directly; delegate to those skills.
+- **Do not** ship charts without alt text or colorblind-safe palettes.
+- **Do not** distribute an FS performance report before compliance-review clears it.
+
+Builder-facing acceptance criteria and engineering conventions live in the
+plugin's `references/authoring-notes.md`, not in this runtime body.

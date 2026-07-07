@@ -1,51 +1,37 @@
-// Knowledge-base plugin routing fixtures. Each skill has at least one realistic user intent.
+// Knowledge-base plugin routing fixtures (post Phase 2.2 consolidation: 24 skills).
+// Every surviving skill has at least one realistic intent. Merged intents are
+// retargeted at the surviving home skill. See README "Renamed and merged skills".
 {"intent":"route this KB request to the right skill and explain overlaps","expected_skill":"resolver"}
-{"intent":"ask the KB what we know about Acme renewal risk","expected_skill":"query"}
+{"intent":"ask the knowledge base what we know about Acme renewal risk","expected_skill":"query"}
+{"intent":"answer a relationship question from my notes about who works with whom","expected_skill":"query","ambiguous_with":["briefing"]}
 {"intent":"notice any people companies or original ideas in this message","expected_skill":"signal-detector"}
-{"intent":"enrich this company page with the latest sourced state","expected_skill":"enrich"}
-{"intent":"audit KB citations and flag facts without sources","expected_skill":"citation-fixer"}
-{"intent":"validate frontmatter ids sources aliases and stale indexes","expected_skill":"frontmatter-guard"}
-{"intent":"where should these notes go in the knowledge base","expected_skill":"filing-rules","ambiguous_with":["ask-user"]}
-{"intent":"save and analyze this article in the KB","expected_skill":"article-enrichment","ambiguous_with":["ingest"]}
+{"intent":"capture this exact phrasing as an original idea worth keeping","expected_skill":"signal-detector","ambiguous_with":["ingest"]}
+{"intent":"enrich this company page with the latest sourced state and timeline","expected_skill":"enrich"}
+{"intent":"audit KB citations and flag factual claims without sources","expected_skill":"citation-fixer"}
 {"intent":"process this meeting transcript and update attendee timelines","expected_skill":"meeting-ingestion","ambiguous_with":["ingest"]}
-{"intent":"process this PDF and preserve the raw source","expected_skill":"media-ingest","ambiguous_with":["raw-source"]}
-{"intent":"transcribe this voice memo and capture exact phrasing","expected_skill":"voice-note-ingest","ambiguous_with":["originals"]}
-{"intent":"set up my KB from contacts meetings notes and articles","expected_skill":"cold-start","ambiguous_with":["setup"]}
-{"intent":"migrate my Obsidian export into the KB","expected_skill":"migrate"}
-{"intent":"crawl my old notes archive for high-value KB candidates","expected_skill":"archive-crawler"}
-{"intent":"synthesize concepts and patterns from recent KB notes","expected_skill":"concept-synthesis"}
-{"intent":"mirror this book against my existing notes","expected_skill":"book-mirror"}
-{"intent":"verify this academic claim before it enters the KB","expected_skill":"academic-verify"}
-{"intent":"what is new since this KB page was last updated","expected_skill":"current-research"}
+{"intent":"extract the text and entities from this PDF and file it with its raw source","expected_skill":"media-ingest","ambiguous_with":["ingest"]}
+{"intent":"transcribe this podcast episode and link the raw diarized transcript","expected_skill":"media-ingest","ambiguous_with":["meeting-ingestion"]}
+{"intent":"import my Obsidian vault into a KB vault with a dry-run and redirects","expected_skill":"migrate","ambiguous_with":["setup"]}
+{"intent":"crawl my old notes archive for high-value KB candidates","expected_skill":"migrate"}
+{"intent":"synthesize concepts and recurring patterns from recent KB notes","expected_skill":"concept-synthesis"}
+{"intent":"mirror this book against my existing notes and personalize it","expected_skill":"concept-synthesis"}
+{"intent":"research what is new on the web since this KB page was last updated","expected_skill":"current-research"}
+{"intent":"verify this academic study and its replication before it enters the KB","expected_skill":"current-research"}
 {"intent":"brief me on tomorrow's Acme meeting from the KB","expected_skill":"briefing","ambiguous_with":["query"]}
 {"intent":"extract action items and waiting states from this meeting page","expected_skill":"task-manager"}
-{"intent":"generate a timestamped KB report with source manifest","expected_skill":"reports"}
-{"intent":"prepare this KB page for public sharing with redactions","expected_skill":"publish","ambiguous_with":["privacy-security"]}
-{"intent":"export this KB report to PDF and verify the render","expected_skill":"pdf-export","ambiguous_with":["publish"]}
-{"intent":"normalize this webhook payload into a KB ingestion envelope","expected_skill":"webhook-transforms","ambiguous_with":["integration-contracts"]}
-{"intent":"schedule a recurring KB maintenance job","expected_skill":"cron-scheduler"}
-{"intent":"run this KB migration as a resumable background job","expected_skill":"background-jobs","ambiguous_with":["context-checkpoint"]}
-{"intent":"run a knowledge base doctor check","expected_skill":"health","ambiguous_with":["dashboard"]}
-{"intent":"run a cross-model quality gate for this KB skill","expected_skill":"quality-gate","ambiguous_with":["skillify"]}
-{"intent":"preserve the raw source and redirect pointer for this upload","expected_skill":"raw-source"}
-{"intent":"choose which KB source scope to search","expected_skill":"source-router","ambiguous_with":["search-modes"]}
-{"intent":"pick the best KB search mode for this relationship question","expected_skill":"search-modes","ambiguous_with":["query"]}
-{"intent":"audit backlinks and relationship graph edges","expected_skill":"graph-ops"}
-{"intent":"redact secrets and PII before publishing KB content","expected_skill":"privacy-security"}
-{"intent":"save a checkpoint so this KB job can resume later","expected_skill":"context-checkpoint","ambiguous_with":["background-jobs"]}
-{"intent":"capture this browser page into the KB with source metadata","expected_skill":"browser-ingest","ambiguous_with":["article-enrichment"]}
-{"intent":"refresh the sample vault fixtures and walkthrough","expected_skill":"sample-vault"}
-{"intent":"prepare a knowledge base plugin release and upgrade notes","expected_skill":"release-upgrade"}
-{"intent":"show a KB dashboard with citation graph and retrieval health","expected_skill":"dashboard"}
-{"intent":"run KB maintenance for stale pages orphan links and missing citations","expected_skill":"maintenance","ambiguous_with":["health"]}
-{"intent":"configure the knowledge base plugin for first use","expected_skill":"setup","ambiguous_with":["cold-start"]}
-{"intent":"define a connector payload schema for KB ingestion","expected_skill":"integration-contracts","ambiguous_with":["webhook-transforms"]}
-{"intent":"review KB onboarding from a fresh clone","expected_skill":"devex-review"}
-{"intent":"operate the KB workflow end to end","expected_skill":"kb-ops"}
-{"intent":"resolve contradictory facts in a KB page","expected_skill":"conflict-resolution"}
-{"intent":"save this exact phrase as an original idea","expected_skill":"originals","ambiguous_with":["signal-detector"]}
-{"intent":"present options and wait before proceeding","expected_skill":"ask-user"}
-{"intent":"ingest this source into the knowledge base","expected_skill":"ingest","ambiguous_with":["article-enrichment","meeting-ingestion"]}
-{"intent":"skillify this KB feature with tests and evals","expected_skill":"skillify","ambiguous_with":["quality-gate"]}
-{"intent":"perform strategic reading and produce do avoid watch-for recommendations","expected_skill":"strategic-reading"}
-{"intent":"use vaultli to index validate search and assemble context","expected_skill":"vaultli"}
+{"intent":"generate a timestamped KB report with a source manifest","expected_skill":"reports"}
+{"intent":"prepare this KB page for public sharing with privacy redactions","expected_skill":"publish"}
+{"intent":"export this KB report to PDF and verify the rendered output","expected_skill":"publish","ambiguous_with":["reports"]}
+{"intent":"run this KB migration as a resumable background job in batches","expected_skill":"background-jobs","ambiguous_with":["migrate"]}
+{"intent":"save a checkpoint so this long KB job can resume later","expected_skill":"background-jobs"}
+{"intent":"run a knowledge base doctor check for stale pages and broken backlinks","expected_skill":"health"}
+{"intent":"validate and fix YAML frontmatter and sidecars across the vault","expected_skill":"health"}
+{"intent":"show a KB dashboard scoring citation graph and retrieval health","expected_skill":"health"}
+{"intent":"refresh the synthetic sample vault fixtures and walkthrough","expected_skill":"sample-vault"}
+{"intent":"set up the knowledge base plugin for first use and import my files","expected_skill":"setup","ambiguous_with":["migrate"]}
+{"intent":"resolve contradictory facts and duplicate entities in a KB page","expected_skill":"conflict-resolution"}
+{"intent":"present two to four options and wait before proceeding","expected_skill":"ask-user"}
+{"intent":"ingest this source into the knowledge base","expected_skill":"ingest","ambiguous_with":["media-ingest","meeting-ingestion"]}
+{"intent":"skillify this KB feature with tests and evals","expected_skill":"skillify"}
+{"intent":"read this through the lens of my current strategy problem and give a playbook","expected_skill":"strategic-reading"}
+{"intent":"use vaultli to index validate and search a file-based vault","expected_skill":"vaultli"}

@@ -1,7 +1,7 @@
 {
   "name": "knowledge-base",
   "displayName": "Knowledge Base",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
   "author": {
     "name": "Brian Weisberg"

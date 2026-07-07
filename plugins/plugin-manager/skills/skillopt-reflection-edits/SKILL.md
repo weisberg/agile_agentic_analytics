@@ -13,10 +13,13 @@ triggers:
   - "merge skill patches"
   - "rank skill edits"
   - "bounded skill update"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:

@@ -1,7 +1,7 @@
 ---
 name: prd-to-plan
 description: >
-  Use this skill when the user has a PRD (Product Requirements Document), spec, or product brief and wants to turn it into an executable plan for agentic development — a plan that AI coding agents (Claude Code, sub-agents, orchestrators) can actually run. Trigger on phrases like "turn this PRD into a plan", "agentic plan", "execution plan", "task graph", "break this down for Claude Code", "decompose this spec", "build plan", "implementation plan from PRD", "scrum-master plan", or when the user provides a PRD/spec and asks "what's next" or "how do we build this with agents". The output is always a structured `PLAN.md` artifact with phases, tasks, dependencies, validation gates, sub-agent assignments, and context bundles. Do NOT trigger for: writing the PRD itself (use prd-author), pure engineering design / RFC / ADR (architecture is a separate artifact), or generic project management plans without an agentic execution model.
+  Use this skill when the user has a PRD (Product Requirements Document), spec, or product brief and wants to turn it into an executable plan for agentic development — a plan that AI coding agents (Claude Code, sub-agents, orchestrators) can actually run. Trigger on phrases like "turn this PRD into a plan", "agentic plan", "execution plan", "task graph", "break this down for Claude Code", "decompose this spec", "build plan", "implementation plan from PRD", "scrum-master plan", or when the user provides a PRD/spec and asks "what's next" or "how do we build this with agents". The output is always a structured `PLAN.md` artifact with phases, tasks, dependencies, validation gates, sub-agent assignments, and context bundles. Do NOT trigger for: writing the PRD itself (use prd-writer), pure engineering design / RFC / ADR (architecture is a separate artifact), or generic project management plans without an agentic execution model.
 
 disable-model-invocation: false
 ---
@@ -24,6 +24,32 @@ is usually still **insufficient** for agents — it leaves too much implicit, ga
 too informally, and budgets context too generously.
 
 This skill produces plans that close that gap.
+
+## Contract
+
+Use this as a write-capable planning skill that consumes a PRD, spec, or product
+brief and produces an agent-executable markdown `PLAN.md`. It does not write the
+PRD itself, replace an engineering architecture document, or create a generic
+roadmap/Gantt plan without an agentic execution model.
+
+Hard gate: if no PRD/spec exists, stop and route to `prd-writer` instead of
+inventing requirements. If the executor model or available tooling is unknown,
+ask once with `AskUserQuestion` when available; otherwise ask one consolidated
+question. If the user asks to proceed anyway, continue only with visible
+`[ASSUMPTION]` / `[TBD]` markers and return `DONE_WITH_CONCERNS`, not `DONE`.
+
+Intake must classify the planning mode:
+
+- `quick`: small feature, 3-5 page plan, few tasks, lightweight gates.
+- `standard`: normal feature or product area, full phase map and task DAG.
+- `deep`: multi-quarter, regulated, high-blast-radius, multi-agent effort.
+- `replan`: update an existing `PLAN.md` after a gate failure or PRD change.
+
+Evidence requirement: inspect the source PRD, named requirements, open
+questions, repo layout, key code paths, tests, scripts, CI, existing agents or
+skills, and any provided constraints before decomposing work. Every file path,
+command, dependency, and agent role in the plan must either be verified from
+source evidence or labeled `[TBD]`; do not fabricate implementation facts.
 
 ---
 
@@ -62,7 +88,7 @@ A spectacular agentic plan does five things at once:
 - Sub-agents (e.g., scrum-master + workers) will orchestrate
 
 **Do not use it when:**
-- The PRD is too underspecified to plan from — kick back to `prd-author` first
+- The PRD is too underspecified to plan from — kick back to `prd-writer` first
 - The task is small enough to fit in one agent session (under ~30 minutes of work
   for an experienced engineer); a plan would be overhead
 - The user wants a Gantt chart / roadmap (different artifact, different audience)
@@ -99,34 +125,42 @@ user hasn't volunteered them, and call out what you assumed at the top of the pl
 
 ---
 
+## Process
+
+Follow this order. Do not jump from PRD to task list.
+
+1. **Intake and mode** — parse `$ARGUMENTS`, classify `quick` / `standard` /
+   `deep` / `replan`, identify the source PRD path, target plan path, executor
+   model, and deadline/constraint profile.
+2. **Normalize the PRD** — assign requirement IDs if missing, extract non-goals,
+   success metrics, rollout gates, risks, and open questions. If the PRD is too
+   thin, stop with `NEEDS_CONTEXT` or route to `prd-writer` review mode.
+3. **Evidence inventory** — inspect the codebase and tooling needed to make the
+   plan executable. Record verified commands, validators, tests, schemas, and
+   existing agent/skill names; mark unknowns as Phase 0 discovery tasks.
+4. **Decision gates** — use `AskUserQuestion` when available for executor model,
+   phase depth, human-vs-agent ownership, acceptance-test strategy, or any
+   high-blast-radius work. Hard stop on missing PRD, unbounded scope, no
+   validation path, or irreversible production ops without a human gate.
+5. **Decompose and crosswalk** — build phases, tasks, dependency graph, context
+   bundles, risk register, and PRD requirement crosswalk.
+6. **Validate before handback** — run the self-review checklist in
+   `references/examples.md` §G and repair failures before saving.
+7. **Save and summarize** — write the `PLAN.md`, then summarize phase count,
+   task count, critical path, top risks, open questions, assumptions, and status.
+
+---
+
 ## 4. The Output Artifact: `PLAN.md`
 
-Every invocation produces a single markdown file with this skeleton:
+Every invocation produces a single markdown file built from a fixed skeleton
+(metadata header + twelve numbered H2 sections, `## 0. Snapshot` through
+`## 12. Appendix`). **Before writing, read `references/examples.md` §A for the
+exact skeleton and reproduce its H2 headings verbatim** so other tools and skills
+can address sections by slug.
 
-```markdown
-# Plan: [Name]
-
-**Source PRD:** [link]   **Last updated:** YYYY-MM-DD
-**Executor model:** [single-agent / orchestrator+sub-agents / human-in-loop]
-**Status:** Draft / Active / Blocked / Complete
-
-## 0. Snapshot
-## 1. Inputs & Assumptions
-## 2. Decomposition Strategy
-## 3. Phase Map
-## 4. Tasks
-## 5. Dependency Graph
-## 6. Validation Gates
-## 7. Sub-Agent Assignments
-## 8. Context Bundles
-## 9. Human Checkpoints
-## 10. Risk Register (Agentic-Specific)
-## 11. Replanning Protocol
-## 12. Appendix (PRD Crosswalk, Decision Log)
-```
-
-What goes in each is detailed in §5–§13. Keep the plan **scannable** — an
-orchestrator should be able to find any task by ID in under five seconds.
+What goes in each section is detailed in §5–§13 below. Keep the plan **scannable**
+— an orchestrator should be able to find any task by ID in under five seconds.
 
 ---
 
@@ -138,20 +172,12 @@ Decompose top-down through three levels. Do not skip levels.
 A **phase** is a horizontally-cut slab of work that ends in a meaningful, testable
 state. Phases are sequential; you do not start phase N+1 until phase N's gate passes.
 
-Default phase template (adapt to the work):
-
-| Phase | Purpose | Typical exit criterion |
-|-------|---------|------------------------|
-| **0. Discovery** | Resolve open questions, validate assumptions, prove key unknowns | All `[ASSUMPTION]` flags from PRD either confirmed or documented as accepted risk |
-| **1. Foundations** | Schemas, contracts, scaffolding, fixtures, eval harness | Eval harness runs end-to-end against stub implementation |
-| **2. Build (Vertical Slice)** | Smallest end-to-end working path | One real user journey works in dev, instrumented |
-| **3. Build (Breadth)** | Remaining requirements layered on the slice | All P0/P1 requirements implemented and passing eval |
-| **4. Hardening** | Edge cases, performance, observability, accessibility | Guardrail metrics within budget; chaos/load tests pass |
-| **5. Rollout** | Progressive deployment, monitoring, comms | GA criteria from PRD §Rollout met; rollback verified |
-
-A short feature may collapse to 3 phases; a multi-quarter bet may have 7+. **Always
-include Phase 0 (Discovery) and Phase 4 (Hardening)** — agents systematically
-under-invest in both unless the plan forces it.
+Use the default phase template in `references/examples.md` §B — a six-phase arc
+(0. Discovery → 1. Foundations → 2. Build/Vertical Slice → 3. Build/Breadth →
+4. Hardening → 5. Rollout), each with a purpose and a typical exit criterion.
+Adapt it to the work: a short feature may collapse to 3 phases; a multi-quarter
+bet may have 7+. **Always include Phase 0 (Discovery) and Phase 4 (Hardening)** —
+agents systematically under-invest in both unless the plan forces it.
 
 ### 5.2 Tasks
 A **task** is a single unit of work assigned to a single executor in a single
@@ -181,44 +207,13 @@ Most tasks do not need atoms. Use them when the task involves a fragile sequence
 
 ## 6. Task Specification — The Mandatory Fields
 
-Every task in §4 of the plan has this structure. **No field is optional.** Missing
-fields mean the agent will guess, and guesses compound.
-
-```markdown
-### T-{phase}.{n} — {short verb-led title}
-
-- **Requirement(s):** R3, R7         <!-- back-references to the PRD -->
-- **Type:** code / schema / test / doc / research / config / ops
-- **Executor:** {agent role, e.g. `general`, `data-eng-subagent`, `human-review`}
-- **Blast radius:** local / contained / cross-cutting
-- **Estimated effort:** {S / M / L}, {sessions: 1–2}
-- **Depends on:** T-1.3, T-2.1
-- **Blocks:** T-3.4
-
-**Goal.** One sentence — the user-observable or system-observable outcome.
-
-**Spec.**
-- Inputs: ...
-- Outputs: ...
-- Behavior: ... (what the code/artifact must do, in present-tense declarative)
-- Errors: ... (named error cases and expected handling)
-- Out of scope: ... (what NOT to touch)
-
-**Context bundle.**
-- `path/to/file1.py` — relevant because ...
-- `docs/schema.md` — defines the data contract
-- `prd.md#R7` — the requirement being implemented
-(See §8 for context bundle discipline.)
-
-**Acceptance test.** A runnable check that decides pass/fail with no judgment call.
-- Command: `pytest tests/test_t_2_3.py::test_happy_path -q`
-- Or: `cargo test --test integration t_2_3`
-- Or: manual checklist with explicit observable criteria
-
-**Failure modes to watch.** (Agent-specific. See §10 for the catalog.)
-- Likely to hallucinate the `XxxClient` API — verify against `path/to/client.py`
-- May invent a config key — actual keys live in `config/schema.json`
-```
+Every task in §4 of the plan has a fixed structure. **No field is optional** —
+missing fields mean the agent will guess, and guesses compound. The mandatory
+fields are: requirement back-references, type, executor, blast radius, estimated
+effort, depends-on/blocks, a one-sentence goal, a spec (inputs, outputs, behavior,
+errors, out-of-scope), a context bundle (§8), an acceptance test, and agent-specific
+failure modes to watch (§10). **Copy the exact task template from
+`references/examples.md` §C** and populate every field for each task.
 
 The **acceptance test must exist before the task runs.** Validation-first task
 design is the single highest-leverage practice this skill enforces.
@@ -315,21 +310,11 @@ false confidence.
 
 ## 10. Risk Register — Agentic Failure Modes
 
-Section §10 of the plan is a table of risks specific to agentic execution. Always
-include at least these, with task-specific mitigations:
-
-| Risk | What it looks like | Mitigation |
-|------|--------------------|------------|
-| **API hallucination** | Agent calls `client.frobnicate()` that doesn't exist | Pin the canonical client file in the bundle; require the agent to grep before calling |
-| **Spec drift** | Output does the spirit, not the letter, of the requirement | Acceptance test bound to the literal requirement; reviewer crosswalks PRD R-IDs |
-| **Premature completion** | Agent declares done when only the happy path works | Acceptance test includes ≥1 error path; gate requires error-path test green |
-| **Pattern bleed** | Agent copies a deprecated pattern from elsewhere in the repo | Label deprecated areas `[STALE]`; pin the canonical example explicitly |
-| **Context overload** | Bundle is huge, agent skims and confabulates | §8 minimization; cap at 5–8 references for most tasks |
-| **Silent dependency add** | Agent introduces a new library to solve a task | Constraint in spec: "no new dependencies without an explicit task to add one" |
-| **Test theater** | Agent writes tests that test the mock, not the behavior | Acceptance tests written *first* (validation-first); reviewer spot-checks |
-| **Context loss across sessions** | Multi-session task forgets earlier decisions | Decision log in `PLAN.md` §12; each session starts by reading it |
-| **Cross-cutting blast** | Local fix breaks shared infra | Blast radius classification (§6) + human gate for `cross-cutting` |
-| **Eval gaming** | Agent overfits to the eval set | Hold out a private eval; rotate canonical examples |
+Section §10 of the plan is a table of risks specific to agentic execution. **Always
+include at least the ten canonical agentic failure modes with task-specific
+mitigations — the full table is in `references/examples.md` §D** (API hallucination,
+spec drift, premature completion, pattern bleed, context overload, silent dependency
+add, test theater, context loss across sessions, cross-cutting blast, eval gaming).
 
 Add domain-specific risks (data privacy, compliance, financial calculations,
 PII handling, etc.) as appropriate.
@@ -339,18 +324,10 @@ PII handling, etc.) as appropriate.
 ## 11. Sub-Agent Assignment Patterns
 
 If the executor model uses an orchestrator with sub-agents, §7 of the plan
-specifies which sub-agent owns which task type. Common patterns:
-
-- **Hub-and-spoke (scrum-master orchestrator).** A coordinator sub-agent reads
-  the plan, dispatches tasks to specialists, collects results, advances gates.
-  Best when tasks are heterogeneous and validation is centralized.
-- **Pipeline.** Sub-agents in series — researcher → designer → implementer →
-  reviewer. Best when phases are linear and each adds a distinct kind of value.
-- **Specialist swarm.** Multiple specialists working in parallel on independent
-  branches of the DAG, with a final integrator. Best when the breadth phase has
-  many parallelizable tasks.
-- **Pair / adversarial.** Implementer + critic running in alternation. Best for
-  high-stakes tasks where review quality matters more than speed.
+specifies which sub-agent owns which task type. **See `references/examples.md` §F
+for the four common orchestration patterns** — hub-and-spoke (scrum-master),
+pipeline, specialist swarm, and pair/adversarial — and pick the one that fits the
+work's shape.
 
 For each non-trivial task, name the sub-agent role: `general`, `data-eng`,
 `frontend`, `experimentation`, `reviewer`, `researcher`, `human`. If the team
@@ -390,7 +367,7 @@ Replanning workflow:
    assumed, why we were wrong.
 3. **Decide the scope of replan:** local (just this task), phase (all of phase
    N), or whole-plan.
-4. **If PRD-level:** kick back to `prd-author` for the spec change before
+4. **If PRD-level:** kick back to `prd-writer` for the spec change before
    re-deriving the plan.
 5. **Bump `Last updated`, mark affected sections `[CHANGED YYYY-MM-DD]`, and
    re-run the §13 quality bar** before resuming.
@@ -402,67 +379,38 @@ authors weren't paying attention.
 
 ## 13. Quality Bar — Self-Review Checklist
 
-Before declaring a plan ready, verify all of the following. If any fail, fix.
-
-- [ ] **PRD crosswalk:** every PRD requirement R{n} maps to ≥1 task; every task
-      maps back to ≥1 R{n} (no orphan tasks, no orphan requirements). Show the
-      crosswalk table in §12.
-- [ ] **Phase 0 exists** and resolves at least one open question or assumption
-      from the PRD.
-- [ ] **Phase 4 (Hardening) exists** with explicit edge-case, perf, and
-      observability tasks — not just "fix bugs".
-- [ ] **Every task has all §6 fields populated** — no missing acceptance tests,
-      no missing context bundles.
-- [ ] **Every task's acceptance test is runnable** by a fresh agent without
-      back-channel context.
-- [ ] **Every gate is falsifiable** and has the §9.1 pre-mortem answered.
-- [ ] **Dependency graph is acyclic** and the critical path is marked.
-- [ ] **Context bundles obey the minimization rule** — no task exceeds 8
-      references without a noted reason.
-- [ ] **Blast radius is classified for every task** and `cross-cutting` tasks
-      have human gates.
-- [ ] **Sub-agent assignments are explicit;** missing specialist sub-agents are
-      themselves Phase 0 tasks.
-- [ ] **Risk register is task-specific,** not generic. Each row names actual
-      files, APIs, or behaviors that could go wrong.
-- [ ] **Replanning protocol §11 is filled in** for this specific plan, not boilerplate.
-- [ ] **No fabricated specifics.** File paths, function names, dependencies, and
-      commands either exist in the codebase / tooling or are flagged `[TBD]`.
-- [ ] **The plan is executable from the top.** A fresh orchestrator agent
-      reading only this file (plus the bundles) could run it without asking the
-      author what they meant.
-
-If a plan fails the last item, it isn't a plan — it's notes.
+Before declaring a plan ready, **run the full 14-item self-review checklist in
+`references/examples.md` §G** and verify every item passes; if any fail, fix
+before delivering. The checklist covers PRD crosswalk completeness, Phase 0 and
+Phase 4 existence, populated §6 task fields, runnable acceptance tests,
+falsifiable gates, an acyclic graph with a marked critical path, context-bundle
+minimization, blast-radius classification, explicit sub-agent assignments, a
+task-specific risk register, a filled-in replanning protocol, no fabricated
+specifics, and top-to-bottom executability. If a plan fails the last item, it
+isn't a plan — it's notes.
 
 ---
 
-## 14. Antipatterns
+## Anti-Patterns (§14)
 
-Catch these in your own drafts.
-
-1. **The wishlist plan.** One task per requirement, no dependencies, no validation.
-2. **The hero task.** "Implement the feature" hides 5-15 real tasks.
-3. **The trust-fall gate.** "Done when it works" is not falsifiable.
-4. **Bundle-of-everything.** Whole-repo context makes agents skim and confabulate.
-5. **Test-after.** Acceptance tests arrive after implementation instead of before.
-6. **Sub-agent cargo cult.** Specialist labels add no value over the generalist.
-7. **No human gates.** Irreversible ops still need human checkpoints.
-8. **No agentic failure modes.** The risk register could have been written in 2020.
-9. **Phase 0 skipped.** Assumptions move silently into build work.
-10. **Frozen plan.** No replanning protocol, decision log, or `[CHANGED]` discipline.
-11. **Open-questions amnesia.** PRD questions vanish instead of becoming Phase 0 tasks.
-12. **Eval as afterthought.** Eval arrives after the model of quality has drifted.
+Catch these in your own drafts. The full catalog of twelve — the wishlist plan,
+the hero task, the trust-fall gate, bundle-of-everything, test-after, sub-agent
+cargo cult, no human gates, no agentic failure modes, Phase 0 skipped, the frozen
+plan, open-questions amnesia, and eval as afterthought — with a one-line tell for
+each is in `references/examples.md` §E. Review your draft against every entry
+before declaring it ready.
 
 ---
 
-## 15. Output Conventions
+## Output Format (§15)
 
 When the skill is invoked:
 
-- **Filename:** `plan-<kebab-case-name>.md` (matching the PRD's slug if possible
-  — e.g., `prd-checkout-export.md` → `plan-checkout-export.md`).
+- **Filename:** use a `plan-...md` filename matching the PRD's slug if possible
+  — e.g., `prd-checkout-export.md` becomes `plan-checkout-export.md`.
 - **Location:** save via `create_file` (or `Write` in Claude Code) to the user's
-  preferred location, defaulting to alongside the PRD.
+  preferred location, defaulting to alongside the PRD. If the source PRD is not a
+  file, use a `plan-...md` filename in the current working directory.
 - **Length expectations:** small features ~3–5 pages, standard ~6–10 pages, deep
   ~10–20 pages. If a plan exceeds 20 pages, split by epic.
 - **Section headings:** use the verbatim H2 list from §4 so other tools and
@@ -473,9 +421,15 @@ When the skill is invoked:
   open questions, any `[ASSUMPTION]` flags the user should review.
 - **Crosswalk table is mandatory.** Even on small plans. It's the single
   fastest way to spot orphan requirements or orphan tasks.
-- **Pair with `prd-author`.** If the PRD is missing structure (no R-IDs, no
-  non-goals, no metrics), recommend running `prd-author` in review mode first.
+- **Pair with `prd-writer`.** If the PRD is missing structure (no R-IDs, no
+  non-goals, no metrics), recommend running `prd-writer` in review mode first.
   A weak PRD becomes a weak plan no matter how disciplined the planner.
+- **Completion status:** end the handback with one of: `DONE` (plan saved and
+  checklist passes), `DONE_WITH_CONCERNS` (usable plan with explicit
+  assumptions or unresolved low/medium-risk gaps), `NEEDS_CONTEXT` (missing
+  PRD/spec, executor model, source access, or validation basis), or `BLOCKED`
+  (cannot proceed because required tools, repo access, policy, or human
+  approval is unavailable).
 
 ---
 
@@ -483,7 +437,7 @@ When the skill is invoked:
 
 This skill is allowed and expected to push back when:
 
-- The PRD is too thin to plan from. Recommend `prd-author` review first.
+- The PRD is too thin to plan from. Recommend `prd-writer` review first.
 - The user wants a plan that has no Phase 0 because "we know what to build."
   Insist on at least a 30-minute Discovery phase to validate the riskiest
   assumption. It is cheap and almost always pays off.

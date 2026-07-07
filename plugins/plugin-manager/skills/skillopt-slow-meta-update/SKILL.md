@@ -12,10 +12,13 @@ triggers:
   - "epoch skill consolidation"
   - "update optimizer memory"
   - "compare skill versions"
-tools:
-  - read
-  - write
-  - exec
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
+  - Glob
 mutating: true
 writes_pages: false
 writes_to:

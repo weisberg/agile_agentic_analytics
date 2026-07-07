@@ -63,8 +63,29 @@ For a lightweight response:
 ```
 
 For durable contracts, write to `workspace/analysis/lead-analyst/metrics/` if
-`workspace/` exists, otherwise `analysis/lead-analyst/metrics/`. Use the template
-in `references/metric-contract-template.md`.
+`workspace/` exists, otherwise `analysis/lead-analyst/metrics/`, using the
+filename format:
+
+```text
+YYYYMMDD-HHMMSS-metric-<slug>.md
+```
+
+Use the template in `references/metric-contract-template.md`.
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Canonical definition: <one line>
+Next skill: /lead-analyst:metric-lineage | dashboard-spec | analysis-brief
+Open concerns: <none or list — e.g. unresolved variant conflict, missing owner>
+```
+
+Use `DONE_WITH_CONCERNS` when a definition is proposed but variants remain
+unreconciled; `BLOCKED` when the metric lacks a numerator, denominator, grain, or
+source of truth and cannot be blessed; `NEEDS_CONTEXT` when the decision use of
+the metric is unknown.
 
 ## Anti-Patterns
 

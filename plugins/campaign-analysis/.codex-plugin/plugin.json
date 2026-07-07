@@ -1,6 +1,6 @@
 {
   "name": "campaign-analysis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Campaign performance analysis toolkit for measurement, diagnostics, optimization, and stakeholder reporting.",
   "author": {
     "name": "Brian Weisberg"

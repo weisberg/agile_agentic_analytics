@@ -1,234 +1,173 @@
 ---
 name: experimentation
 description: >
-  Use when the user mentions A/B test, experiment, hypothesis test, statistical
-  significance, p-value, confidence interval, CUPED, variance reduction, power
-  analysis, sample size calculation, minimum detectable effect, MDE, sequential
-  test, early stopping, Bayesian AB test, multi-armed bandit, experiment design,
-  split test, holdout test, control group, treatment effect, incrementality test,
-  causal inference, or uplift modeling. Also trigger on 'did this change work' or
-  'how long should we run this test.' If segment-level analysis is needed and
-  segments are not defined, suggest running audience-segmentation first.
-
+  Scripted marketing-workspace experiment statistics wired to the workspace/
+  data contracts. Use when the user wants to run CUPED variance reduction, an SRM
+  check, power/sample-size math, sequential monitoring, or frequentist and
+  Bayesian analysis on marketing experiment data landed in workspace/raw/ —
+  phrases like 'run CUPED on our workspace experiment', 'check this marketing
+  experiment for SRM', 'sequential test on the experiment pipeline in our
+  workspace', 'compute the incrementality lift for MMM calibration'. If
+  experiment_data.csv is not yet landed, run data-extraction first. Not for
+  standalone experiment consulting unconnected to a marketing workspace (use the
+  ab-testing plugin) or regulated experiment governance (use the experimentation
+  plugin). Feeds attribution-analysis, funnel-analysis, email-analytics, reporting.
 disable-model-invocation: false
 ---
 
-# A/B Testing & Experimentation
+# Marketing-Workspace Experimentation & Causal Statistics
 
-Statistical experiment design, CUPED variance reduction, sequential testing,
-and causal analysis.
+**Role:** Fix-allowed within `workspace/analysis/` and `workspace/reports/`. You
+own the **scripted statistics layer** for marketing experiments held in the
+workspace — CUPED, SRM, power, sequential, frequentist, Bayesian. **Hard gate:
+all statistics run in the deterministic scripts under `scripts/`; never estimate
+a p-value, posterior, sample size, or variance reduction in prose.**
 
-| Property       | Value                                                          |
-| :------------- | :------------------------------------------------------------- |
-| Skill ID       | experimentation                                                |
-| Priority       | P0 — Foundational (powers all optimization)                    |
-| Category       | Experimentation & Causal Inference                             |
-| Depends On     | data-extraction, audience-segmentation (for stratification)    |
-| Feeds Into     | attribution-analysis, funnel-analysis, email-analytics, reporting |
+## Contract
 
-## Objective
+**When to use**
+- Marketing experiment data is in `workspace/raw/experiment_data.csv` and needs
+  rigorous analysis (CUPED, SRM, guardrails, novelty/primacy, Bayesian + frequentist).
+- Pre-experiment design math: power, MDE, duration from historical traffic.
+- Producing incrementality lift estimates that calibrate the MMM in
+  `attribution-analysis`.
 
-Provide a complete experimentation toolkit: power analysis and minimum
-detectable effect calculation for experiment design; frequentist and Bayesian
-analysis for completed experiments; CUPED variance reduction to accelerate
-learning; sequential testing with always-valid confidence intervals for early
-stopping; and automated diagnostics including Sample Ratio Mismatch detection
-and novelty/primacy effect identification. Produce structured experiment result
-reports suitable for both technical and executive audiences.
+**When NOT to use** (route instead)
+- Standalone experiment design/analysis not wired to a marketing workspace, or
+  hands-on lifecycle and implementation review → **ab-testing plugin**
+  (`ab-testing:design-experiment`, `ab-testing:sample-size`,
+  `ab-testing:analyze-results`).
+- Regulated/high-trust governance, ship-vs-kill decision reviews, conduct-risk
+  and trust review → **experimentation plugin**
+  (`experimentation:experiment-decision-review`, `experimentation:compliance-trust-review`).
+- Reconciling an experiment against an MMM for a budget call →
+  `experimentation:measurement-integration`.
+- Segments not yet defined → `audience-segmentation` first.
+- Raw experiment file not yet landed → `data-extraction` first.
 
-## Process Steps
+**Mode classification** (declare which)
 
-1. **Validate inputs.** Load `experiment_data.csv` and verify required columns
-   (`user_id`, `variant`, `metric`, `timestamp`). If pre-experiment covariates
-   are provided, confirm that covariate measurement window ends before treatment
-   assignment.
+| Mode | Trigger | Scope |
+|---|---|---|
+| **Quick** | Design math only ("how big / how long") | Power/MDE/duration; no result analysis. |
+| **Standard** | Completed experiment | SRM → CUPED → frequentist + Bayesian → guardrails → report. |
+| **Deep** | Ongoing or high-stakes | Standard + sequential monitoring, novelty/primacy time-window analysis, incrementality export. |
 
-2. **Run diagnostics.** Execute SRM check via `scripts/srm_check.py`. If the
-   chi-squared goodness-of-fit test yields p < 0.001, halt analysis and report
-   the mismatch with a diagnostic breakdown by platform, date, and segment.
-
-3. **Design or analyze.**
-   - *Pre-experiment path:* Run `scripts/power_analysis.py` to compute required
-     sample size, MDE, and estimated duration given historical traffic.
-   - *Post-experiment path:* Proceed to step 4.
-
-4. **Apply CUPED (when covariates available).** Run `scripts/cuped.py` to
-   regress each metric on its pre-experiment covariate, compute theta, and
-   produce adjusted metric values. Log variance reduction achieved.
-
-5. **Run frequentist analysis.** Execute `scripts/frequentist_test.py` on raw
-   and CUPED-adjusted metrics. Apply Benjamini-Hochberg correction across all
-   metrics. Classify results as significant vs. exploratory.
-
-6. **Run Bayesian analysis.** Execute `scripts/bayesian_test.py` to compute
-   posterior distributions, probability of being best, and expected loss for
-   each variant.
-
-7. **Run sequential monitoring (if experiment is ongoing).** Execute
-   `scripts/sequential_test.py` to compute always-valid confidence intervals
-   and check stopping boundaries.
-
-8. **Check guardrail metrics.** For each guardrail metric, verify that no
-   variant degrades beyond the pre-defined threshold. Flag violations.
-
-9. **Detect novelty/primacy effects.** Segment results by time window and test
-   for trend in effect size over time.
-
-10. **Generate report.** Compile all results into
-    `workspace/reports/experiment_report.html` with forest plots, posterior
-    distributions, monitoring charts, and a plain-language recommendation.
-
-## Key Capabilities
-
-### Experiment Design
-
-- Calculate required sample size given baseline rate, MDE, power (default 80%),
-  and significance level (default 5%).
-- Estimate experiment duration based on historical traffic volume and required
-  sample size.
-- Design stratified randomization schemes for low-traffic segments.
-- Generate experiment specification documents with hypothesis, metrics,
-  guardrails, and decision criteria.
-
-Refer to `references/experiment_design.md` for power analysis formulas, MDE
-lookup tables, and duration estimation methodology.
-
-### Statistical Analysis
-
-- Execute frequentist hypothesis tests with effect sizes, p-values, and
-  confidence intervals (z-test, t-test, chi-squared, proportion tests).
-- Compute CUPED-adjusted estimates: regress metric on pre-experiment covariate,
-  analyze residuals. See `references/cuped_methodology.md`.
-- Run Bayesian analysis: posterior distributions, probability of being best,
-  expected loss. See `references/bayesian_ab.md`.
-- Apply Benjamini-Hochberg correction for multiple metric testing; flag
-  significant vs. exploratory results.
-
-### Sequential Monitoring
-
-- Implement always-valid confidence intervals using mixture sequential
-  probability ratio test (mSPRT).
-- Support group sequential designs with O'Brien-Fleming or Pocock spending
-  functions.
-- Generate monitoring dashboards showing cumulative effect estimates with valid
-  stopping boundaries.
-
-Refer to `references/sequential_testing.md` for theory and implementation
-guidance.
-
-### CUPED Variance Reduction
-
-- Regress post-experiment metric on pre-experiment covariate to compute theta.
-- Produce adjusted metric: Y_adj = Y - theta * (X - mean(X)).
-- Typical variance reduction of 30-40% when covariates are well-correlated.
-- Validate that covariates are strictly pre-treatment to avoid bias.
-
-### Diagnostics and Reporting
-
-- Detect Sample Ratio Mismatch with chi-squared goodness-of-fit test (flag if
-  p < 0.001).
-- Identify novelty/primacy effects through time-windowed analysis.
-- Produce structured result reports: effect size, CI, practical significance,
-  recommendation.
-
-## Input / Output Data Contracts
-
-### Inputs
+**Inputs**
 
 | File | Description | Required |
-| :--- | :---------- | :------- |
-| `workspace/raw/experiment_data.csv` | User-level data with variant assignment, metric values, timestamps | Yes |
-| `workspace/raw/pre_experiment_covariates.csv` | Pre-period metric values for CUPED | No (recommended) |
-| `workspace/processed/segments.json` | Segment definitions from audience-segmentation | No (for subgroup analysis) |
+|------|-------------|----------|
+| `workspace/raw/experiment_data.csv` | User-level: `user_id`, `variant`, `metric`, `timestamp`. | Yes |
+| `workspace/raw/pre_experiment_covariates.csv` | Pre-period metric values for CUPED. | No (recommended) |
+| `workspace/processed/segments.json` | Segment definitions from audience-segmentation. | No |
 
-### Outputs
+**Contract references:** `references/experiment_design.md` (power/MDE/duration),
+`references/cuped_methodology.md`, `references/sequential_testing.md`,
+`references/bayesian_ab.md`, `shared/schemas/data_contracts.md`.
+
+**Outputs**
 
 | File | Description |
-| :--- | :---------- |
-| `workspace/analysis/experiment_results.json` | Structured results: effect sizes, CIs, p-values, Bayesian posteriors |
-| `workspace/analysis/cuped_adjustment.json` | CUPED theta estimates and variance reduction achieved |
-| `workspace/analysis/incrementality_results.json` | Lift estimates consumable by attribution-analysis for MMM calibration |
-| `workspace/reports/experiment_report.html` | Visual report with forest plots, posterior distributions, monitoring charts |
+|------|-------------|
+| `workspace/analysis/experiment_results.json` | Effect sizes, CIs, p-values, Bayesian posteriors. |
+| `workspace/analysis/cuped_adjustment.json` | CUPED theta and variance reduction achieved. |
+| `workspace/analysis/incrementality_results.json` | Lift estimates consumable by attribution-analysis. |
+| `workspace/reports/experiment_report.html` | Forest plots, posteriors, monitoring charts, plain-language recommendation. |
 
-## Cross-Skill Integration
+## Workflow
 
-The experimentation skill is the scientific backbone of the analytics portfolio:
+Complete each step before the next. A failed gate is a STOP, not a warning.
 
-- **attribution-analysis:** Incrementality test results from this skill
-  calibrate the MMM priors used in attribution modeling.
-- **funnel-analysis:** Funnel analysis generates hypotheses about conversion
-  bottlenecks; experimentation validates those hypotheses with controlled tests.
-- **email-analytics:** All send-time optimization and subject-line testing is
-  delegated to this skill for proper statistical rigor.
-- **web-analytics:** CUPED leverages pre-experiment behavioral data sourced
-  from web analytics pipelines.
-- **reporting:** Experiment result summaries feed into executive dashboards
-  and periodic performance reports.
+1. **Validate inputs (HARD GATE).** Load `workspace/raw/experiment_data.csv`; verify
+   `user_id`, `variant`, `metric`, `timestamp`. If covariates are provided, confirm the
+   covariate window ends **before** treatment assignment (post-treatment covariates
+   bias CUPED — reject them). If the file is absent, **STOP** and run **data-extraction**
+   first.
 
-## Financial Services Considerations
+2. **SRM check (HARD STOP rule).** Run `scripts/srm_check.py`. If the chi-squared
+   goodness-of-fit p < 0.001, **halt analysis** — the experiment is broken until
+   explained. Report the mismatch broken down by platform, date, and segment. Do not
+   report a "winner" from an SRM-positive test.
 
-When operating in financial services mode:
+3. **Design or analyze.**
+   - *Pre-experiment:* run `scripts/power_analysis.py` for required sample size, MDE,
+     and duration given historical traffic. Stop here for Quick mode.
+   - *Post-experiment:* continue to step 4.
 
-- All experiment variants involving investor-facing content must be pre-approved
-  by compliance before launch.
-- Required regulatory disclosures must appear in all variants and cannot be the
-  variable under test.
-- Experiment result claims used in marketing materials must include statistical
-  methodology footnotes.
-- Email experiments must maintain CAN-SPAM and SEC archival requirements across
-  all variants.
+4. **CUPED (when covariates available).** Run `scripts/cuped.py` to regress each metric
+   on its pre-experiment covariate, compute theta, and produce adjusted values
+   (`Y_adj = Y - theta*(X - mean(X))`). Log the variance reduction achieved.
 
-## Development Guidelines
+5. **Frequentist analysis.** Run `scripts/frequentist_test.py` on raw and CUPED-adjusted
+   metrics. Apply Benjamini-Hochberg correction across all metrics. Default to two-sided
+   tests; one-sided only with explicit justification. Classify significant vs exploratory.
 
-1. All statistical computations must be deterministic Python scripts using
-   `scipy.stats` and `numpy`. Never let the LLM estimate p-values.
+6. **Bayesian analysis.** Run `scripts/bayesian_test.py` for posteriors, probability of
+   being best, and expected loss per variant. Let the user choose the decision framework
+   — always compute both.
 
-2. CUPED implementation must validate that the covariate was measured entirely
-   pre-treatment to avoid post-treatment bias.
+7. **Sequential monitoring (ongoing experiments).** Run `scripts/sequential_test.py` for
+   always-valid CIs (mSPRT) and stopping boundaries. Enforce the pre-specified
+   alpha-spending; do not let ad-hoc peeking pass as a decision.
 
-3. Default to two-sided tests. One-sided tests are permitted only when
-   explicitly justified in the experiment specification.
+8. **Guardrails and novelty.** Verify no variant degrades a guardrail metric beyond its
+   threshold; flag violations. Segment by time window and test for a trend in effect size
+   (flat = real, decaying = novelty, growing = primacy).
 
-4. Always compute both frequentist and Bayesian results. Let the user choose
-   their decision framework.
+9. **Decision gate — interpretation frame.** When results are borderline (significant but
+   below the pre-registered MDE, or CUPED flips the conclusion), use **AskUserQuestion**
+   to confirm how the user wants to act: hold to the pre-registered decision rule, treat
+   as exploratory, or extend the test. Do not silently pick. Note: shipping/governance
+   *decisions* belong to the experimentation plugin — surface the statistics; do not
+   adjudicate conduct risk here.
 
-5. Sequential test implementation must guarantee Type I error control at the
-   nominal level.
+10. **Report + export.** Write `experiment_results.json`, `cuped_adjustment.json`, and
+    (when a lift is estimated) `incrementality_results.json` for MMM calibration. Build
+    `workspace/reports/experiment_report.html`.
 
-6. Include automated guardrail metric checking: if any guardrail metric
-   degrades beyond threshold, flag the experiment.
+11. **FS-mode gate.** In financial-services workspaces: all investor-facing variants must
+    be compliance-pre-approved before launch, required disclosures cannot be the variable
+    under test, and any result claim used in marketing must carry statistical-methodology
+    footnotes. Route customer-facing outputs through **compliance-review**.
 
-## Scripts
+**Cross-skill wiring:** incrementality results calibrate `attribution-analysis`
+MMM priors; `funnel-analysis` generates hypotheses this skill tests;
+`email-analytics` delegates send-time and subject-line testing here for rigor;
+CUPED covariates draw on `web-analytics` pre-period data; `reporting` consumes
+result summaries.
 
-| Script | Purpose |
-| :----- | :------ |
-| `scripts/power_analysis.py` | Sample size and MDE calculation |
-| `scripts/frequentist_test.py` | z-test, t-test, chi-squared, proportion test with BH correction |
-| `scripts/bayesian_test.py` | Posterior computation, probability of being best, expected loss |
-| `scripts/cuped.py` | CUPED covariate regression, theta estimation, adjusted metrics |
-| `scripts/sequential_test.py` | mSPRT boundaries, always-valid CIs, alpha-spending |
-| `scripts/srm_check.py` | Sample Ratio Mismatch detection with diagnostic breakdown |
+## Output Format
 
-## Reference Files
+```
+## Experimentation — <experiment name>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Mode: Quick | Standard | Deep
 
-| Reference | Content |
-| :-------- | :------ |
-| `references/experiment_design.md` | Power analysis formulas, MDE tables, duration estimation |
-| `references/cuped_methodology.md` | CUPED math, covariate selection, theta derivation |
-| `references/sequential_testing.md` | mSPRT theory, alpha-spending functions, stopping rules |
-| `references/bayesian_ab.md` | Conjugate prior selection, loss functions, decision rules |
+SRM: p=<v> (PASS | FAIL-HALT)
+Effect: <metric> <delta> [<lo>–<hi>], p=<v> (BH-adj); CUPED var-reduction=<pct>
+Bayesian: P(best)=<pct>, expected loss=<v>
+Recommendation: <plain language>
+Artifacts: workspace/analysis/experiment_results.json, workspace/reports/experiment_report.html
+```
 
-## Acceptance Criteria
+Completion status:
+- `DONE` — validated, SRM clean, both analyses run, report written.
+- `DONE_WITH_CONCERNS` — completed with caveats (novelty trend, weak covariate,
+  underpowered); state them.
+- `BLOCKED` — SRM failure or missing required columns; name the gate.
+- `NEEDS_CONTEXT` — missing the interpretation frame, covariate window, or the
+  experiment file (state what).
 
-- Power analysis produces sample sizes within 5% of analytical formulas for
-  known distributions.
-- CUPED adjustment produces variance reduction of 20%+ on realistic simulated
-  data with correlated covariates.
-- Sequential test maintains Type I error rate below nominal alpha (verified via
-  10,000 simulation runs).
-- SRM detection correctly identifies 95%+ of intentionally imbalanced datasets
-  at 0.1% threshold.
-- Bayesian posterior probabilities match analytical conjugate solutions for
-  Beta-Binomial test cases.
-- End-to-end pipeline from raw data to experiment report executes in under 60
-  seconds for 1M-row datasets.
+## Anti-Patterns
+
+- **Do not** report results from an SRM-positive experiment — halt and diagnose.
+- **Do not** estimate p-values, posteriors, or variance reduction in prose.
+- **Do not** use post-treatment covariates in CUPED.
+- **Do not** peek and stop early outside the pre-specified sequential boundaries.
+- **Do not** claim a win in a post-hoc segment when the overall result is null.
+- **Do not** adjudicate ship/kill or conduct risk here — that is the
+  experimentation plugin's job; produce the statistics and hand off.
+- **Do not** launch FS investor-facing variants without compliance pre-approval.
+
+Builder-facing acceptance criteria and engineering conventions live in the
+plugin's `references/authoring-notes.md`, not in this runtime body.

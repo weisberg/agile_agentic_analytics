@@ -1,267 +1,129 @@
 ---
 name: social-analytics
 description: >
-  Use when the user mentions social media analytics, social performance,
-  Facebook insights, Instagram analytics, LinkedIn analytics, TikTok analytics,
-  YouTube analytics, X analytics, Twitter analytics, social engagement, social
-  reach, share of voice, social sentiment, brand mentions, social content
-  performance, viral content, social ROI, social listening, or social
-  benchmarking. Also trigger on 'how are we doing on social' or 'what's
-  performing on LinkedIn.' If social platform data is not yet extracted, suggest
-  running data-extraction first. Share-of-voice data feeds into competitive-intel.
-  Social engagement data feeds attribution-analysis as a channel input. Results
-  feed into reporting.
-category: Channel Analytics
-priority: P2
-depends_on:
-  - data-extraction
-feeds_into:
-  - competitive-intel
-  - attribution-analysis
-  - reporting
+  Use when the user mentions social media analytics, social performance, Facebook
+  insights, Instagram analytics, LinkedIn analytics, TikTok analytics, YouTube
+  analytics, X analytics, Twitter analytics, social engagement, social reach, share
+  of voice, social sentiment, brand mentions, social content performance, viral
+  content, social ROI, social listening, or social benchmarking. Also trigger on
+  'how are we doing on social' or 'what's performing on LinkedIn.' For a full
+  cross-channel competitor benchmark (keywords, ads, pricing, traffic) use
+  competitive-intel; for paid-ad platform metrics like CPA/ROAS use paid-media;
+  this skill owns owned/earned social performance and sentiment. If social platform
+  data is not yet in the workspace, run data-extraction first.
 
 disable-model-invocation: false
 ---
 
 # Social Media Analytics
 
-Cross-platform social performance, sentiment analysis, and competitive benchmarking.
+Cross-platform social performance normalization, content and cadence analysis,
+transformer-based sentiment with crisis detection, and share-of-voice
+benchmarking.
 
-| Property       | Value                                                       |
-| :------------- | :---------------------------------------------------------- |
-| Skill ID       | social-analytics                                            |
-| Priority       | P2 — Supporting (brand and awareness channel)               |
-| Category       | Channel Analytics                                           |
-| Depends On     | data-extraction                                             |
-| Feeds Into     | competitive-intel, attribution-analysis, reporting          |
+## Contract
 
-## Objective
+**Role:** Advisory analyst. Reports social performance and sentiment; does not
+post or boost content. Normalization, sentiment, and SOV run in deterministic
+Python scripts.
 
-Aggregate performance data across social platforms (Meta, LinkedIn, TikTok,
-YouTube, X/Twitter), perform sentiment analysis on brand mentions, analyze
-content performance patterns, and benchmark against competitors. Support both
-organic and paid social analytics with clear delineation between earned and
-boosted content.
+**Mode:**
+- `quick` — normalize + cross-platform engagement summary.
+- `standard` (default) — add content/cadence analysis and sentiment.
+- `deep` — add share-of-voice benchmarking and influencer/earned-media value.
 
-## Cross-Platform Performance Aggregation
+**When to use:** platform performance, engagement/reach, social sentiment and
+crisis signals, brand mention share of voice, content-type benchmarking.
 
-Normalize engagement metrics across platforms to a single comparable schema
-so that downstream consumers can evaluate social performance holistically.
+**When NOT to use:** full competitor benchmark across channels → `competitive-intel`;
+paid-ad platform metrics (CPA, ROAS, creative fatigue) → paid-media; open-text
+survey feedback → `voc-analytics`. See `../../references/skill-index.md`.
 
-### Unified metric taxonomy
+**Evidence required (inputs):**
+- `workspace/raw/social_performance_{platform}.csv` — platform post performance
+  (required). If absent, STOP and run **data-extraction** first.
+- `workspace/raw/social_mentions.csv` — brand mentions from social listening
+  (optional; enables sentiment/SOV).
+- `workspace/raw/competitor_social.csv` — competitor metrics (optional;
+  benchmarking).
 
-| Unified Metric     | Meta (FB/IG)        | LinkedIn             | TikTok              | YouTube             | X (Twitter)         |
-|--------------------|---------------------|----------------------|---------------------|---------------------|---------------------|
-| impressions        | impressions         | impressions          | video_views         | views               | impressions         |
-| reach              | reach               | uniqueImpressionsCount | reach             | uniqueViewers       | reach               |
-| engagements        | post_engagements    | totalEngagements     | engagements         | likes + comments    | engagements         |
-| likes/reactions    | reactions           | likes                | likes               | likes               | likes               |
-| comments           | comments            | comments             | comments            | comments            | replies             |
-| shares             | shares              | shares               | shares              | shares              | retweets + quotes   |
-| clicks             | link_clicks         | clicks               | clicks              | card_clicks         | url_clicks          |
-| video_views        | video_views         | videoViews           | video_views         | views               | video_views         |
-| followers          | page_followers      | followerCount        | followerCount       | subscriberCount     | followers_count     |
+**Depends on:** data-extraction. **Feeds into:** competitive-intel (SOV),
+attribution-analysis (paid social as a channel), reporting, seo-content. Builder
+detail in `references/authoring-notes.md`.
 
-### Key normalization rules
+**Hard STOP (crisis signal):** if negative-sentiment volume exceeds the configured
+threshold (default 3× SD above the rolling mean), STOP the routine reporting flow
+and lead with a crisis alert — spike magnitude, start time, sample mentions,
+affected platforms, and recommended immediate actions. A brand crisis outranks the
+standard dashboard.
 
-- Engagement rate is always calculated as `engagements / reach` to enable
-  cross-platform comparison. Where reach is unavailable, fall back to
-  impressions with a transparent label.
-- Video view definitions differ by platform (Meta: 3s, TikTok: display,
-  YouTube: 30s or completion). Label all video metrics with platform-native
-  view definition.
-- Currency normalization for any paid social metrics using daily FX rates.
-- Distinguish organic vs paid metrics: separate columns for organic reach,
-  paid reach, and total reach.
+Parse `$ARGUMENTS` for inline paths, platforms, or crisis threshold overrides.
 
-Use `scripts/normalize_social.py` for deterministic transformation.
+## Workflow
 
-See `references/social_api_mapping.md` for the full metric taxonomy.
+1. **Validate & normalize.** Load platform files; run `scripts/normalize_social.py`
+   to map platform-native fields to the unified schema (impressions, reach,
+   engagements, likes, comments, shares, clicks, video_views, followers),
+   engagement_rate = engagements / reach. See `references/social_api_mapping.md`.
 
-## Content Performance Analysis
+2. **View gate (AskUserQuestion).** When both organic and paid metrics are present,
+   ask before aggregating:
+   - **Question:** "Which view of social performance do you want?"
+   - **Options:** (a) *Organic only* — earned reach/engagement from non-boosted
+     posts; (b) *Paid only* — boosted/promoted metrics; (c) *Blended* — combined
+     with organic/paid drill-down. Default blended when unspecified.
+   attribution-analysis consumes only the paid component.
 
-### Content type benchmarking
+3. **Content & cadence.** Run `scripts/social_content_analysis.py`: content-type
+   benchmarking, topic/theme classification, optimal posting cadence, and
+   best-time-to-post heatmaps.
 
-Compare engagement rates across content formats within and across platforms:
+4. **Sentiment.** Run `scripts/sentiment_analysis.py` (transformer model): classify
+   mentions positive/neutral/negative with intensity; detect rising themes; run the
+   Hard STOP crisis check. See `references/sentiment_methodology.md`.
 
-| Content Type | Platforms                        |
-|--------------|----------------------------------|
-| Video        | All                              |
-| Carousel     | Meta, LinkedIn                   |
-| Static image | All                              |
-| Text-only    | LinkedIn, X                      |
-| Stories      | Meta, LinkedIn, YouTube (Shorts) |
-| Reels/Shorts | Meta (Reels), YouTube (Shorts), TikTok |
-| Polls        | LinkedIn, X                      |
+5. **Share of voice** (deep mode). Run `scripts/social_share_of_voice.py`:
+   brand_mentions / total_category_mentions with consistent windows/queries;
+   breakdown by platform, sentiment, content type; competitor engagement/follower
+   benchmarking.
 
-### Topic and theme analysis
+6. **Influencer/earned media** (deep mode). Partner-attributed reach/engagement,
+   earned media value at equivalent paid CPM, audience overlap.
 
-Classify posts by topic using keyword extraction and semantic clustering.
-Measure per-topic engagement rates to identify high-performing themes.
+7. **Report.** Write outputs and the HTML dashboard.
 
-### Optimal posting cadence
+## Output Format
 
-Analyze engagement rate as a function of posting frequency to identify
-diminishing-returns thresholds per platform.
+Artifacts:
 
-### Best time to post
+| File | Contents |
+|------|----------|
+| `workspace/analysis/social_performance.json` | Cross-platform engagement metrics + content analysis |
+| `workspace/analysis/social_sentiment.json` | Sentiment scores, topic themes, crisis signals |
+| `workspace/analysis/social_benchmarks.json` | Competitive share of voice and benchmarking |
+| `workspace/reports/social_dashboard.html` | Cross-platform social dashboard |
 
-Build historical engagement heatmaps by platform, day of week, and hour.
-Account for audience timezone distribution when generating recommendations.
+Report states: view (organic/paid/blended), sentiment model used, and SOV window.
+When the crisis STOP fires, the alert leads the readout.
 
-Use `scripts/content_analysis.py` for computation.
+**Financial services mode:** flag posts missing FINRA Rule 2210 disclosures;
+testimonials/endorsements must follow SEC Marketing Rule disclosure; employee posts
+about fund performance need pre-approval and archival; crisis detection includes
+regulatory-inquiry and litigation-risk signals. Customer-facing social copy routes
+through **compliance-review**.
 
-## Sentiment Analysis
+**Completion status:**
+- `DONE` — normalized performance, sentiment, and requested benchmarks written.
+- `DONE_WITH_CONCERNS` — e.g., missing mention data (no sentiment/SOV), reach
+  unavailable (impressions fallback used).
+- `BLOCKED` — no platform data; state the fix.
+- `NEEDS_CONTEXT` — organic/paid/blended view unresolved by the user.
 
-### Classification approach
+## Anti-Patterns
 
-Use transformer-based NLP models (e.g., `cardiffnlp/twitter-roberta-base-sentiment`)
-to classify brand mentions, comments, and replies into positive, neutral, and
-negative categories. Do not use simple keyword matching.
-
-### Trend detection
-
-Identify emerging conversation themes around the brand or category using
-topic modeling on mention text. Track topic volume over time to detect
-rising narratives.
-
-### Crisis signal detection
-
-Monitor negative sentiment volume using a rolling window. Generate an alert
-when negative sentiment exceeds a configurable threshold (default: 3x
-standard deviation above the rolling mean). Include:
-
-- Spike magnitude and start time
-- Sample mentions driving the spike
-- Affected platforms
-- Recommended immediate actions
-
-See `references/sentiment_methodology.md` for model selection and scoring details.
-
-Use `scripts/sentiment_analysis.py` for computation.
-
-## Share of Voice
-
-Calculate brand mention volume relative to competitors across platforms.
-
-### Methodology
-
-- Define consistent search queries per brand (brand name, handles, hashtags,
-  common misspellings).
-- Use consistent time windows across all competitors.
-- Compute share of voice as `brand_mentions / total_category_mentions`.
-- Break down share of voice by platform, sentiment, and content type.
-- Track share of voice trends over time to measure campaign impact.
-
-### Competitive benchmarking
-
-Compare engagement rates, posting frequency, follower growth, and content
-mix against competitor accounts. Identify content strategies that drive
-outsized engagement for competitors.
-
-Use `scripts/share_of_voice.py` for computation.
-
-## Organic vs Paid Delineation
-
-Maintain separate metric streams for organic and paid social:
-
-| View          | Description                                             |
-|---------------|---------------------------------------------------------|
-| Organic only  | Earned impressions, engagement from non-boosted posts   |
-| Paid only     | Boosted/promoted post metrics and paid social campaigns |
-| Blended       | Combined organic + paid for total channel view          |
-
-Default dashboards show blended view with organic/paid breakdown available
-on drill-down. Attribution-analysis consumes only the paid component for
-media mix modeling.
-
-## Influencer and Creator Performance
-
-Track content partnerships and earned media value:
-
-- Partner-attributed impressions, engagements, and conversions
-- Earned media value estimation based on equivalent paid CPM
-- Creator audience overlap with brand audience
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File pattern                                    | Description                                    |
-|-------------------------------------------------|------------------------------------------------|
-| `workspace/raw/social_performance_{platform}.csv` | Platform-specific post performance data       |
-| `workspace/raw/social_mentions.csv`             | Brand mentions from social listening tools     |
-| `workspace/raw/competitor_social.csv`           | Competitor social metrics for benchmarking     |
-
-### Outputs
-
-| File                                              | Description                                         |
-|---------------------------------------------------|-----------------------------------------------------|
-| `workspace/analysis/social_performance.json`      | Cross-platform engagement metrics with content analysis |
-| `workspace/analysis/social_sentiment.json`        | Sentiment scores, topic themes, crisis signals      |
-| `workspace/analysis/social_benchmarks.json`       | Competitive share of voice and benchmarking data    |
-| `workspace/reports/social_dashboard.html`         | Cross-platform social analytics dashboard           |
-
-### Normalized social post schema
-
-| Column           | Type    | Description                                  |
-|------------------|---------|----------------------------------------------|
-| date             | date    | Post date (YYYY-MM-DD)                       |
-| platform         | string  | meta / linkedin / tiktok / youtube / x       |
-| post_id          | string  | Platform-native post identifier              |
-| post_type        | string  | video / carousel / image / text / story / reel |
-| topic            | string  | Classified topic or theme                    |
-| is_paid          | boolean | Whether post was boosted or promoted         |
-| impressions      | integer | Impression count                             |
-| reach            | integer | Unique accounts reached                      |
-| engagements      | integer | Total engagements                            |
-| likes            | integer | Likes or reactions                           |
-| comments         | integer | Comments                                     |
-| shares           | integer | Shares, retweets, reposts                    |
-| clicks           | integer | Link clicks                                  |
-| video_views      | integer | Video view count (platform-native definition)|
-| engagement_rate  | decimal | Derived: engagements / reach                 |
-
-## Cross-Skill Integration
-
-| Skill                | Relationship                                                              |
-|----------------------|---------------------------------------------------------------------------|
-| data-extraction      | Upstream: provides raw platform CSV files consumed by this skill          |
-| competitive-intel    | Downstream: receives share-of-voice data for comprehensive competitive monitoring |
-| attribution-analysis | Downstream: social engagement included as a channel in marketing mix models |
-| reporting            | Downstream: social metrics aggregated alongside other channels in executive dashboards |
-| seo-content          | Downstream: content performance patterns inform content strategy recommendations |
-
-## Financial Services Considerations
-
-When analyzing social media for financial services clients:
-
-- Social media posts must comply with FINRA Rule 2210 communications
-  standards. Flag posts missing required disclosures.
-- Testimonials and endorsements must follow SEC Marketing Rule disclosure
-  requirements. Monitor for non-compliant user-generated content.
-- Employee social media posts about fund performance require pre-approval
-  and archival. Track compliance status.
-- Crisis detection should include regulatory inquiry and litigation risk
-  signals alongside standard brand sentiment monitoring.
-
-## Development Guidelines
-
-1. Use platform APIs where available; fall back to CSV export for platforms
-   with restricted API access.
-2. Sentiment analysis must use a pre-trained transformer model (e.g.,
-   `cardiffnlp/twitter-roberta-base-sentiment`), not simple keyword matching.
-3. Engagement rate normalization must account for platform-specific reach
-   calculation differences.
-4. Share of voice calculations must use consistent time windows and query
-   definitions across competitors.
-5. Support both organic-only and blended (organic + paid) views of social
-   performance.
-6. Crisis detection threshold should be configurable; default to 3x standard
-   deviation in negative sentiment volume.
-7. All monetary calculations must use `decimal.Decimal` (Python) to avoid
-   floating-point rounding errors.
-8. Reference files in `references/` for methodology details; keep SKILL.md
-   focused on instructions and contracts.
-9. Scripts in `scripts/` handle deterministic computation; the LLM handles
-   interpretation, insight generation, and recommendation framing.
+- Burying a crisis-level negative-sentiment spike inside routine dashboard prose.
+- Keyword-matching sentiment instead of the transformer model.
+- Comparing engagement across platforms without normalizing to engagement / reach.
+- Mixing organic and paid metrics into one number with no drill-down.
+- Inconsistent SOV windows/queries across competitors.
+- Float arithmetic on monetary values instead of `decimal.Decimal`.

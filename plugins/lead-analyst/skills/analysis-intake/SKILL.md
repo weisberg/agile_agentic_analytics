@@ -54,6 +54,28 @@ to decide whether to run `analysis-planning`, `metric-contract`,
 ## Next Step
 ```
 
+For a durable handoff, save the intake brief under
+`workspace/analysis/lead-analyst/intake/` if `workspace/` exists, otherwise
+`analysis/lead-analyst/intake/`, using the filename format:
+
+```text
+YYYYMMDD-HHMMSS-intake-<slug>.md
+```
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Recommended route: <planning | metric-contract | data-quality-audit | decline/reframe>
+Next skill: /lead-analyst:analysis-planning | metric-contract | data-quality-audit
+Open concerns: <none or list — e.g. no decision found, undefined metrics>
+```
+
+Use `DONE_WITH_CONCERNS` when the intake is usable but key terms remain undefined;
+`BLOCKED` when no decision or owner can be identified; `NEEDS_CONTEXT` when the
+stakeholder must answer a decision-changing question before routing.
+
 ## Anti-Patterns
 
 - Treating "can you pull data on X" as a sufficient request.

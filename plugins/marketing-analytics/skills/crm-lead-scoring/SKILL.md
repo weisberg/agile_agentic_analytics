@@ -5,225 +5,130 @@ description: >
   MQL, SQL, pipeline analytics, pipeline velocity, win rate, deal velocity, sales
   funnel, opportunity analysis, win/loss analysis, CRM analytics, lead-to-close,
   conversion probability, propensity model, account scoring, or sales attribution.
-  Also trigger on 'which leads should sales prioritize' or 'why are we losing deals.'
-  If segment enrichment is needed and segments are not defined, suggest running
-  audience-segmentation first. Lead quality signals feed into paid-media for
-  campaign targeting. Pipeline metrics feed into reporting.
+  Also trigger on 'which leads should sales prioritize' or 'why are we losing
+  deals.' For predicting a customer's lifetime value use clv-modeling; for website
+  conversion funnels use funnel-analysis; this skill scores sales leads and
+  analyzes pipeline. If CRM data is not yet in the workspace, run data-extraction
+  first.
 
 disable-model-invocation: false
 ---
 
 # CRM Analytics & Lead Scoring
 
-Predictive lead scoring, pipeline velocity tracking, and win/loss analysis.
+Predictive lead scoring with SHAP explanations, pipeline-velocity tracking, and
+win/loss analysis over Salesforce/HubSpot-style CRM data.
 
-| Property       | Value                                                          |
-| :------------- | :------------------------------------------------------------- |
-| Skill ID       | crm-lead-scoring                                               |
-| Priority       | P2 — Supporting (extends core analytics to sales pipeline)     |
-| Category       | Sales & Pipeline Analytics                                     |
-| Depends On     | data-extraction, audience-segmentation, clv-modeling           |
-| Feeds Into     | email-analytics (nurture flows), paid-media (targeting), reporting |
+## Contract
 
-## Objective
+**Role:** Advisory modeler. Scores and diagnoses; does not route leads or update
+the CRM. Model training, calibration, and statistics run in deterministic Python
+scripts.
 
-Build and maintain predictive lead scoring models that combine firmographic,
-demographic, and behavioral signals to predict conversion likelihood. Track
-pipeline velocity metrics, perform win/loss analysis, and identify pipeline
-bottlenecks. Support integration with Salesforce, HubSpot, and custom CRM
-systems.
+**Mode:**
+- `quick` — pipeline velocity + win/loss on existing fields.
+- `standard` (default) — train and calibrate the scoring model with SHAP.
+- `deep` — add account-level scoring, forecasting, and drift analysis.
 
-## Process Steps
+**When to use:** ranking leads, pipeline velocity/coverage, win/loss drivers, lead
+source quality.
 
-1. **Validate inputs.** Load `crm_leads.csv` and `lead_activities.csv` from
-   `workspace/raw/`. Verify required columns: `lead_id`, `source`, `stage`,
-   `created_date`, `close_date`, `amount`, `outcome` for leads; `lead_id`,
-   `activity_type`, `timestamp` for activities. If `segments.json` is available
-   from audience-segmentation, load it for enrichment.
+**When NOT to use:** customer lifetime value → `clv-modeling`; website conversion
+funnels → `funnel-analysis`; customer segmentation → `audience-segmentation`. See
+`../../references/skill-index.md`.
 
-2. **Engineer features.** Run `scripts/lead_scoring_model.py` to build the
-   feature matrix from CRM fields, website behavior, email engagement, and
-   content consumption signals. Firmographic features include company size,
-   industry, and geography. Behavioral features include page views, email opens,
-   content downloads, and recency of engagement.
+**Evidence required (inputs):**
+- `workspace/raw/crm_leads.csv` — `lead_id`, `source`, `stage`, `created_date`,
+  `close_date`, `amount`, `outcome`. Required.
+- `workspace/raw/lead_activities.csv` — `lead_id`, `activity_type`, `timestamp`.
+  Required. If either is absent, STOP and run **data-extraction** first.
+- `workspace/processed/segments.json` — from audience-segmentation (optional).
 
-3. **Train scoring models.** Train both logistic regression (interpretable
-   baseline) and gradient boosting (accuracy-optimized) models with temporal
-   holdout cross-validation. Always train on historical data and validate on
-   future data to simulate real-world deployment.
+**Depends on:** data-extraction, audience-segmentation, clv-modeling. **Feeds
+into:** email-analytics, paid-media, reporting. Builder detail in
+`references/authoring-notes.md`.
 
-4. **Calibrate scores.** Apply isotonic regression or Platt scaling to ensure
-   predicted probabilities match observed conversion rates. Validate calibration
-   across decile bins; predicted vs. observed rates must align within 5
-   percentage points.
+**Hard STOP (leakage & fairness):** STOP before training if (a) the split is not
+temporal — random splits leak future outcomes into the score; or (b) in FS mode a
+feature is a prohibited characteristic (race, religion, national origin) or a
+direct proxy. Neither is a tuning choice.
 
-5. **Generate SHAP explanations.** Compute SHAP values for every scored lead to
-   explain which features drove the prediction. Document the top predictive
-   features and verify against domain expert review.
+Parse `$ARGUMENTS` for inline paths, CRM dialect, or model overrides.
 
-6. **Compute pipeline velocity.** Run `scripts/pipeline_velocity.py` to
-   calculate stage-by-stage conversion rates, average deal cycle time,
-   time-in-stage distributions, and pipeline coverage ratio against
-   quota/target. Compare metrics period-over-period and identify outliers.
+## Workflow
 
-7. **Run win/loss analysis.** Execute `scripts/win_loss_analysis.py` to
-   statistically compare won vs. lost deals across all available features.
-   Identify the stage at which lost deals diverge from won deals, and compute
-   competitive win/loss rates when a competitor is mentioned.
+1. **Validate inputs.** Load `crm_leads.csv` and `lead_activities.csv`; verify
+   required columns; load `segments.json` if present. Apply the fairness half of
+   the Hard STOP gate to the feature list.
 
-8. **Forecast pipeline.** Produce weighted pipeline projections using
-   probability-adjusted revenue. Compare weighted pipeline to quota with gap
-   analysis.
+2. **Engineer features.** Run `scripts/lead_scoring_model.py` to build the feature
+   matrix (firmographic: company size, industry, geography; behavioral: page
+   views, email opens, content downloads, recency). Abstract CRM fields to
+   canonical names first.
 
-9. **Generate outputs.** Write structured results to
-   `workspace/analysis/lead_scores.json`, `workspace/analysis/pipeline_metrics.json`,
-   and `workspace/analysis/win_loss_factors.json`. Compile the CRM dashboard to
-   `workspace/reports/crm_dashboard.html`.
+3. **Model gate (AskUserQuestion).** Before training, confirm the objective:
+   - **Question:** "What should the scoring model optimize for?"
+   - **Options:** (a) *Interpretability* — logistic regression baseline sales can
+     trust and explain; (b) *Accuracy* — gradient boosting with SHAP for
+     explanation; (c) *Both, compared* — train each and reconcile. Always train the
+     logistic baseline regardless; this sets the headline model.
 
-## Key Capabilities
+4. **Train.** Fit with temporal holdout cross-validation (train past, validate
+   future — enforce the leakage half of the Hard STOP gate here).
 
-### Predictive Lead Scoring
+5. **Calibrate.** Apply isotonic regression or Platt scaling; validate predicted
+   vs observed within 5 pp across decile bins.
 
-- Feature engineering from CRM fields, website behavior, email engagement, and
-  content consumption signals.
-- Model training with logistic regression (interpretable) and gradient boosting
-  (accuracy) using temporal holdout cross-validation.
-- SHAP-based feature importance for model explainability and score
-  interpretation. Every scored lead receives a feature-level explanation.
-- Score calibration via isotonic regression or Platt scaling to ensure predicted
-  probabilities are reliable and actionable.
-- Account-based scoring: aggregate multiple contact signals into a company-level
-  propensity score.
+6. **Explain.** Compute SHAP values per scored lead; document top predictive
+   features. See `references/lead_scoring_methodology.md`.
 
-Refer to `references/lead_scoring_methodology.md` for feature engineering
-patterns, model selection criteria, and calibration techniques.
+7. **Pipeline velocity.** Run `scripts/pipeline_velocity.py`: stage conversion
+   rates, deal-cycle time, time-in-stage distributions, coverage vs quota,
+   period-over-period. See `references/pipeline_metrics.md`.
 
-### Pipeline Analytics
+8. **Win/loss.** Run `scripts/win_loss_analysis.py`: statistical comparison of
+   won vs lost (t-test continuous, chi-squared categorical), divergence-stage
+   identification, competitive win/loss when a competitor is named.
 
-- Stage-by-stage conversion rate tracking with period-over-period comparison.
-- Deal velocity analysis: time-in-stage distributions with outlier
-  identification and bottleneck detection.
-- Pipeline coverage: compare weighted pipeline to quota/target with gap
-  analysis and risk flagging.
-- Pipeline forecasting: weighted pipeline with probability-adjusted revenue
-  projections.
+9. **Forecast** (deep mode). Weighted, probability-adjusted pipeline vs quota with
+   gap analysis.
 
-Refer to `references/pipeline_metrics.md` for velocity definitions and
-coverage ratio benchmarks.
+10. **Report.** Write outputs and the HTML CRM dashboard.
 
-### Win/Loss Intelligence
+## Output Format
 
-- Statistical comparison of won vs. lost deals across all available features
-  using hypothesis tests (t-test for continuous, chi-squared for categorical).
-- Temporal divergence analysis: identify at which pipeline stage lost deals
-  begin diverging from won deals in behavior or engagement.
-- Competitive win/loss: when a competitor is mentioned, quantify the change in
-  win rate and deal cycle time.
-- Ranked feature importance showing the strongest differentiators between won
-  and lost outcomes.
+Artifacts:
 
-### Lead Source Attribution
-
-- Identify which marketing channels and campaigns produce the highest-quality
-  leads (measured by conversion rate and deal value).
-- Feed lead quality signals back to paid-media for campaign targeting
-  optimization.
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File | Description | Required |
-| :--- | :---------- | :------- |
-| `workspace/raw/crm_leads.csv` | Lead/opportunity data: `lead_id`, `source`, `stage`, `created_date`, `close_date`, `amount`, `outcome` | Yes |
-| `workspace/raw/lead_activities.csv` | Behavioral activities: `lead_id`, `activity_type`, `timestamp` | Yes |
-| `workspace/processed/segments.json` | Segment enrichment from audience-segmentation | No |
-
-### Outputs
-
-| File | Description |
-| :--- | :---------- |
-| `workspace/analysis/lead_scores.json` | Lead-level propensity scores with SHAP feature explanations |
-| `workspace/analysis/pipeline_metrics.json` | Pipeline velocity, conversion rates, coverage ratio |
+| File | Contents |
+|------|----------|
+| `workspace/analysis/lead_scores.json` | Lead-level propensity scores with SHAP explanations |
+| `workspace/analysis/pipeline_metrics.json` | Velocity, conversion rates, coverage ratio |
 | `workspace/analysis/win_loss_factors.json` | Win/loss analysis with ranked feature importance |
-| `workspace/reports/crm_dashboard.html` | Lead scoring and pipeline analytics dashboard |
+| `workspace/reports/crm_dashboard.html` | Lead scoring and pipeline dashboard |
 
-## Cross-Skill Integration
+Report states: model class, holdout AUC, calibration error, and the temporal split
+boundary.
 
-Lead scoring models consume behavioral signals from **web-analytics** and
-**email-analytics** engagement data. **CLV-modeling** provides expected value
-estimates for score-weighted prioritization. **Audience-segmentation** enriches
-leads with segment membership, enabling segment-aware scoring and pipeline
-analysis. **Paid-media** uses lead quality data to optimize campaign targeting
-toward high-converting lead sources. The **reporting** skill includes pipeline
-health metrics in executive dashboards.
+**Financial services mode:** lead scoring for financial products must meet fair-
+lending requirements (no prohibited features/proxies); advisor-mediated channels
+need relationship-level scoring aggregated at household/advisor-book level; track
+regulatory approval stages (compliance, legal) separately so they don't penalize
+velocity; scoring claims used in marketing materials need methodology footnotes and
+route through **compliance-review**.
 
-When segment enrichment is needed and segments are not yet defined, prompt the
-user to run audience-segmentation first before proceeding with segment-aware
-lead scoring.
+**Completion status:**
+- `DONE` — model trained, calibrated, explained; pipeline + win/loss written.
+- `DONE_WITH_CONCERNS` — e.g., AUC below 0.75, weak calibration, thin win/loss
+  sample.
+- `BLOCKED` — Hard STOP tripped (leakage risk or prohibited feature) or missing
+  inputs; state the fix.
+- `NEEDS_CONTEXT` — model objective unresolved by the user.
 
-## Financial Services Considerations
+## Anti-Patterns
 
-When operating in financial services mode:
-
-- Lead scoring for financial products must comply with fair lending requirements
-  and avoid prohibited characteristics (race, religion, national origin, etc.)
-  as scoring features.
-- Advisor-mediated channels require relationship-level scoring, not just
-  individual lead scoring. Aggregate signals at the household or advisor-book
-  level.
-- Pipeline analytics must account for regulatory approval stages (compliance
-  review, legal sign-off) in cycle time calculations. These stages should be
-  tracked separately and not penalize velocity metrics.
-- Experiment result claims derived from lead scoring used in marketing materials
-  must include statistical methodology footnotes.
-
-## Development Guidelines
-
-1. Use scikit-learn for model training; always include logistic regression as an
-   interpretable baseline alongside gradient boosting.
-
-2. SHAP values are required for model explainability; never deploy a scoring
-   model without feature importance documentation.
-
-3. Temporal holdout validation is mandatory: train on historical data, validate
-   on future data to simulate real-world performance. Never use random splits
-   for time-series scoring data.
-
-4. Score calibration must use isotonic regression or Platt scaling to ensure
-   predicted probabilities are reliable.
-
-5. Model retraining cadence should be configurable; default to monthly with
-   automated drift detection comparing current feature distributions to training
-   distributions.
-
-6. Support both Salesforce and HubSpot field naming conventions with a mapping
-   layer. CRM-specific field names should be abstracted into canonical names
-   before feature engineering.
-
-## Scripts
-
-| Script | Purpose |
-| :----- | :------ |
-| `scripts/lead_scoring_model.py` | Feature engineering, model training, SHAP explanation, calibration |
-| `scripts/pipeline_velocity.py` | Stage conversion rates, deal cycle time distributions, coverage ratio |
-| `scripts/win_loss_analysis.py` | Feature comparison between won/lost deals, divergence point identification |
-
-## Reference Files
-
-| Reference | Content |
-| :-------- | :------ |
-| `references/lead_scoring_methodology.md` | Feature engineering guide, model selection criteria, calibration techniques |
-| `references/pipeline_metrics.md` | Pipeline velocity definitions, coverage ratio benchmarks |
-
-## Acceptance Criteria
-
-- Lead scoring model achieves AUC > 0.75 on temporal holdout validation set.
-- Calibrated probabilities match observed conversion rates within 5 percentage
-  points across decile bins.
-- SHAP feature importance correctly identifies the top 5 predictive features
-  verified against domain expert review.
-- Pipeline velocity calculations match manual CRM report outputs within 2%
-  tolerance.
-- Win/loss analysis identifies at least 3 statistically significant
-  differentiating factors (p < 0.05).
+- Random train/test splits on time-series lead data — they leak the future.
+- Deploying a score with no SHAP/feature-importance documentation.
+- Using prohibited characteristics or proxies as features in financial services.
+- Reporting uncalibrated probabilities as if they were reliable conversion rates.
+- Penalizing pipeline velocity for mandatory regulatory approval stages.
+- Letting the model estimate scores or win/loss p-values instead of the scripts.

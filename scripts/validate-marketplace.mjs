@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { parse as parseYaml } from "yaml";
 import {
   AUTHENTICATION_VALUES,
@@ -12,6 +13,7 @@ import {
   STRICT_SEMVER,
   codexInterface,
   generatedFiles,
+  listFiles,
   listSkillFiles,
   pathExists,
   pluginComponents,
@@ -22,9 +24,95 @@ import {
 
 const repoRoot = process.cwd();
 const errors = [];
+const warnings = [];
 
 function add(message) {
   errors.push(message);
+}
+
+function addWarn(message) {
+  warnings.push(message);
+}
+
+// Canonical tool names (see docs/SKILL_FRONTMATTER.md and docs/TOOLS_REFERENCE.md).
+// Shared by skill `allowed-tools` and agent `tools`/`disallowedTools`.
+const CANONICAL_TOOLS = new Set([
+  "Read",
+  "Write",
+  "Edit",
+  "Bash",
+  "Glob",
+  "Grep",
+  "LSP",
+  "NotebookEdit",
+  "WebFetch",
+  "WebSearch",
+  "AskUserQuestion",
+  "Skill",
+  "Agent",
+  "TodoWrite",
+  "Monitor",
+]);
+
+// MCP server tools are allowed via their canonical `mcp__<server>__<tool>` form.
+function isCanonicalTool(name) {
+  return CANONICAL_TOOLS.has(name) || /^mcp__[A-Za-z0-9_-]+/.test(name);
+}
+
+// Documented skill frontmatter keys: loader-recognized + repo-convention +
+// known-deprecated (docs/SKILL_FRONTMATTER.md). Keys outside this set WARN.
+const DOCUMENTED_SKILL_KEYS = new Set([
+  // Tier 1 — loader-recognized
+  "name",
+  "description",
+  "allowed-tools",
+  "disable-model-invocation",
+  // Tier 2 — repo-convention metadata
+  "triggers",
+  "mutating",
+  "version",
+  // Tier 3 — deprecated but documented (removed on next edit; `tools` also errors)
+  "writes_pages",
+  "writes_to",
+  "preamble-tier",
+  "interactive",
+  "benefits-from",
+  "category",
+  "priority",
+  "depends_on",
+  "feeds_into",
+  "tools",
+]);
+
+// Plugin-agent frontmatter allowlist (docs/SKILL_FRONTMATTER.md).
+const AGENT_ALLOWED_FIELDS = new Set([
+  "name",
+  "description",
+  "model",
+  "effort",
+  "maxTurns",
+  "tools",
+  "disallowedTools",
+  "skills",
+  "memory",
+  "background",
+  "isolation",
+]);
+// Fields silently ignored when loaded from a plugin — hard error to declare them.
+const AGENT_FORBIDDEN_FIELDS = new Set(["hooks", "mcpServers", "permissionMode"]);
+
+// Normalize a tool declaration (YAML list OR comma-separated string) to a list.
+function normalizeToolList(value) {
+  if (value === undefined || value === null) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 async function readJson(relativePath) {
@@ -87,6 +175,137 @@ function extractFrontmatter(text, filePath) {
   } catch (error) {
     add(`${filePath}: invalid YAML frontmatter (${error.message}).`);
     return null;
+  }
+}
+
+// Resolve a relative reference against the citing file's directory, then (for
+// `references/` and `scripts/` citations) against the plugin root, matching how
+// skills cite plugin-level references and scripts.
+async function referenceResolves(fileDir, pluginDir, target) {
+  if (await pathExists(path.resolve(fileDir, target))) {
+    return true;
+  }
+  if (/^(references|scripts)\//.test(target) && (await pathExists(path.resolve(pluginDir, target)))) {
+    return true;
+  }
+  return false;
+}
+
+function isReferenceCandidate(target) {
+  if (/^https?:|^mailto:|^#|^\$\{/.test(target)) {
+    return false;
+  }
+  return /^\.\.?\//.test(target) || /^references\//.test(target) || /^scripts\//.test(target);
+}
+
+// Verify relative markdown links and backtick-quoted relative file paths resolve
+// on disk; warn on hardcoded `plugins/<name>/` repo paths (cache-safety guard).
+async function validateReferences(filePath, text, pluginDir) {
+  const relativeFile = path.relative(repoRoot, filePath);
+  const fileDir = path.dirname(filePath);
+  const seen = new Set();
+
+  const linkRe = /\[[^\]]*\]\(([^)]+)\)/g;
+  let match;
+  while ((match = linkRe.exec(text)) !== null) {
+    const target = match[1].split(/\s+/)[0].replace(/#.*$/, "");
+    if (!isReferenceCandidate(target) || seen.has(`L:${target}`)) {
+      continue;
+    }
+    seen.add(`L:${target}`);
+    if (!(await referenceResolves(fileDir, pluginDir, target))) {
+      add(`${relativeFile}: markdown link target does not resolve: ${target}`);
+    }
+  }
+
+  const tickRe = /`([^`]+)`/g;
+  while ((match = tickRe.exec(text)) !== null) {
+    const target = match[1].trim();
+    const looksLikePath = /^\.\.?\//.test(target) || /^references\//.test(target) || /^scripts\//.test(target);
+    const hasFileExtension = /\.(py|md|json|jsonl|sh|ya?ml|txt|csv)$/.test(target);
+    if (!looksLikePath || !hasFileExtension || target.includes(" ") || seen.has(`T:${target}`)) {
+      continue;
+    }
+    seen.add(`T:${target}`);
+    if (!(await referenceResolves(fileDir, pluginDir, target))) {
+      add(`${relativeFile}: referenced path does not resolve: ${target}`);
+    }
+  }
+
+  // Cache-safety guard: hardcoded repo paths break marketplace-installed plugins,
+  // which run from a cache. WARN (not error) — some are legitimate repo-run prose.
+  const hardcodedRe = /\bplugins\/[a-z0-9][a-z0-9-]*\/(?:skills|agents|scripts|bin|references)\//g;
+  const hardcoded = new Set();
+  while ((match = hardcodedRe.exec(text)) !== null) {
+    hardcoded.add(match[0]);
+  }
+  for (const hit of hardcoded) {
+    addWarn(`${relativeFile}: hardcoded repo path in body may break cache installs: ${hit} (prefer \${CLAUDE_PLUGIN_ROOT}/)`);
+  }
+}
+
+// Validate a single skill's frontmatter beyond the base required-field checks.
+function validateSkillFrontmatter(relativeSkillPath, dirName, frontmatter) {
+  // (a) `tools` is an agent-only field; on a skill it is a silent no-op.
+  if (Object.hasOwn(frontmatter, "tools")) {
+    add(`${relativeSkillPath}: 'tools' is an agent-only field and is invalid on a skill; use 'allowed-tools'.`);
+  }
+
+  // (b) every allowed-tools value must be canonical.
+  if (frontmatter["allowed-tools"] !== undefined) {
+    for (const tool of normalizeToolList(frontmatter["allowed-tools"])) {
+      if (!isCanonicalTool(tool)) {
+        add(`${relativeSkillPath}: allowed-tools contains non-canonical tool '${tool}' (see docs/SKILL_FRONTMATTER.md).`);
+      }
+    }
+  }
+
+  // (c) warn on frontmatter keys outside the documented spec.
+  for (const key of Object.keys(frontmatter)) {
+    if (!DOCUMENTED_SKILL_KEYS.has(key)) {
+      addWarn(`${relativeSkillPath}: undocumented frontmatter key '${key}' (see docs/SKILL_FRONTMATTER.md).`);
+    }
+  }
+
+  // (d) name must match the skill directory.
+  if (frontmatter.name !== undefined && String(frontmatter.name) !== dirName) {
+    add(`${relativeSkillPath}: frontmatter.name '${frontmatter.name}' must match skill directory '${dirName}'.`);
+  }
+}
+
+// Validate plugin agent frontmatter (plugins/<plugin>/agents/*.md).
+async function validateAgents(pluginDir) {
+  for (const agentFile of await listFiles(pluginDir, "agents", ".md")) {
+    const relativeAgentPath = path.relative(repoRoot, agentFile);
+    const text = await readFile(agentFile, "utf8");
+    const frontmatter = extractFrontmatter(text, relativeAgentPath);
+    if (!frontmatter) {
+      continue;
+    }
+
+    expect(Boolean(frontmatter.name), `${relativeAgentPath}: frontmatter.name is required.`);
+    expect(Boolean(frontmatter.description), `${relativeAgentPath}: frontmatter.description is required.`);
+
+    for (const key of Object.keys(frontmatter)) {
+      if (AGENT_FORBIDDEN_FIELDS.has(key)) {
+        add(`${relativeAgentPath}: '${key}' is not supported on plugin agents and is silently ignored — remove it.`);
+      } else if (!AGENT_ALLOWED_FIELDS.has(key)) {
+        add(`${relativeAgentPath}: unsupported agent frontmatter field '${key}' (see docs/SKILL_FRONTMATTER.md).`);
+      }
+    }
+
+    for (const field of ["tools", "disallowedTools"]) {
+      if (frontmatter[field] === undefined) {
+        continue;
+      }
+      for (const tool of normalizeToolList(frontmatter[field])) {
+        if (!isCanonicalTool(tool)) {
+          add(`${relativeAgentPath}: ${field} contains non-canonical tool '${tool}' (see docs/SKILL_FRONTMATTER.md).`);
+        }
+      }
+    }
+
+    await validateReferences(agentFile, text, pluginDir);
   }
 }
 
@@ -218,6 +437,7 @@ async function validatePlugin(catalog, plugin) {
 
   for (const skillFile of await listSkillFiles(pluginDir)) {
     const relativeSkillPath = path.relative(repoRoot, skillFile);
+    const dirName = path.basename(path.dirname(skillFile));
     const text = await readFile(skillFile, "utf8");
     const frontmatter = extractFrontmatter(text, relativeSkillPath);
     if (!frontmatter) {
@@ -227,31 +447,52 @@ async function validatePlugin(catalog, plugin) {
     expect(Boolean(frontmatter.description), `${relativeSkillPath}: frontmatter.description is required.`);
     expect(KEBAB_CASE.test(String(frontmatter.name)), `${relativeSkillPath}: frontmatter.name must be lowercase kebab-case.`);
     expect(frontmatter["disable-model-invocation"] !== undefined, `${relativeSkillPath}: disable-model-invocation is required for shared Codex skills.`);
+    validateSkillFrontmatter(relativeSkillPath, dirName, frontmatter);
+    await validateReferences(skillFile, text, pluginDir);
   }
+
+  await validateAgents(pluginDir);
 }
 
-const catalog = await readCatalog(repoRoot);
-await validateGeneratedFiles(catalog);
+async function main() {
+  const catalog = await readCatalog(repoRoot);
+  await validateGeneratedFiles(catalog);
 
-const claudeMarketplace = await readJson(CLAUDE_MARKETPLACE_PATH);
-const codexMarketplace = await readJson(CODEX_MARKETPLACE_PATH);
-if (claudeMarketplace) {
-  validateClaudeMarketplace(catalog, claudeMarketplace);
-}
-if (codexMarketplace) {
-  validateCodexMarketplace(catalog, codexMarketplace);
-}
-
-for (const plugin of pluginList(catalog)) {
-  await validatePlugin(catalog, plugin);
-}
-
-if (errors.length > 0) {
-  console.error(`marketplace validation failed (${errors.length} issue${errors.length === 1 ? "" : "s"}):`);
-  for (const error of errors) {
-    console.error(`- ${error}`);
+  const claudeMarketplace = await readJson(CLAUDE_MARKETPLACE_PATH);
+  const codexMarketplace = await readJson(CODEX_MARKETPLACE_PATH);
+  if (claudeMarketplace) {
+    validateClaudeMarketplace(catalog, claudeMarketplace);
   }
-  process.exit(1);
+  if (codexMarketplace) {
+    validateCodexMarketplace(catalog, codexMarketplace);
+  }
+
+  for (const plugin of pluginList(catalog)) {
+    await validatePlugin(catalog, plugin);
+  }
+
+  if (warnings.length > 0) {
+    console.warn(`marketplace validation warnings (${warnings.length}):`);
+    for (const warning of warnings) {
+      console.warn(`- ${warning}`);
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error(`marketplace validation failed (${errors.length} issue${errors.length === 1 ? "" : "s"}):`);
+    for (const error of errors) {
+      console.error(`- ${error}`);
+    }
+    process.exit(1);
+  }
+
+  console.log(`marketplace validation passed (${pluginList(catalog).length} plugin(s), ${warnings.length} warning(s))`);
 }
 
-console.log(`marketplace validation passed (${pluginList(catalog).length} plugin(s))`);
+// Exported for targeted unit tests; the module only runs the full sweep when
+// executed directly (not when imported).
+export { errors, warnings, validateSkillFrontmatter, validateReferences, validateAgents, extractFrontmatter };
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

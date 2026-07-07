@@ -22,7 +22,7 @@ Read `references/data-quality-checklist.md` before substantial audits. For CSV
 or TSV files, you may run the bundled standard-library profiler:
 
 ```bash
-python3 plugins/lead-analyst/scripts/profile_table.py path/to/file.csv
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/profile_table.py" path/to/file.csv
 ```
 
 If the plugin is installed outside this repo, resolve the script under the plugin
@@ -67,7 +67,26 @@ root before running it.
 ```
 
 When writing an artifact, save it under `workspace/analysis/lead-analyst/audits/`
-if `workspace/` exists, otherwise `analysis/lead-analyst/audits/`.
+if `workspace/` exists, otherwise `analysis/lead-analyst/audits/`, using the
+filename format:
+
+```text
+YYYYMMDD-HHMMSS-audit-<slug>.md
+```
+
+Close with a completion status block:
+
+```text
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+Artifact: <path or "none — returned inline">
+Verdict: <pass | conditional | fail | insufficient access>
+Next skill: /lead-analyst:analysis-brief | sql-review | metric-lineage
+Open concerns: <none or list — e.g. join loss, stale data>
+```
+
+Use `DONE_WITH_CONCERNS` for a Conditional verdict; `BLOCKED` for a Fail or when
+access is insufficient to reach a verdict; `NEEDS_CONTEXT` when the intended
+decision use of the data is unknown.
 
 ## Anti-Patterns
 

@@ -6,241 +6,130 @@ description: >
   open-text analysis, verbatim analysis, sentiment analysis on feedback, voice of
   customer, VoC, customer comments, feedback themes, review analysis, or
   satisfaction tracking. Also trigger on 'what are customers saying' or 'analyze
-  our survey results.' If segment-level cross-tabulation is needed and segments
-  are not defined, suggest running audience-segmentation first. Theme insights
-  inform seo-content strategy and email-analytics messaging. Satisfaction trends
-  feed into reporting.
+  our survey results.' For sentiment on public social posts use social-analytics;
+  for grouping customers into segments use audience-segmentation; this skill owns
+  survey/feedback metrics and open-text themes. If survey data is not yet in the
+  workspace, run data-extraction first.
 
 disable-model-invocation: false
 ---
 
 # Survey & Voice-of-Customer Analytics
 
-NPS/CSAT/CES tracking, open-text theme extraction, and satisfaction-behavior
-correlation.
+NPS/CSAT/CES tracking with bootstrap CIs, LLM-based open-text theme extraction,
+key-driver analysis, and satisfaction-behavior correlation.
 
-| Property       | Value                                                       |
-| :------------- | :---------------------------------------------------------- |
-| Skill ID       | voc-analytics                                               |
-| Priority       | P2 — Supporting (qualitative insight layer)                 |
-| Category       | Customer Experience Analytics                               |
-| Depends On     | data-extraction, audience-segmentation                      |
-| Feeds Into     | reporting, seo-content (content strategy), email-analytics (messaging) |
+## Contract
 
-## Objective
+**Role:** Advisory analyst. Measures satisfaction and extracts themes; does not
+contact respondents. Metric computation runs in deterministic Python scripts;
+theme extraction uses a structured LLM call.
 
-Automate voice-of-customer analytics: track NPS, CSAT, and CES metrics over
-time, extract themes from open-text responses using LLM-powered categorization,
-perform sentiment scoring at scale, and cross-correlate satisfaction metrics
-with behavioral data. Enable the organization to systematically translate
-customer feedback into marketing strategy adjustments.
+**Mode:**
+- `quick` — NPS/CSAT/CES with confidence intervals.
+- `standard` (default) — add open-text theme extraction and key-driver analysis.
+- `deep` — add segment cross-tabs, satisfaction-behavior correlation, trend
+  detection.
 
-## Process Steps
+**When to use:** NPS/CSAT/CES metrics, survey verbatim/theme analysis, key
+satisfaction drivers, satisfaction trends.
 
-1. **Validate inputs.** Load `survey_responses.csv` and verify required columns
-   (`respondent_id`, `question_id`, `response`, `score`, `timestamp`). Confirm
-   score ranges match the expected metric type (0-10 for NPS, 1-5 for CSAT,
-   1-7 for CES).
+**When NOT to use:** sentiment on public social posts → `social-analytics`;
+customer clustering → `audience-segmentation`; email feedback surveys' delivery →
+`email-analytics`. See `../../references/skill-index.md`.
 
-2. **Compute satisfaction metrics.** Execute `scripts/compute_metrics.py` to
-   calculate NPS, CSAT, and CES with bootstrap confidence intervals. If fewer
-   than 30 responses exist for a segment, flag the result as low-confidence.
+**Evidence required (inputs):**
+- `workspace/raw/survey_responses.csv` — `respondent_id`, `question_id`,
+  `response`, `score`, `timestamp`. Required. If absent, STOP and run
+  **data-extraction** first.
+- `workspace/processed/segments.json` — from audience-segmentation (optional;
+  cross-tabs).
+- `workspace/analysis/clv_predictions.json` — from clv-modeling (optional;
+  satisfaction-value correlation).
 
-3. **Extract themes from open-text responses.** Run
-   `scripts/text_categorization.py` to categorize free-text responses into
-   predefined and emergent themes using LLM-based structured output. Apply
-   sentiment scoring (positive/neutral/negative with intensity) to each
-   response.
+**Depends on:** data-extraction, audience-segmentation. **Feeds into:** reporting,
+seo-content, email-analytics. Builder detail in `references/authoring-notes.md`.
 
-4. **Run key driver analysis.** Execute `scripts/key_driver_analysis.py` to
-   identify which themes and touchpoints most strongly predict Promoter vs.
-   Detractor classification. Use permutation importance from random forest, not
-   simple correlations.
+**Hard STOP (PII / low sample):** (a) Before sending any open-text to an external
+LLM, run PII detection and redact account-specific information — STOP extraction if
+redaction can't be confirmed. (b) If a segment has fewer than 30 responses, do not
+report its metric as reliable — flag it low-confidence rather than emitting a
+precise number.
 
-5. **Analyze satisfaction trends.** Run `scripts/satisfaction_trends.py` to
-   detect statistically significant shifts in NPS, CSAT, or CES over time.
-   Flag any NPS movement greater than 5 points for review.
+Parse `$ARGUMENTS` for inline paths, metric type, or theme taxonomy.
 
-6. **Cross-tabulate by segment.** If `segments.json` is available, break down
-   all metrics by audience segment, product line, channel, and touchpoint.
-   Identify high-value Detractors and low-effort Promoters.
+## Workflow
 
-7. **Correlate satisfaction with behavior.** If `clv_predictions.json` is
-   available, link satisfaction scores to behavioral outcomes (retention, CLV,
-   referral activity). Include causal reasoning disclaimers in all outputs.
+1. **Validate inputs.** Load `survey_responses.csv`; verify columns; confirm score
+   ranges match the metric (0–10 NPS, 1–5 CSAT, 1–7 CES). Apply the low-sample Hard
+   STOP per segment.
 
-8. **Generate report.** Compile results into
-   `workspace/reports/voc_dashboard.html` with NPS trend charts, theme
-   frequency heat maps, key driver rankings, and segment-level breakdowns.
+2. **Compute metrics.** Run `scripts/compute_metrics.py`: NPS (%Promoters −
+   %Detractors), CSAT (top-box %), CES (mean effort), each with bootstrap CIs
+   (≥10,000 iterations). See `references/survey_methodology.md`.
 
-## Key Capabilities
+3. **Theme-taxonomy gate (AskUserQuestion).** Before extracting open-text themes,
+   confirm the approach:
+   - **Question:** "How should I categorize open-text responses?"
+   - **Options:** (a) *Predefined taxonomy* — you supply the theme list, best for
+     tracking known issues over time; (b) *Emergent discovery* — the LLM proposes
+     themes from the data; (c) *Hybrid* — predefined plus emergent additions
+     (default). Then apply the PII Hard STOP before any external LLM call.
 
-### NPS / CSAT / CES Metric Tracking
+4. **Extract themes.** Run `scripts/text_categorization.py`: structured LLM
+   categorization into the chosen taxonomy with sentiment + intensity per response;
+   handle multilingual input. See `references/text_analytics.md`.
 
-- Compute NPS as `% Promoters - % Detractors` (scores 9-10 are Promoters,
-  0-6 are Detractors, 7-8 are Passives).
-- Compute CSAT as percentage of respondents selecting top-box satisfaction
-  scores (e.g., 4 or 5 on a 5-point scale).
-- Compute CES as the arithmetic mean of effort scores.
-- Bootstrap confidence intervals on all metrics (not normal approximation)
-  because NPS is bounded and non-Gaussian.
-- Trend significance testing: determine whether the current period's score
-  is statistically different from a prior period.
+5. **Key drivers.** Run `scripts/key_driver_analysis.py`: permutation importance
+   (random forest) linking themes/touchpoints to Promoter vs Detractor
+   classification — not bivariate correlation.
 
-Refer to `references/survey_methodology.md` for NPS/CSAT/CES formulas,
-confidence interval methods, and significance testing procedures.
+6. **Trends** (deep mode). Run `scripts/satisfaction_trends.py`: detect significant
+   shifts over time; flag NPS movement > 5 points; control for seasonality and
+   response-mix.
 
-### Open-Text Theme Extraction
+7. **Cross-tabulate** (deep mode). If `segments.json` present, break metrics down
+   by segment/product/channel/touchpoint; surface high-value Detractors and
+   low-effort Promoters (respecting the low-sample gate).
 
-- LLM-based categorization of free-text responses into predefined and
-  emergent themes using Claude API with structured output.
-- Support both a predefined theme taxonomy and emergent theme discovery; let
-  the LLM suggest new themes beyond the predefined list.
-- Sentiment scoring: positive/neutral/negative classification with intensity
-  scaling (e.g., strongly positive, mildly negative).
-- Theme frequency and sentiment tracking over time periods.
-- Handle multilingual responses when operating internationally.
+8. **Correlate with behavior** (deep mode). If `clv_predictions.json` present, link
+   satisfaction to CLV/retention with explicit correlation-not-causation
+   disclaimers.
 
-Refer to `references/text_analytics.md` for theme extraction prompting
-patterns and sentiment scoring approach.
+9. **Report.** Write outputs and the HTML dashboard.
 
-### Key Driver Analysis
+## Output Format
 
-- Identify which themes most strongly correlate with Promoter vs. Detractor
-  classification.
-- Use relative importance metrics (permutation importance from random forest)
-  rather than simple bivariate correlations.
-- Touchpoint analysis: which interaction points drive highest and lowest
-  satisfaction.
-- Generate actionable insight summaries translating theme + sentiment +
-  correlation into specific recommendations.
+Artifacts:
 
-### Cross-Tabulation
+| File | Contents |
+|------|----------|
+| `workspace/analysis/satisfaction_metrics.json` | NPS, CSAT, CES with CIs and trend significance |
+| `workspace/analysis/text_themes.json` | Theme extraction with frequency and sentiment |
+| `workspace/analysis/satisfaction_drivers.json` | Key-driver analysis linking themes to scores |
+| `workspace/reports/voc_dashboard.html` | Voice-of-customer dashboard |
 
-- Break down satisfaction metrics by segment, product, channel, and
-  touchpoint.
-- Identify critical intersections: high-value Detractors requiring immediate
-  attention, low-effort Promoters suitable for referral campaigns.
-- Statistical significance testing for segment-level differences.
+Report states: metric definitions used, CI method, theme taxonomy, low-confidence
+segments (n<30), and the causal disclaimer on any correlation.
 
-### Satisfaction-Behavior Correlation
+**Financial services mode:** survey data may hold PII subject to data-protection
+rules — apply access controls and anonymization; NPS/satisfaction used in marketing
+claims must meet SEC Marketing Rule testimonial provisions (no endorsement framing
+without disclaimers); run PII detection/redaction before sending text to external
+LLM APIs. Satisfaction claims used in marketing route through **compliance-review**.
 
-- Link survey respondents to behavioral data: do Promoters have higher CLV?
-- Quantify the revenue impact of satisfaction improvements.
-- All correlation outputs include explicit disclaimers that correlation does
-  not imply causation.
+**Completion status:**
+- `DONE` — metrics, themes, and drivers written with CIs.
+- `DONE_WITH_CONCERNS` — e.g., low-confidence segments, PII redaction limited
+  extraction, thin verbatim volume.
+- `BLOCKED` — PII Hard STOP unresolved or missing survey data; state the fix.
+- `NEEDS_CONTEXT` — theme taxonomy unresolved by the user.
 
-### Longitudinal Tracking
+## Anti-Patterns
 
-- Detect statistically significant shifts in satisfaction metrics over time.
-- Control for seasonality and response-mix changes when evaluating trends.
-- Alert when NPS shifts exceed 5 points with supporting statistical test
-  results.
-
-## Input / Output Data Contracts
-
-### Inputs
-
-| File | Description | Required |
-| :--- | :---------- | :------- |
-| `workspace/raw/survey_responses.csv` | Survey data with `respondent_id`, `question_id`, `response`, `score`, `timestamp` | Yes |
-| `workspace/processed/segments.json` | Segment definitions from audience-segmentation for cross-tabulation | No |
-| `workspace/analysis/clv_predictions.json` | CLV predictions for satisfaction-value correlation | No |
-
-### Outputs
-
-| File | Description |
-| :--- | :---------- |
-| `workspace/analysis/satisfaction_metrics.json` | NPS, CSAT, CES with confidence intervals and trend significance |
-| `workspace/analysis/text_themes.json` | Theme extraction results with frequency and sentiment |
-| `workspace/analysis/satisfaction_drivers.json` | Key driver analysis linking themes to satisfaction scores |
-| `workspace/reports/voc_dashboard.html` | Voice-of-customer analytics dashboard |
-
-## Cross-Skill Integration
-
-VoC analytics enriches audience-segmentation with a satisfaction dimension,
-enabling segments like "High-value Detractors" that are critical for retention
-marketing. Theme extraction insights inform seo-content's content strategy by
-revealing which topics resonate with customers. Email-analytics uses
-satisfaction scores to personalize messaging (Promoter referral asks vs.
-Detractor recovery outreach). The reporting skill includes satisfaction trends
-in executive dashboards alongside operational metrics.
-
-- **audience-segmentation:** Satisfaction scores add a qualitative dimension
-  to behavioral segments, enabling satisfaction-aware targeting.
-- **seo-content:** Extracted themes reveal the language and concerns of
-  customers, informing content strategy and keyword selection.
-- **email-analytics:** NPS classification drives email personalization:
-  Promoters receive referral incentives, Detractors receive recovery
-  sequences.
-- **reporting:** Satisfaction trend summaries and key driver rankings feed
-  into executive dashboards and periodic performance reports.
-
-## Financial Services Considerations
-
-When operating in financial services mode:
-
-- Survey data may contain PII and is subject to data protection regulations.
-  Apply appropriate access controls and anonymization before analysis.
-- NPS or satisfaction data used in marketing claims must comply with SEC
-  Marketing Rule testimonial provisions. Do not present satisfaction scores
-  as endorsements without proper disclaimers.
-- Open-text responses may contain account-specific information requiring
-  redaction before theme extraction. Run PII detection prior to sending
-  text to external LLM APIs.
-- Satisfaction survey distribution and collection must comply with applicable
-  consumer protection regulations.
-
-## Development Guidelines
-
-1. Theme extraction should use an LLM (Claude API) with structured output for
-   consistent categorization rather than traditional NLP topic models.
-
-2. NPS confidence intervals must use bootstrapping (not normal approximation)
-   because NPS is bounded and non-Gaussian.
-
-3. Key driver analysis should use relative importance metrics (e.g.,
-   permutation importance from random forest) not simple correlations.
-
-4. Support both predefined theme taxonomies and emergent theme discovery; let
-   the LLM suggest new themes beyond the predefined list.
-
-5. Text categorization must handle multilingual responses if the organization
-   operates internationally.
-
-6. Satisfaction-behavior linking must use appropriate causal reasoning
-   disclaimers (correlation, not causation).
-
-7. All deterministic metric computations must be in Python scripts using
-   `numpy` and `scipy.stats`. Never let the LLM compute NPS or confidence
-   intervals directly.
-
-8. Bootstrap resampling must use at least 10,000 iterations for stable CI
-   estimates.
-
-## Scripts
-
-| Script | Purpose |
-| :----- | :------ |
-| `scripts/compute_metrics.py` | NPS, CSAT, CES computation with bootstrap confidence intervals |
-| `scripts/text_categorization.py` | Theme extraction using LLM API calls with structured output |
-| `scripts/key_driver_analysis.py` | Correlation/regression of themes against satisfaction scores |
-| `scripts/satisfaction_trends.py` | Time series trend analysis with statistical change detection |
-
-## Reference Files
-
-| Reference | Content |
-| :-------- | :------ |
-| `references/survey_methodology.md` | NPS/CSAT/CES formulas, confidence interval methods, significance testing |
-| `references/text_analytics.md` | Theme extraction prompting patterns, sentiment scoring approach |
-
-## Acceptance Criteria
-
-- NPS computation matches manual calculation within 0.1 point; bootstrap CIs
-  have nominal coverage at 95%.
-- Theme extraction achieves 85%+ agreement with human-labeled categories on a
-  validation set of 200 responses.
-- Key driver analysis correctly identifies the top 3 drivers verified against
-  expert knowledge of known service issues.
-- Trend detection correctly flags NPS shifts greater than 5 points as
-  statistically significant with the appropriate test.
+- Sending un-redacted open-text with account details to an external LLM.
+- Reporting a segment metric as precise when n < 30.
+- Normal-approximation CIs on NPS instead of bootstrapping.
+- Key drivers from bivariate correlation instead of permutation importance.
+- Presenting satisfaction-behavior correlation as causation.
+- Letting the model compute NPS or confidence intervals instead of the scripts.

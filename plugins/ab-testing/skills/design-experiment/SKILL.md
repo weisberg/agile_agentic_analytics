@@ -14,6 +14,10 @@ You assume the user is a practitioner. You ask the questions they have not yet a
 
 ---
 
+## Contract
+
+Operate in design/pre-registration mode. Produce a durable experiment design artifact, not just advice. The hard gate is study type: if the request is not a controlled randomized comparison, do not write a powered A/B test plan. Resolve the study fork once with AskUserQuestion when ambiguous, then proceed with explicit assumptions.
+
 ## When to use this skill
 
 - The user describes a product, marketing, or messaging change and asks how to test it.
@@ -44,6 +48,19 @@ Parse `$ARGUMENTS` and the conversation for any of:
 
 If a description is missing, ask **at most three** focused questions before drafting. Do not interrogate. Reasonable inferences with stated assumptions are better than a Q&A loop.
 
+### AskUserQuestion brief — confirm the study type before drafting
+
+Whether this is even an A/B test is a design-defining fork, not a detail. If the request is ambiguous between a controlled comparison and something else, resolve it with a structured **AskUserQuestion** brief rather than assuming:
+
+- **Question:** "What kind of study is this? It determines whether I write an A/B test plan at all."
+- **Options:**
+  - **Controlled A/B test** *(recommended when random assignment is possible)* — two or more arms, randomized units, a comparison read. This skill's home case.
+  - **Ramped rollout** — gradual exposure for safety, not a comparison. Produces a rollout/monitoring plan, not a powered test; say so and adjust the deliverable.
+  - **Quasi-experiment** — no random assignment possible. Switch to DiD / synthetic control / RDD tooling; this is not an A/B test.
+- **Stakes:** writing a powered A/B plan for what is actually a ramp or an observational rollout wastes the effort and misleads the decision. Confirm once, then proceed and state the assumption.
+
+Do not raise this gate when the user has already clearly described a randomized comparison — proceed with stated assumptions instead.
+
 ---
 
 ## Defaults
@@ -63,7 +80,7 @@ State which defaults you used and why if you deviated. Do not silently change th
 
 ---
 
-## The Design Pipeline
+## Workflow
 
 Execute these steps in order. The output is a single design document; you may iterate with the user inside each step but do not skip steps. A skipped step requires a one-line justification in the document.
 
@@ -266,7 +283,7 @@ For non-regulated contexts, replace with the team's launch-review checklist.
 
 ---
 
-## Output contract
+## Output Format
 
 Every invocation produces an experiment design directory:
 
@@ -307,6 +324,7 @@ Analysis method: <primary test type>
 Sequential policy: <pre-specified looks | always-valid | none>
 
 Artifact: experiments/<dir>
+Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
 
 Open questions for the owner:
 1.
@@ -336,7 +354,7 @@ Plus a short paragraph naming the two or three highest-risk assumptions in the d
 
 ---
 
-## Common pitfalls and anti-patterns
+## Anti-Patterns
 
 | Anti-pattern | What you do instead |
 |---|---|
@@ -413,3 +431,16 @@ Open questions for the owner:
 - Match the randomization unit to where treatment acts.
 - Pre-registration is the deliverable. Anything decided after the data is unblinded gets logged in the changelog.
 - The chat message is a pointer to the artifact, not a replacement for it.
+
+---
+
+## Completion status
+
+End every run with one explicit status line, alongside the pointer to the design document:
+
+- **DONE** — design written to `experiments/<date>_<slug>/`; hypothesis, single OEC, guardrails, randomization unit, power/MDE, and a locked analysis plan are all present.
+- **DONE_WITH_CONCERNS** — delivered, but with design risk to flag: the MDE is larger than the mechanism plausibly produces, only a single weekly cycle fits the window, or the proxy-to-goal gap is wide. List each concern.
+- **BLOCKED** — the request is not a controlled A/B test (a ramped rollout or an observational study); no powered plan was produced. State what was delivered instead.
+- **NEEDS_CONTEXT** — missing inputs prevented a sizable design: no baseline metric or no traffic volume to power the test. Name exactly what to provide.
+
+The status never replaces the artifact — always give both.

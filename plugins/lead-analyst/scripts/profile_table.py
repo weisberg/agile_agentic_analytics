@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 
-def sniff_dialect(path: Path, sample_size: int = 8192) -> csv.Dialect:
+def sniff_dialect(path: Path, sample_size: int = 8192) -> type[csv.Dialect]:
     with path.open("r", encoding="utf-8-sig", errors="replace", newline="") as handle:
         sample = handle.read(sample_size)
     try:

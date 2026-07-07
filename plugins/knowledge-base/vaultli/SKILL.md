@@ -43,11 +43,11 @@ Prefer the Rust binary — it is at behavioral parity with the Python reference
 faster, which matters in tight agent loops:
 
 ```bash
-# one-time build from the vaultli directory
-cd <vaultli>/rs && cargo build --release
+# one-time build from the vaultli directory, outside the plugin tree
+cd <vaultli>/rs && CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target" cargo build --release
 
-# then invoke the binary directly (or put it on your PATH)
-<vaultli>/rs/target/release/vaultli --json <command> ...
+# then invoke the wrapper, which finds that data-directory binary
+<plugin-root>/bin/vaultli --json <command> ...
 ```
 
 `<vaultli>` is wherever this package lives; the binary has no other install-time
@@ -57,7 +57,7 @@ Fall back to the Python CLI only when the Rust binary is unavailable (no Rust
 toolchain, or debugging a suspected Rust-specific bug):
 
 ```bash
-uv run python -m tools.vaultli ...
+PYTHONPATH=<plugin-root> uv run python -m vaultli ...
 ```
 
 Both implementations accept the same subcommands and flags. Prefer `--json` in
@@ -87,7 +87,7 @@ Before claiming compatibility or release readiness, run:
 
 ```bash
 UV_CACHE_DIR=/tmp/uv-cache uv run pytest tests/test_vaultli.py
-cd tools/vaultli/rs && cargo test
+cd <vaultli>/rs && CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target" cargo test
 ```
 
 ## Core model
@@ -242,5 +242,5 @@ vaultli --json resolve queries/report --root ./kb --body --source
 
 - `README.md` explains what vaultli is and how the core model works.
 - `vaultli-spec-v1.0.md` defines the storage layout and metadata schema.
-- `rs/` is the primary implementation (Rust); build with `cargo build --release` and invoke `rs/target/release/vaultli`.
-- `py/core.py` is the Python reference implementation, still kept in sync and used as the parity oracle by `rs/tests/parity.rs`.
+- `rs/` is the primary implementation (Rust); build with `CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target" cargo build --release` and invoke via `bin/vaultli`.
+- `core.py` is the Python reference implementation, still kept in sync and used as the parity oracle by `rs/tests/parity.rs`.

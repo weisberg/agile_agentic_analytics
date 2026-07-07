@@ -467,8 +467,8 @@ Gaps: <missing body/source/stale index/privacy constraint>
 - Missing source content: check the sidecar `source` field and run `validate`.
 - `--jq` fails: the external `jq` binary is not installed; use first-class
   filters when possible.
-- Rust and Python disagree: rerun Rust parity tests and inspect the Python
-  reference under `../../vaultli/py/`.
+- Rust and Python disagree: rerun Rust parity tests and inspect
+  `../../vaultli/core.py`.
 
 ## Release And CI Checks
 
@@ -477,10 +477,10 @@ Before claiming vaultli-related changes are ready:
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/../plugin-manager/skills/plugin-health/scripts/plugin_audit.py" --plugin knowledge-base --json
 uv run --no-project --with pytest --with numpy --with pandas --with pyyaml pytest tests/test_knowledge_base tests/test_plugins
-cargo test --locked
+CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target" cargo test --locked
 ```
 
-Run `cargo test --locked` from `${CLAUDE_PLUGIN_ROOT}/vaultli/rs`.
+Run the Cargo command from `${CLAUDE_PLUGIN_ROOT}/vaultli/rs`.
 
 The repository also includes `.github/workflows/knowledge-base-vaultli.yml` for
 CI coverage of the Python fallback, sample vault validation, plugin audits, and

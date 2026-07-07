@@ -1,5 +1,10 @@
 # Notebook Source Map
 
+Top-level files in `notebook/` are generated from
+`knowledge/experimentation/` by `scripts/sync_experimentation_notebook.py`.
+Use `python3 scripts/sync_experimentation_notebook.py --check` before handoff
+to catch drift between the source corpus and the plugin mirror.
+
 Use this map before loading notebook sources. Load only the files needed for the current task.
 
 ## Safe Experiment Design

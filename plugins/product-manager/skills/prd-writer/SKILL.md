@@ -1,7 +1,7 @@
 ---
 name: prd-writer
 description: >
-  Use this skill whenever the user wants to write, draft, create, scaffold, review, or improve a PRD (Product Requirements Document), spec, product brief, one-pager, or "working backwards" PR/FAQ. Trigger on phrases like "write a PRD", "draft a spec", "product doc for X", "one-pager", "PR/FAQ", "feature brief", or when the user describes a feature/product idea and asks for it to be turned into a written requirements document. Also trigger when the user asks to *critique* or *level up* an existing PRD. Do NOT trigger for engineering design docs, RFCs, ADRs, or technical architecture documents — those are downstream of the PRD and have their own conventions. The output of this skill is always a markdown file (or section thereof) that a real product team could ship from.
+  Use this skill whenever the user wants to write, draft, create, or scaffold a PRD (Product Requirements Document), spec, product brief, one-pager, or "working backwards" PR/FAQ from an idea, rough notes, discovery inputs, or an existing partial draft that needs authoring. Trigger on phrases like "write a PRD", "draft a spec", "product doc for X", "one-pager", "PR/FAQ", "feature brief", or when the user describes a feature/product idea and asks for it to be turned into a written requirements document. Do NOT trigger for critique or approval-readiness review of an existing PRD (use prd-review), engineering design docs, RFCs, ADRs, prioritization, roadmaps, or technical architecture documents. The output of this skill is always a markdown file (or section thereof) that a real product team could ship from.
 
 disable-model-invocation: false
 ---
@@ -19,10 +19,9 @@ review*. That is the bar.
 ## Contract
 
 Use this as a write-capable product-document skill. It may draft or revise a
-markdown PRD-class artifact when the user asks for a document; in review mode it
-is advisory and returns findings plus concrete edits. It must not impersonate
-engineering architecture, roadmap prioritization, launch comms, or project
-management.
+markdown PRD-class artifact when the user asks for a document. It must not
+impersonate PRD approval review, engineering architecture, roadmap
+prioritization, launch comms, or project management.
 
 Hard gate: do not present a PRD as complete when the problem, target user,
 decision to be made, or success metric is missing. Ask once with
@@ -36,7 +35,7 @@ Intake must classify the request before writing:
 - `quick`: one-pager or section draft for discovery or scoping.
 - `standard`: full PRD for a normal feature or product change.
 - `deep`: net-new, multi-quarter, regulated, high-risk, or cross-functional bet.
-- `review`: critique or level up an existing PRD without silently rewriting it.
+- `revision`: revise an existing PRD when the user asks for direct edits.
 
 Evidence requirement: inspect all provided source docs, analytics, research,
 tickets, meeting notes, designs, and prior drafts before making claims. For
@@ -326,7 +325,7 @@ with positioning risk**. It is overkill for internal tooling or incremental feat
 Follow this order. Do not jump ahead.
 
 1. **Intake and mode** — parse `$ARGUMENTS`, classify `quick` / `standard` /
-   `deep` / `review`, identify the audience, decision, and artifact path.
+   `deep` / `revision`, identify the audience, decision, and artifact path.
 2. **Evidence pass** — read the provided materials and record what supports the
    problem, user, metrics, constraints, and risks. Mark missing evidence before
    drafting conclusions.
@@ -460,9 +459,9 @@ PRDs are living documents. When the user asks to revise:
     `Draft` or `In Review` and flag the affected sections with a `[CHANGED YYYY-MM-DD]`
     marker for the next round of review.
 
-When the user asks to **review** an existing PRD (rather than write one), run the
-§10 checklist explicitly, mark each item ✅ / ❌ / ⚠️, and produce a numbered list
-of concrete edits ranked by impact. Do not rewrite silently — show your reasoning.
+When the user asks to **review** an existing PRD for approval readiness, route to
+`prd-review`. Stay in this skill only when the user asks for direct PRD revision,
+rewriting, or section authoring.
 
 ---
 

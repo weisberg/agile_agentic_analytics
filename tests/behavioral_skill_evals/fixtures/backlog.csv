@@ -1,0 +1,4 @@
+id,title,reach,impact,confidence,effort
+F1,Contribution match explainer,120000,3,0.7,4
+F2,Advisor callback prompt,30000,2,0.5,6
+F3,Mobile dashboard cleanup,180000,1,0.8,3

@@ -99,20 +99,22 @@ workflows should usually use `--json`.
 The Rust binary is the default implementation. Build once:
 
 ```bash
-cd rs && cargo build --release
-# binary is now at ./target/release/vaultli
+cd rs
+CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target" cargo build --release
+# binary is now outside the plugin tree
 ```
 
-Then (either put it on your PATH or invoke by full path):
+Then use the plugin wrapper, which checks that data-directory target first and
+falls back to Python when no compatible binary exists:
 
 ```bash
-vaultli --help
-vaultli --json init ./kb
-vaultli --json add ./kb/docs/guide.md --root ./kb
-vaultli --json scaffold ./kb/queries/retention.sql --root ./kb
-vaultli --json ingest ./kb --root ./kb --dry-run
-vaultli --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql' --exclude 'queries/tmp*'
-vaultli --json index --root ./kb
+../../bin/vaultli --help
+../../bin/vaultli --json init ./kb
+../../bin/vaultli --json add ./kb/docs/guide.md --root ./kb
+../../bin/vaultli --json scaffold ./kb/queries/retention.sql --root ./kb
+../../bin/vaultli --json ingest ./kb --root ./kb --dry-run
+../../bin/vaultli --json ingest ./kb --root ./kb --dry-run --include 'queries/*.sql' --exclude 'queries/tmp*'
+../../bin/vaultli --json index --root ./kb
 vaultli --json validate --root ./kb
 vaultli --json search retention --root ./kb
 vaultli --json search --root ./kb --category query --tag retention --sort priority --limit 5
@@ -176,7 +178,7 @@ vaultli currently ships in two implementations:
 | Area | Rust | Python |
 |---|---|---|
 | Role | Primary implementation for agents and day-to-day use | Reference implementation and parity oracle |
-| Run | `cd rs && cargo build --release && ./target/release/vaultli ...` | `PYTHONPATH=<parent-of-vaultli> python -m vaultli ...` |
+| Run | `CARGO_TARGET_DIR="${CLAUDE_PLUGIN_DATA:-/tmp}/vaultli-target" cargo build --release`, then `bin/vaultli ...` | `PYTHONPATH=<parent-of-vaultli> python -m vaultli ...` |
 | Strength | Fast startup, compiled binary, modular crate layout | Easy to inspect, debug, and compare behavior |
 | Command surface | Same subcommands and flags as Python | Same subcommands and flags as Rust |
 | Tests | Unit, integration, and parity tests | Pytest coverage for core and CLI workflows |
@@ -215,4 +217,4 @@ the divergence here and in `SKILL.md`.
 - `vaultli-spec-v1.0.md` — storage format and metadata spec
 - `SKILL.md` — agent-first operating guide
 - `rs/` — primary (Rust) implementation
-- `py/core.py` — Python reference implementation
+- `core.py` — Python reference implementation

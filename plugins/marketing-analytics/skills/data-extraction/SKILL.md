@@ -51,8 +51,8 @@ skills. It is fix-allowed only within `workspace/raw/` and `workspace/processed/
 | API pull (described) | Platform, date range, fields | Document the request; land the returned file in `workspace/raw/`. |
 | Manual paste | Tabular text in the conversation | Write it to `workspace/raw/<slug>.csv` before validating. |
 
-**Contract references**
-- `shared/schemas/data_contracts.md` — canonical field/type/required definitions per dataset.
+**Data contract references**
+- `shared/schemas/data_contracts.md` — canonical data contract field/type/required definitions per dataset.
 - `shared/utils/common_transforms.py` — `load_csv_with_validation`, `normalize_dates`,
   `detect_missing_windows`, `save_json_output`, `ensure_directory`.
 - `references/skill-index.md` — the portfolio map naming which skill consumes which file.

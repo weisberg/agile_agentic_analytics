@@ -96,7 +96,7 @@ and flag the design concern.
 
 ---
 
-## Process
+## Workflow
 
 ### Step 1: Validate inputs and enforce eligibility
 

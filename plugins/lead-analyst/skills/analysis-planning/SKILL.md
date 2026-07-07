@@ -213,12 +213,24 @@ For lightweight planning, return:
 For durable handoff, save the Markdown artifact and report:
 
 ```text
-DONE
+Status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 Plan saved: <path>
 Recommended approach: <A/B/C>
 Ready for: /lead-analyst:analysis-brief
 Open blockers: <none or list>
 ```
+
+Completion status:
+
+- **DONE** — the plan is ready for execution with a named decision, metric,
+  evidence inventory, validity risks, candidate approaches, and review checklist.
+- **DONE_WITH_CONCERNS** — the plan is usable but carries explicit assumptions,
+  thin evidence, unresolved data-quality risk, or a weakened claim.
+- **NEEDS_CONTEXT** — a decision, owner, metric definition, evidence source, or
+  deadline is missing and no responsible assumption can unblock execution.
+- **BLOCKED** — the requested analysis cannot be planned responsibly because the
+  available evidence, source access, or governance requirement is incompatible
+  with the desired claim.
 
 ## Anti-Patterns
 

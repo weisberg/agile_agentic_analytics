@@ -1,3 +1,3 @@
-"""Compatibility exports for the Python vaultli implementation in ``tools.vaultli.py``."""
+"""Compatibility exports for the Python vaultli implementation."""
 
-from .py import *  # noqa: F401,F403
+from .core import *  # noqa: F401,F403

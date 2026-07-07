@@ -6,9 +6,13 @@ description: |
   periodically resyncing skills from upstream GBrain or GStack checkouts into
   plugins in this marketplace. Use when harvesting a skill into
   plugins/<plugin>/skills, refreshing a plugin skill from upstream, auditing
-  source drift, or recording source/adaptation notes. This skill ships in the
-  plugin-manager plugin because it manages other plugins rather than serving
-  one plugin's end users.
+  source drift, or recording source/adaptation notes. Trigger here for "harvest
+  this GStack skill", "refresh a plugin skill from $GBRAIN_ROOT while preserving
+  frontmatter and ledger notes", "diff our plugin copy against the upstream
+  skill", or "import this external SKILL.md but scrub private paths and add
+  routing fixtures". Use manage-plugins for newly authored local skills that do
+  not come from upstream. This skill ships in the plugin-manager plugin because
+  it manages other plugins rather than serving one plugin's end users.
 triggers:
   - "harvest upstream skill"
   - "sync upstream skill"

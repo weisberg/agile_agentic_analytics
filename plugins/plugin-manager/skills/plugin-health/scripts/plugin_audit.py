@@ -72,11 +72,14 @@ class PluginReport:
 
 def read_json(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     try:
-        return json.loads(path.read_text(encoding="utf-8")), None
+        data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return None, "file does not exist"
     except json.JSONDecodeError as exc:
         return None, f"invalid JSON: {exc}"
+    if not isinstance(data, dict):
+        return None, "JSON root must be an object"
+    return data, None
 
 
 def split_frontmatter(text: str) -> tuple[str | None, str]:
@@ -105,6 +108,7 @@ def marketplace_entries(repo_root: Path) -> tuple[dict[str, dict[str, Any]], str
     data, error = read_json(marketplace_path)
     if error:
         return {}, error
+    assert data is not None
     entries = {
         entry.get("name", ""): entry
         for entry in data.get("plugins", [])
@@ -132,6 +136,7 @@ def audit_manifest(plugin_dir: Path, report: PluginReport) -> dict[str, Any] | N
     if error:
         add_check(report, "manifest-json", "fail", manifest_path, error, "Create a valid .claude-plugin/plugin.json.")
         return None
+    assert manifest is not None
 
     add_check(report, "manifest-json", "pass", manifest_path, "Manifest JSON parsed.")
 

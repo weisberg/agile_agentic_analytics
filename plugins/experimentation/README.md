@@ -60,3 +60,16 @@ Each skill's `description` names the specific neighbor to defer to at its bounda
 ## References
 
 The notebook markdown is bundled in `references/notebook/`. Start with `references/notebook-source-map.md` to choose the smallest relevant source set for a skill invocation.
+
+Top-level notebook markdown in `references/notebook/` is generated from
+`knowledge/experimentation/` using `scripts/sync_experimentation_notebook.py`.
+After changing source docs, run:
+
+```text
+python3 scripts/sync_experimentation_notebook.py
+python3 scripts/sync_experimentation_notebook.py --check
+```
+
+The sync preserves plugin-only extras such as slide decks and research-note
+folders; the generated `references/notebook/NOTEBOOK_SYNC_MANIFEST.json`
+declares the managed mirror files.

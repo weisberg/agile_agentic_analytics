@@ -675,15 +675,35 @@ def _report_to_dict(report: DeliverabilityReport) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
 
-    sends_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("workspace/raw/email_sends.csv")
-    domain_arg = sys.argv[2] if len(sys.argv) > 2 else "example.com"
-    out_path = Path("workspace/analysis/email_deliverability.json")
+    parser = argparse.ArgumentParser(
+        description="Generate email deliverability health metrics from send-level CSV data."
+    )
+    parser.add_argument(
+        "sends_path",
+        nargs="?",
+        default=Path("workspace/raw/email_sends.csv"),
+        type=Path,
+        help="Path to email_sends.csv.",
+    )
+    parser.add_argument(
+        "domain",
+        nargs="?",
+        default="example.com",
+        help="Domain to validate for SPF, DKIM, DMARC, and blocklist checks.",
+    )
+    parser.add_argument(
+        "--output",
+        default=Path("workspace/analysis/email_deliverability.json"),
+        type=Path,
+        help="Path for the generated deliverability JSON report.",
+    )
+    args = parser.parse_args()
 
     report = generate_deliverability_report(
-        sends_csv_path=sends_path,
-        domain=domain_arg,
-        output_path=out_path,
+        sends_csv_path=args.sends_path,
+        domain=args.domain,
+        output_path=args.output,
     )
     print(f"Deliverability report generated: health_score={report.overall_health_score}")

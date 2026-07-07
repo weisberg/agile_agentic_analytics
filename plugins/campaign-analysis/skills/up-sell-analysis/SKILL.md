@@ -74,7 +74,7 @@ comparisons can be biased by who was targeted in the first place.
 
 ---
 
-## Process
+## Workflow
 
 Follow these steps in order. Each one builds on the previous one.
 

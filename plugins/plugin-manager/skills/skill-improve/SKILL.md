@@ -6,8 +6,13 @@ description: |
   to improve, tighten, repair, simplify, deconflict, or upgrade a skill without
   running a full SkillOpt training session. Applies SkillOpt lessons such as
   evidence-first review, failure/success separation, bounded edits, validation,
-  and rejected-change notes, but does not create train/selection/test splits or
-  run an offline optimization loop.
+  and rejected-change notes. Trigger here for "improve this SKILL.md in one
+  bounded pass", "tighten the trigger text and output format for this skill",
+  "repair this skill after a failed plugin-health check, but keep the edit
+  small", or "make this skill better using SkillOpt lessons but do not create
+  train selection or test splits". This does not create train/selection/test
+  splits or run an offline optimization loop; use skillopt-training-run for
+  repeated rollouts and held-out gates, and plugin-health for audit-only checks.
 triggers:
   - "improve this skill"
   - "skill-improve"

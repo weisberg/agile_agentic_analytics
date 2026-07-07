@@ -52,6 +52,12 @@ def canonical_tools(tokens: list[str]) -> list[str]:
     return [tool for tool in CANONICAL_ORDER if tool in resolved]
 
 
+def str_list(value: object, field: str) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise TypeError(f"SKILL_SPECS field {field!r} must be a list of strings.")
+    return value
+
+
 SKILL_SPECS = [
     {
         "slug": "resolver",
@@ -848,8 +854,8 @@ def ops_section(slug: str) -> str:
 
 
 def render(spec: dict[str, object]) -> str:
-    tools = "\n".join(f"  - {tool}" for tool in canonical_tools(list(spec.get("tools", []))))
-    triggers = yaml_list(spec["triggers"])
+    tools = "\n".join(f"  - {tool}" for tool in canonical_tools(str_list(spec.get("tools", []), "tools")))
+    triggers = yaml_list(str_list(spec["triggers"], "triggers"))
     mutating = "true" if spec.get("mutating") else "false"
     title = str(spec["slug"]).replace("-", " ").title()
     return (
@@ -867,14 +873,14 @@ def render(spec: dict[str, object]) -> str:
         "---\n\n"
         f"# {title}\n\n"
         "## Contract\n\n"
-        f"{bullet_list(spec['contract'])}\n\n"
+        f"{bullet_list(str_list(spec['contract'], 'contract'))}\n\n"
         "## Workflow\n\n"
-        f"{bullet_list(spec['workflow'])}\n\n"
+        f"{bullet_list(str_list(spec['workflow'], 'workflow'))}\n\n"
         f"{ops_section(str(spec['slug']))}\n\n"
         "## Output Format\n\n"
-        f"{bullet_list(spec['output'])}\n\n"
+        f"{bullet_list(str_list(spec['output'], 'output'))}\n\n"
         "## Anti-Patterns\n\n"
-        f"{bullet_list(spec['anti'])}\n"
+        f"{bullet_list(str_list(spec['anti'], 'anti'))}\n"
     )
 
 

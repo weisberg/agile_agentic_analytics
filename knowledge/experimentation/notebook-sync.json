@@ -1,0 +1,15 @@
+{
+  "source_root": "knowledge/experimentation",
+  "target_root": "plugins/experimentation/references/notebook",
+  "manifest_name": "NOTEBOOK_SYNC_MANIFEST.json",
+  "source_glob": "*.md",
+  "transforms": [
+    "strip_yaml_frontmatter"
+  ],
+  "preserve_unmanaged_target_files": true,
+  "delete_stale_managed_files": true,
+  "renames": {
+    "02c. When Is an Experiment Done -Decision Thresholds Beyond Statistical Significance.md": "02c. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md",
+    "02g. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.docx.md": "02g. When Is an Experiment Done - Decision Thresholds Beyond Statistical Significance.md"
+  }
+}

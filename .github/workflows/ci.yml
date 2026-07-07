@@ -47,27 +47,45 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
 
+      - name: Validate experimentation notebook mirror
+        run: python scripts/sync_experimentation_notebook.py --check
+
       - name: Lint with ruff
         run: ruff check .
 
       - name: Format check with ruff
         run: ruff format --check .
 
-      # Kept non-blocking: mypy currently fails on a duplicate module name
-      # (two scripts named content_analysis.py under marketing-analytics).
-      # Flip to blocking once that collision is resolved (e.g. --explicit-package-bases).
       - name: Type check with mypy
-        continue-on-error: true
-        run: mypy plugins/
+        run: |
+          mypy --python-version 3.12 --ignore-missing-imports \
+            scripts/routing_eval.py \
+            scripts/behavioral_skill_eval.py \
+            scripts/sync_experimentation_notebook.py \
+            plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py \
+            plugins/plugin-manager/skills/skillopt-rollout-evidence/scripts/collect_flywheel_evidence.py \
+            plugins/plugin-manager/skills/plugin-devex-review/scripts/devex_check.py \
+            plugins/plugin-manager/skills/upstream-skill-harvest/scripts/harvest_check.py \
+            plugins/knowledge-base/scripts/kb_ops.py \
+            plugins/knowledge-base/scripts/generate_kb_roadmap_skills.py \
+            plugins/lead-analyst/scripts/profile_table.py \
+            plugins/marketing-analytics/skills/data-extraction/scripts/validate_extract.py \
+            plugins/marketing-analytics/skills/email-analytics/scripts/deliverability_check.py \
+            plugins/marketing-analytics/skills/email-analytics/scripts/engagement_analysis.py \
+            plugins/marketing-analytics/skills/email-analytics/scripts/list_health.py \
+            plugins/marketing-analytics/skills/email-analytics/scripts/send_time_optimizer.py \
+            plugins/marketing-analytics/skills/funnel-analysis/scripts/build_funnel.py \
+            plugins/marketing-analytics/skills/funnel-analysis/scripts/funnel_stats.py \
+            plugins/marketing-analytics/skills/funnel-analysis/scripts/revenue_impact.py
 
-      - name: Audit all plugins (health, manifests, frontmatter)
-        run: python plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --json
+      - name: Audit all plugins (health, manifests, frontmatter, strict sections)
+        run: python plugins/plugin-manager/skills/plugin-health/scripts/plugin_audit.py --strict-sections --json
 
-      # Non-blocking for one release per AAA_PLAN Phase 1.2; then remove
-      # continue-on-error so routing accuracy below threshold fails the build.
       - name: Routing eval (deterministic tier)
-        continue-on-error: true
-        run: python scripts/routing_eval.py --format text --threshold 0.85
+        run: python scripts/routing_eval.py --format text --threshold 0.90
+
+      - name: Behavioral skill eval (deterministic tier)
+        run: python scripts/behavioral_skill_eval.py --format text
 
       - name: Run tests with coverage
         run: pytest --cov=plugins --cov-report=xml -x
@@ -89,6 +107,12 @@ jobs:
         run: python -m json.tool .claude-plugin/marketplace.json > /dev/null
       - name: Validate Codex marketplace JSON
         run: python -m json.tool .agents/plugins/marketplace.json > /dev/null
+
+      - name: Claude harness smoke validation
+        run: ./scripts/smoke-claude.sh
+
+      - name: Codex harness smoke validation
+        run: ./scripts/smoke-codex.sh
 
       - name: Upload coverage report
         if: matrix.python-version == '3.12'

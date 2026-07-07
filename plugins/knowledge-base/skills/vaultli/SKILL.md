@@ -94,11 +94,7 @@ Do not use `vaultli` as the primary tool for:
 
 ## Core Mental Model
 
-vaultli is built around three stable conventions:
-
-1. Markdown is the universal knowledge wrapper.
-2. YAML frontmatter is the universal metadata format.
-3. JSONL is the universal index format.
+vaultli uses markdown to wrap knowledge, YAML frontmatter for metadata, and JSONL for rebuildable indexes.
 
 A typical vault:
 

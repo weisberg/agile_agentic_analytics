@@ -67,7 +67,13 @@ SKILL_SPECS = [
             "answer. To actually answer a question use query; to audit vault health "
             "use health."
         ),
-        "triggers": ["route this kb request", "which kb skill", "operate the kb workflow", "resolver check", "check kb routing"],
+        "triggers": [
+            "route this kb request",
+            "which kb skill",
+            "operate the kb workflow",
+            "resolver check",
+            "check kb routing",
+        ],
         "tools": ["read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -83,7 +89,10 @@ SKILL_SPECS = [
             "When routing is ambiguous, decide whether the skills should chain, merge, or split by user outcome; use `ask-user` for a real fork.",
             "Hand off to the chosen child skill, then update trigger wording or fixtures and rerun `resolver-check`.",
         ],
-        "output": ["ROUTING REPORT", "Request class, chosen skill, fixture counts, overlaps, orphans, dispatch, and fixes applied."],
+        "output": [
+            "ROUTING REPORT",
+            "Request class, chosen skill, fixture counts, overlaps, orphans, dispatch, and fixes applied.",
+        ],
         "anti": [
             "Doing generic assistant work when a dedicated child skill exists.",
             "Adding generic triggers such as 'help me' that steal unrelated work.",
@@ -105,7 +114,13 @@ SKILL_SPECS = [
             "prep document use briefing; for brand-new external facts use "
             "current-research; for low-level vault CLI mechanics use vaultli."
         ),
-        "triggers": ["ask the kb", "what does the kb know about", "search the knowledge base", "relationship question in my notes", "which kb source scope"],
+        "triggers": [
+            "ask the kb",
+            "what does the kb know about",
+            "search the knowledge base",
+            "relationship question in my notes",
+            "which kb source scope",
+        ],
         "tools": ["search", "read", "exec"],
         "mutating": False,
         "contract": [
@@ -121,7 +136,10 @@ SKILL_SPECS = [
             "For relationship questions, traverse typed back-links and report the path with per-edge source evidence.",
             "Answer with citations, confidence, source scope, and a freshness delta; route material gaps to `current-research`.",
         ],
-        "output": ["KB ANSWER", "Answer, retrieval mode, source scope, citations, confidence, freshness delta, related pages."],
+        "output": [
+            "KB ANSWER",
+            "Answer, retrieval mode, source scope, citations, confidence, freshness delta, related pages.",
+        ],
         "anti": [
             "Using web search before checking the KB.",
             "Answering from search metadata as if it were the hydrated body.",
@@ -142,7 +160,13 @@ SKILL_SPECS = [
             "document use ingest; for reconciling contradictory facts use "
             "conflict-resolution."
         ),
-        "triggers": ["detect kb signals", "what should go in the kb", "capture this idea", "save this exact phrasing", "capture original thinking"],
+        "triggers": [
+            "detect kb signals",
+            "what should go in the kb",
+            "capture this idea",
+            "save this exact phrasing",
+            "capture original thinking",
+        ],
         "tools": ["search", "read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -157,7 +181,10 @@ SKILL_SPECS = [
             "Queue or perform lightweight page updates with citations and back-links.",
             "Route contradictions to `conflict-resolution` and full documents to `ingest`.",
         ],
-        "output": ["SIGNAL DETECTION", "Detected signals, originals captured verbatim, action taken, skipped items, privacy notes."],
+        "output": [
+            "SIGNAL DETECTION",
+            "Detected signals, originals captured verbatim, action taken, skipped items, privacy notes.",
+        ],
         "anti": [
             "Creating a page for every noun.",
             "Paraphrasing or polishing the user's original idea when the wording matters.",
@@ -176,7 +203,12 @@ SKILL_SPECS = [
             "signal-detector; for repairing missing citations across pages use "
             "citation-fixer; contradictory facts are routed to conflict-resolution."
         ),
-        "triggers": ["enrich this kb page", "update this entity page", "merge this info into the page", "refresh this concept"],
+        "triggers": [
+            "enrich this kb page",
+            "update this entity page",
+            "merge this info into the page",
+            "refresh this concept",
+        ],
         "tools": ["search", "read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -259,7 +291,10 @@ SKILL_SPECS = [
             "Update every attendee/company timeline and back-link (a meeting is not ingested until this is done).",
             "Run `citation-audit`, `graph-audit`, and `raw-source-audit`.",
         ],
-        "output": ["MEETING INGESTED", "Page, attendees, entities updated, timeline entries, decisions, raw transcript."],
+        "output": [
+            "MEETING INGESTED",
+            "Page, attendees, entities updated, timeline entries, decisions, raw transcript.",
+        ],
         "anti": [
             "Trusting an AI meeting summary over the transcript source.",
             "Stopping before entity propagation is complete.",
@@ -279,7 +314,14 @@ SKILL_SPECS = [
             "repo'. Absorbs article, browser, and voice-note ingestion. For meeting "
             "transcripts use meeting-ingestion; for the routing front door use ingest."
         ),
-        "triggers": ["ingest this media", "process this pdf", "process this video", "save this article", "transcribe this voice note", "capture this webpage"],
+        "triggers": [
+            "ingest this media",
+            "process this pdf",
+            "process this video",
+            "save this article",
+            "transcribe this voice note",
+            "capture this webpage",
+        ],
         "tools": ["read", "write", "exec", "search"],
         "mutating": True,
         "contract": [
@@ -330,7 +372,10 @@ SKILL_SPECS = [
             "Execute in batches with checkpoints and validation (delegate long runs to `background-jobs`).",
             "Record redirects, skipped content, and unresolved conflicts.",
         ],
-        "output": ["MIGRATION REPORT", "Source, mapping, batches, pages, ranked candidates, warnings, validation, next steps."],
+        "output": [
+            "MIGRATION REPORT",
+            "Source, mapping, batches, pages, ranked candidates, warnings, validation, next steps.",
+        ],
         "anti": [
             "Throwing away source ids or converting links to plain text.",
             "Scanning unapproved private directories, or bulk-ingesting low-signal archives.",
@@ -349,7 +394,12 @@ SKILL_SPECS = [
             "idea use signal-detector; for verifying an external/academic claim use "
             "current-research."
         ),
-        "triggers": ["synthesize concepts", "find patterns in my notes", "build an intellectual map", "mirror this book against my kb"],
+        "triggers": [
+            "synthesize concepts",
+            "find patterns in my notes",
+            "build an intellectual map",
+            "mirror this book against my kb",
+        ],
         "tools": ["search", "read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -384,7 +434,13 @@ SKILL_SPECS = [
             "from existing KB context use query; for synthesizing internal notes use "
             "concept-synthesis."
         ),
-        "triggers": ["whats new since", "update this from the web", "freshness delta", "verify this study", "has this been replicated"],
+        "triggers": [
+            "whats new since",
+            "update this from the web",
+            "freshness delta",
+            "verify this study",
+            "has this been replicated",
+        ],
         "tools": ["search", "read", "write", "web", "exec"],
         "mutating": True,
         "contract": [
@@ -399,7 +455,10 @@ SKILL_SPECS = [
             "Update KB pages only when source quality and relevance meet the bar; date every current claim.",
             "Record freshness and a next-review date.",
         ],
-        "output": ["FRESHNESS DELTA", "Known context, new facts, changed facts, verification status, sources, KB writes."],
+        "output": [
+            "FRESHNESS DELTA",
+            "Known context, new facts, changed facts, verification status, sources, KB writes.",
+        ],
         "anti": [
             "Overwriting KB context with a single new article, or failing to date current claims.",
             "Relying on a secondary article for a technical claim, or ignoring failed replication and narrow samples.",
@@ -476,7 +535,12 @@ SKILL_SPECS = [
             "'write up this analysis'. For an ephemeral proactive prep briefing use "
             "briefing; for privacy-scrubbing and sharing a page externally use publish."
         ),
-        "triggers": ["save this kb report", "generate a kb report", "timestamped report with sources", "write up this analysis"],
+        "triggers": [
+            "save this kb report",
+            "generate a kb report",
+            "timestamped report with sources",
+            "write up this analysis",
+        ],
         "tools": ["search", "read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -508,7 +572,13 @@ SKILL_SPECS = [
             "references/privacy-and-security.md; for generating the report content "
             "first use reports."
         ),
-        "triggers": ["publish this kb page", "share this note", "prepare for public", "export to pdf", "render this page"],
+        "triggers": [
+            "publish this kb page",
+            "share this note",
+            "prepare for public",
+            "export to pdf",
+            "render this page",
+        ],
         "tools": ["read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -523,7 +593,10 @@ SKILL_SPECS = [
             "Export markdown/HTML/PDF as requested via a print-safe intermediate, then verify the rendered artifact exists and is clean.",
             "Record publication metadata and artifact path.",
         ],
-        "output": ["PUBLISH PACKAGE", "Artifact path, format, audience, redactions, citations, render checks, approval state."],
+        "output": [
+            "PUBLISH PACKAGE",
+            "Artifact path, format, audience, redactions, citations, render checks, approval state.",
+        ],
         "anti": [
             "Publishing raw meeting notes, or removing citations to make prose cleaner.",
             "Claiming a PDF succeeded without confirming the output file exists.",
@@ -542,7 +615,12 @@ SKILL_SPECS = [
             "references/automation.md; the actual ingestion is done by ingest or "
             "media-ingest."
         ),
-        "triggers": ["run this kb job in batches", "long background kb job", "checkpoint this kb job", "resume this kb job"],
+        "triggers": [
+            "run this kb job in batches",
+            "long background kb job",
+            "checkpoint this kb job",
+            "resume this kb job",
+        ],
         "tools": ["read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -557,7 +635,10 @@ SKILL_SPECS = [
             "Validate citations, frontmatter, graph links, and indexes between batches.",
             "On restore, load the latest checkpoint, verify current state, and resume from the next safe batch.",
         ],
-        "output": ["BACKGROUND JOB", "Batch status, checkpoint path, completed, remaining, validation, blockers, next batch."],
+        "output": [
+            "BACKGROUND JOB",
+            "Batch status, checkpoint path, completed, remaining, validation, blockers, next batch.",
+        ],
         "anti": [
             "Running 100 items before inspecting the first 3.",
             "Losing progress state between sessions, or storing secrets/transcripts in checkpoints.",
@@ -576,7 +657,13 @@ SKILL_SPECS = [
             "maintenance, frontmatter-guard, and dashboard. For repairing citations "
             "specifically use citation-fixer; for routing-coverage checks use resolver."
         ),
-        "triggers": ["kb health", "knowledge base doctor", "validate and fix frontmatter", "fix orphan pages and backlinks", "kb dashboard"],
+        "triggers": [
+            "kb health",
+            "knowledge base doctor",
+            "validate and fix frontmatter",
+            "fix orphan pages and backlinks",
+            "kb dashboard",
+        ],
         "tools": ["read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -591,7 +678,10 @@ SKILL_SPECS = [
             "Merge duplicate entities and route contradictions to `conflict-resolution`.",
             "Rebuild indexes, rerun `dashboard`, and record the health delta and remaining manual decisions.",
         ],
-        "output": ["KB HEALTH", "Verdict, scorecard, failures, warnings, fixes applied, remaining actions, JSON evidence."],
+        "output": [
+            "KB HEALTH",
+            "Verdict, scorecard, failures, warnings, fixes applied, remaining actions, JSON evidence.",
+        ],
         "anti": [
             "Treating ignored generated files as invisible packaging risk, or returning only prose when CI needs JSON.",
             "Fixing stale pages without checking the latest timeline/source evidence.",
@@ -642,7 +732,13 @@ SKILL_SPECS = [
             "base', 'first import'. Absorbs cold-start. To migrate an existing tool's "
             "export use migrate; for synthetic demo fixtures use sample-vault."
         ),
-        "triggers": ["set up my kb", "first time kb setup", "configure the kb plugin", "cold start kb", "bootstrap knowledge base"],
+        "triggers": [
+            "set up my kb",
+            "first time kb setup",
+            "configure the kb plugin",
+            "cold start kb",
+            "bootstrap knowledge base",
+        ],
         "tools": ["read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -675,7 +771,12 @@ SKILL_SPECS = [
             "skills route to; for a routine page rewrite with no conflict use enrich; "
             "for a vault-wide sweep use health."
         ),
-        "triggers": ["resolve conflicting facts", "contradiction in the kb", "this kb claim is stale", "merge duplicate entities"],
+        "triggers": [
+            "resolve conflicting facts",
+            "contradiction in the kb",
+            "this kb claim is stale",
+            "merge duplicate entities",
+        ],
         "tools": ["search", "read", "write", "exec"],
         "mutating": True,
         "contract": [
@@ -690,7 +791,10 @@ SKILL_SPECS = [
             "Rewrite State and timeline with citations; add a review date for anything unresolved.",
             "Run `graph-audit` and `citation-audit` after edits.",
         ],
-        "output": ["CONFLICT RESOLUTION", "Claims, sources, decision, page updates, unresolved items with review dates."],
+        "output": [
+            "CONFLICT RESOLUTION",
+            "Claims, sources, decision, page updates, unresolved items with review dates.",
+        ],
         "anti": [
             "Deleting the losing claim without provenance.",
             "Flattening genuine uncertainty into false certainty.",

@@ -334,7 +334,6 @@ def analyze_posting_cadence(
             continue
 
         # Bucket by posting frequency
-        max_posts = int(weekly_counts["post_count"].max())
         buckets = []
         freq_values = sorted(weekly_counts["post_count"].unique())
 

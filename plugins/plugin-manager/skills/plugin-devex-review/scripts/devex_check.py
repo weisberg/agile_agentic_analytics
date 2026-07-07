@@ -141,9 +141,7 @@ def check_scripts(plugin_dir: Path, skills: list[Path], repo_root: Path, result:
             for token in dict.fromkeys(PY_TOKEN_RE.findall(text)):
                 resolved = resolve_script(token, skill_dir, plugin_dir, repo_root)
                 if resolved is None:
-                    result.fail(
-                        f"{skill_dir.name}/SKILL.md references '{token}' which does not resolve on disk"
-                    )
+                    result.fail(f"{skill_dir.name}/SKILL.md references '{token}' which does not resolve on disk")
                     continue
                 if resolved in seen:
                     continue

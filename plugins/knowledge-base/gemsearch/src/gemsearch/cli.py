@@ -19,8 +19,13 @@ def positive(value):
     return number
 
 
+class JsonArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise SearchError(message)
+
+
 def parser():
-    result = argparse.ArgumentParser(description="Local EmbeddingGemma 2 file search; complements vaultli")
+    result = JsonArgumentParser(description="Local EmbeddingGemma 2 file search; complements vaultli")
     result.add_argument("--version", action="version", version=__version__)
     commands = result.add_subparsers(dest="command", required=True)
     commands.add_parser("download-model", help="Download the pinned model once; only command requiring network")
@@ -47,9 +52,9 @@ def parser():
 
 
 def main(argv=None):
-    args = parser().parse_args(argv)
     os.umask(0o077)
     try:
+        args = parser().parse_args(argv)
         if args.command == "download-model":
             output = {"model": MODEL_ID, "revision": MODEL_REVISION, "snapshot": download_model()}
         elif args.command == "doctor":

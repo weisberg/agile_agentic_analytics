@@ -40,6 +40,7 @@ Former roadmap skills are intentionally merged into the survivor skills:
 | Tool | Path | Use Cases |
 | --- | --- | --- |
 | `vaultli` | `vaultli/` via `bin/vaultli` | File-based KB setup, YAML frontmatter, sidecar docs for non-markdown assets, `INDEX.jsonl` rebuilds, validation, metadata search, context assembly, and federated vault lookup. |
+| `gemsearch` | [`gemsearch/`](gemsearch/README.md) via `bin/gemsearch` | Python-only EmbeddingGemma 2 search over local file bodies, with an independent SQLite cache, semantic/hybrid ranking and line/page citations. Complements vaultli; includes a macOS arm64 installer and dependency lock. |
 | `kb_ops.py` | `scripts/kb_ops.py` | Deterministic resolver checks, retrieval benchmarks, frontmatter/citation/graph/raw-source/privacy audits, dashboards, maintenance plans, event normalization, schedule validation, and resumable checkpoints. |
 
 ## Deterministic KB Ops
@@ -134,6 +135,26 @@ CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)/plugins/knowledge-base}"
 
 The Python fallback for `vaultli` requires `PyYAML`; the Rust binary path is
 used automatically when a compatible bundled binary is present.
+
+For complementary semantic file search on an M3 Mac:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/gemsearch/install-macos.sh"
+"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" download-model
+"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" doctor --device mps
+"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" index --root ./kb --dry-run
+"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" index --root ./kb
+"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" search "customer retention warning signs" --root ./kb
+```
+
+Requires native Python 3.12 and macOS 14+. Model download happens once; indexing
+and search use cached weights offline. Continue using vaultli for KB metadata,
+scope, validation and context. See [the tool guide](gemsearch/README.md) for file
+coverage, exclusions, local state and installation details.
+
+Upgrade to 0.2.0: gemsearch is optional and requires its separate Python runtime
+and one-time model download. Existing vaultli commands, vault metadata and
+`INDEX.jsonl` files need no migration.
 
 Validate the bundled sample vault:
 

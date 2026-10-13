@@ -1,6 +1,6 @@
 ---
 name: query
-version: 0.2.0
+version: 0.2.1
 description: >-
   Answer a question from the knowledge base first — select the retrieval mode (exact, metadata, semantic-overlap, graph, timeline, federated), route across vault source scopes, expand through relationship back-links, and answer with citations, confidence, and a freshness delta. Trigger on 'ask the KB', 'what do we know about X', 'search the knowledge base', 'relationship/graph question about my notes', 'which source scope'. Mode, scope, and graph detail live in references/retrieval.md (this skill absorbed search-modes, source-router, and graph-ops). For a proactive prep document use briefing; for brand-new external facts use current-research; for low-level vault CLI mechanics use vaultli.
 triggers:
@@ -46,6 +46,8 @@ mutating: false
 - Classify the question: exact lookup, concept, relationship/graph, timeline, source, or freshness.
 - Route source scope (personal/team/org/public/federated) before reading; never merge scopes without labels.
 - Shortlist with `"${CLAUDE_PLUGIN_ROOT}/bin/vaultli" --json search` in the chosen mode, then hydrate with `resolve`, `cat`, or `context`.
+- For meaning-based matches inside file bodies, also use `"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" search "<query>" --root <approved-root>`. This Python EmbeddingGemma 2 tool complements vaultli; it does not replace metadata, scope, graph, validation, or context operations. Join results by source path and hydrate before answering.
+- If gemsearch has not been installed or indexed, read `../../gemsearch/README.md`. Search only explicitly indexed roots; setup/indexing is a separate mutating action, not part of this read-only query skill. Label PDF pages and DOCX extracted-text lines accurately, and report stale-file skips or index extraction issues.
 - For relationship questions, traverse typed back-links and report the path with per-edge source evidence.
 - Answer with citations, confidence, source scope, and a freshness delta; route material gaps to `current-research`.
 

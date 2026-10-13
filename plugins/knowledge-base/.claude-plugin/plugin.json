@@ -1,7 +1,7 @@
 {
   "name": "knowledge-base",
   "displayName": "Knowledge Base",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.",
   "author": {
     "name": "Brian Weisberg"
@@ -21,6 +21,9 @@
     "knowledge-ingestion",
     "source-preservation",
     "vaultli",
+    "gemsearch",
+    "embeddinggemma-2",
+    "local-semantic-search",
     "vault",
     "frontmatter",
     "sidecars",

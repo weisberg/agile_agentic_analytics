@@ -58,9 +58,9 @@ class PythonEmbedder:
             return self._model
         os.environ["HF_HUB_OFFLINE"] = "1"
         os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+        import torch
         from huggingface_hub import snapshot_download
         from sentence_transformers import SentenceTransformer
-        import torch
 
         try:
             local = snapshot_download(

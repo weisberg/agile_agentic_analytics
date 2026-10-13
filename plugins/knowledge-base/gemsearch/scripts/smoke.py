@@ -15,7 +15,9 @@ def main():
     args = parser.parse_args()
 
     def run(*arguments):
-        result = subprocess.run([sys.executable, "-m", "gemsearch", *arguments], capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "gemsearch", *arguments], check=False, capture_output=True, text=True
+        )
         if result.returncode:
             raise RuntimeError(result.stderr)
         return json.loads(result.stdout)

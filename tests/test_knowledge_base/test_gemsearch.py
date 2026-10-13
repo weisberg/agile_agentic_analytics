@@ -15,8 +15,8 @@ import pytest
 PACKAGE = Path(__file__).resolve().parents[2] / "plugins/knowledge-base/gemsearch"
 sys.path.insert(0, str(PACKAGE / "src"))
 
-from gemsearch import index as module
 from gemsearch import embedding
+from gemsearch import index as module
 from gemsearch.cli import main
 from gemsearch.embedding import PythonEmbedder, SearchError, normalize
 from gemsearch.files import CHUNK_CHARS, chunks, extract
@@ -356,7 +356,7 @@ def test_dimension_mismatch_rolls_back(corpus):
 
 
 def test_cli_dry_run_and_missing_index(corpus, capsys):
-    root, db, backend = corpus
+    root, db, _backend = corpus
     assert main(["index", "--root", str(root), "--db", str(db), "--dry-run"]) == 0
     assert json.loads(capsys.readouterr().out)["dry_run"]
     assert main(["search", "churn", "--root", str(root), "--db", str(db)]) == 1
@@ -375,6 +375,6 @@ def test_installed_plugin_wrapper_works_without_repository_parent(tmp_path):
     (runtime / "bin/python").symlink_to(sys.executable)
     env = {**os.environ, "GEMSEARCH_INSTALL_DIR": str(runtime)}
     result = subprocess.run(
-        [str(plugin / "bin/gemsearch"), "--version"], cwd=tmp_path, env=env, capture_output=True, text=True
+        [str(plugin / "bin/gemsearch"), "--version"], check=False, cwd=tmp_path, env=env, capture_output=True, text=True
     )
     assert result.returncode == 0 and result.stdout.strip() == "0.1.0"

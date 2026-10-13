@@ -363,6 +363,24 @@ def test_cli_dry_run_and_missing_index(corpus, capsys):
     assert "missing" in json.loads(capsys.readouterr().err)["error"]
 
 
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        [],
+        ["search", "churn"],
+        ["search", "churn", "--root", ".", "--limit", "0"],
+        ["search", "churn", "--root", ".", "--limit", "invalid"],
+        ["search", "churn", "--root", ".", "--mode", "invalid"],
+    ],
+)
+def test_argument_errors_use_json_and_command_error_exit_code(arguments, capsys):
+    assert main(arguments) == 1
+    captured = capsys.readouterr()
+    assert not captured.out
+    payload = json.loads(captured.err)
+    assert payload["ok"] is False and payload["error"]
+
+
 def test_installed_plugin_wrapper_works_without_repository_parent(tmp_path):
     import shutil
 
@@ -377,4 +395,4 @@ def test_installed_plugin_wrapper_works_without_repository_parent(tmp_path):
     result = subprocess.run(
         [str(plugin / "bin/gemsearch"), "--version"], check=False, cwd=tmp_path, env=env, capture_output=True, text=True
     )
-    assert result.returncode == 0 and result.stdout.strip() == "0.1.0"
+    assert result.returncode == 0 and result.stdout.strip() == "0.1.1"

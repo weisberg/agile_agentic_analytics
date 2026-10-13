@@ -45,8 +45,10 @@ gemsearch status --root "$HOME/Documents/Meetings"
 ```
 
 Commands emit JSON. Exit codes: 0 success, 1 command/inference error, 2 partial
-index with per-file extraction issues (valid files are committed). Repeat the
-same index command after edits. Files are hashed, unchanged files are not
+index with per-file extraction issues (valid files are committed).
+Invalid arguments also return JSON and exit 1; `--help` and `--version` use
+conventional terminal output. Repeat the same index command after edits.
+Files are hashed, unchanged files are not
 re-embedded, deleted files are pruned, and unreadable/oversized files lose cached
 content. An inference error rolls back the entire update. A traversal failure
 prevents pruning. Search verifies current file hashes before returning hits and

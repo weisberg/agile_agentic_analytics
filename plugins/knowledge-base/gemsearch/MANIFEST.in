@@ -1,0 +1,2 @@
+include README.md LICENSE install-macos.sh requirements-macos.lock
+recursive-include scripts *.py

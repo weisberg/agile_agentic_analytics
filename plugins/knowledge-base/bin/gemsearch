@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+install_dir="${GEMSEARCH_INSTALL_DIR:-$HOME/Library/Application Support/aaa-gemsearch/runtime}"
+if [[ -x "$install_dir/bin/python" ]]; then
+  exec env PYTHONPATH="$plugin_root/gemsearch/src${PYTHONPATH:+:$PYTHONPATH}" \
+    "$install_dir/bin/python" -m gemsearch "$@"
+fi
+echo "gemsearch: install the Python runtime with: bash \"$plugin_root/gemsearch/install-macos.sh\"" >&2
+exit 127

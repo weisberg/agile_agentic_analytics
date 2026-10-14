@@ -115,3 +115,31 @@ def test_model_identity_cannot_silently_change():
     }
     with pytest.raises(ValueError, match="identity"):
         bundle.validate_manifest(manifest)
+
+
+@pytest.mark.parametrize("change", ["missing", "stale", "omitted", "extra"])
+def test_checksum_inventory_must_exactly_match_manifest(tmp_path, change):
+    manifest = {
+        "archives": {
+            "python": {
+                "parts": [
+                    {"sha256": "a" * 64, "name": "python.tar.gz.part-000"},
+                    {"sha256": "b" * 64, "name": "python.tar.gz.part-001"},
+                ]
+            }
+        }
+    }
+    expected = bundle.checksum_inventory(manifest)
+    path = tmp_path / "SHA256SUMS"
+    path.write_text(expected)
+    bundle.validate_checksum_inventory(tmp_path, manifest)
+    if change == "missing":
+        path.unlink()
+    elif change == "stale":
+        path.write_text(expected.replace("a" * 64, "c" * 64))
+    elif change == "omitted":
+        path.write_text(expected.splitlines()[0] + "\n")
+    else:
+        path.write_text(expected + "unexpected inventory entry\n")
+    with pytest.raises((OSError, ValueError)):
+        bundle.validate_checksum_inventory(tmp_path, manifest)

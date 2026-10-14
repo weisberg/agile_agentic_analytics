@@ -88,6 +88,17 @@ def validate_manifest(manifest):
         raise ValueError("Offline bundle must contain Python, wheels and model archives")
 
 
+def checksum_inventory(manifest):
+    return "".join(
+        f"{part['sha256']}  {part['name']}\n" for archive in manifest["archives"].values() for part in archive["parts"]
+    )
+
+
+def validate_checksum_inventory(bundle, manifest):
+    if (bundle / "SHA256SUMS").read_text() != checksum_inventory(manifest):
+        raise ValueError("SHA256SUMS differs from the manifest's exact archive part inventory")
+
+
 def join_archive(bundle, metadata, target):
     name = safe_name(metadata["name"])
     digest = hashlib.sha256()
@@ -126,6 +137,7 @@ def extract_archive(archive_path, metadata, destination):
 def verify(source):
     manifest = json.loads((source / "offline/manifest.json").read_text())
     validate_manifest(manifest)
+    validate_checksum_inventory(source / "offline", manifest)
     if sha256(source / "requirements-macos.lock") != manifest["lock_sha256"]:
         raise ValueError("Dependency lock differs from the offline bundle")
     for name, expected in manifest["source_sha256"].items():
@@ -151,6 +163,7 @@ def install(source, install_dir):
         raise ValueError("Offline installation requires bundled macOS arm64 Python 3.12")
     manifest = json.loads((source / "offline/manifest.json").read_text())
     validate_manifest(manifest)
+    validate_checksum_inventory(source / "offline", manifest)
     if sha256(source / "requirements-macos.lock") != manifest["lock_sha256"]:
         raise ValueError("Dependency lock differs from the bundled wheels; rebuild the offline bundle")
     for name, expected in manifest["source_sha256"].items():
@@ -304,10 +317,7 @@ def build(source, downloads, output):
             manifest["archives"][kind] = split_archive(archive, output, file_inventory(directory))
     validate_manifest(manifest)
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    checks = [
-        f"{part['sha256']}  {part['name']}\n" for archive in manifest["archives"].values() for part in archive["parts"]
-    ]
-    (output / "SHA256SUMS").write_text("".join(checks))
+    (output / "SHA256SUMS").write_text(checksum_inventory(manifest))
     print(
         json.dumps(
             {

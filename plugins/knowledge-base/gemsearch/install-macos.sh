@@ -28,17 +28,24 @@ if [[ "$mode" == --offline ]]; then
   (cd "$source_dir/offline" && /usr/bin/shasum --status -a 256 -c SHA256SUMS)
   mkdir -p "$install_dir"
   bootstrap_dir="$install_dir/bootstrap"
-  if [[ ! -x "$bootstrap_dir/python/bin/python3.12" ]]; then
-    if [[ -e "$bootstrap_dir" ]]; then
-      echo "Incomplete Python bootstrap exists; inspect and remove it before retrying: $bootstrap_dir" >&2
-      exit 1
-    fi
-    staging_dir="$(mktemp -d "$install_dir/bootstrap.XXXXXX")"
-    trap 'rm -rf "$staging_dir"' EXIT
-    /bin/cat "$source_dir"/offline/python.tar.gz.part-* | /usr/bin/tar -xzf - -C "$staging_dir"
-    mv "$staging_dir" "$bootstrap_dir"
-    trap - EXIT
+  # Always restore the verified interpreter; executable presence is not an integrity check.
+  staging_dir="$(mktemp -d "$install_dir/bootstrap.XXXXXX")"
+  trap 'rm -rf "$staging_dir"' EXIT
+  /bin/cat "$source_dir"/offline/python.tar.gz.part-* | /usr/bin/tar -xzf - -C "$staging_dir"
+  previous_bootstrap="$(mktemp -d "$install_dir/bootstrap-previous.XXXXXX")"
+  rmdir "$previous_bootstrap"
+  if [[ -e "$bootstrap_dir" ]]; then
+    mv "$bootstrap_dir" "$previous_bootstrap"
   fi
+  if mv "$staging_dir" "$bootstrap_dir"; then
+    rm -rf "$previous_bootstrap"
+  else
+    if [[ -e "$previous_bootstrap" ]]; then
+      mv "$previous_bootstrap" "$bootstrap_dir"
+    fi
+    exit 1
+  fi
+  trap - EXIT
   exec "$bootstrap_dir/python/bin/python3.12" -I "$source_dir/scripts/offline_bundle.py" install \
     --source "$source_dir" --install-dir "$install_dir"
 fi

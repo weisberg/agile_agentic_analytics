@@ -395,4 +395,4 @@ def test_installed_plugin_wrapper_works_without_repository_parent(tmp_path):
     result = subprocess.run(
         [str(plugin / "bin/gemsearch"), "--version"], check=False, cwd=tmp_path, env=env, capture_output=True, text=True
     )
-    assert result.returncode == 0 and result.stdout.strip() == "0.1.1"
+    assert result.returncode == 0 and result.stdout.strip() == "0.2.0"

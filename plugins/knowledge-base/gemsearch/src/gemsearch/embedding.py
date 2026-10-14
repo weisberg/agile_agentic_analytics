@@ -2,6 +2,7 @@
 
 import math
 import os
+import sys
 from pathlib import Path
 
 MODEL_ID = "google/embeddinggemma-2"
@@ -26,7 +27,11 @@ def normalize(values):
 
 
 def model_cache():
-    return Path(os.environ.get("GEMSEARCH_MODEL_CACHE", "~/.cache/gemsearch/models")).expanduser()
+    override = os.environ.get("GEMSEARCH_MODEL_CACHE")
+    if override:
+        return Path(override).expanduser()
+    bundled = Path(sys.prefix) / "share/gemsearch/model-cache"
+    return bundled if bundled.is_dir() else Path("~/.cache/gemsearch/models").expanduser()
 
 
 def download_model():

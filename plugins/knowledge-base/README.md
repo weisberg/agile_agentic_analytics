@@ -140,20 +140,21 @@ For complementary semantic file search on an M3 Mac:
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/gemsearch/install-macos.sh"
-"${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" download-model
 "${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" doctor --device mps
 "${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" index --root ./kb --dry-run
 "${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" index --root ./kb
 "${CLAUDE_PLUGIN_ROOT}/bin/gemsearch" search "customer retention warning signs" --root ./kb
 ```
 
-Requires native Python 3.12 and macOS 14+. Model download happens once; indexing
-and search use cached weights offline. Continue using vaultli for KB metadata,
+Requires native arm64 macOS 14+. The repo bundles Python 3.12, locked dependency
+wheels and model weights; default installation, indexing and search work offline.
+Continue using vaultli for KB metadata,
 scope, validation and context. See [the tool guide](gemsearch/README.md) for file
 coverage, exclusions, local state and installation details.
 
-Upgrade to 0.2.0: gemsearch is optional and requires its separate Python runtime
-and one-time model download. Existing vaultli commands, vault metadata and
+Upgrade to 0.3.0: gemsearch is optional; its installer now uses the compressed
+Python, dependency and model bundles included in the repo. Existing vaultli
+commands, vault metadata and
 `INDEX.jsonl` files need no migration.
 
 Validate the bundled sample vault:

@@ -1,0 +1,422 @@
+{
+  "format": 1,
+  "target": "macos-arm64-python3.12",
+  "python_version": "3.12.13",
+  "minimum_macos": "14",
+  "tool_version": "0.2.0",
+  "tool_wheel": "aaa_gemsearch-0.2.0-py3-none-any.whl",
+  "model": {
+    "id": "google/embeddinggemma-2",
+    "revision": "914f7f89142e33e77833254d9c9b90c3cef7303b"
+  },
+  "lock_sha256": "569c6dce94ac813d6c6114a7237ba1099201bc85cc90a3c6fb2a163b052f463a",
+  "source_sha256": {
+    "src/gemsearch/__init__.py": "f6bbf785ebfc5034cd404f1f762bec2276c01a29d5842beaf7999f670d07606b",
+    "src/gemsearch/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/gemsearch/cli.py": "035c54c6fca5209412d894a75709788b69de33fd74425a40910dd281716120d9",
+    "src/gemsearch/embedding.py": "8c159ee75c04fd12814a2cebdd0e3b1a23ab361e77343efc1c821c80bfa48553",
+    "src/gemsearch/files.py": "a84c29c9965dc8b9d682ba9b63a4483e40843af8da2767c383acec754e36065e",
+    "src/gemsearch/index.py": "0fa3e9ca7adfc20aa540b16244d3d65b96c1a29d6de3f51a59c2ff74fd95c348"
+  },
+  "python_upstream": {
+    "browser_download_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.12.13%2B20260510-aarch64-apple-darwin-install_only_stripped.tar.gz",
+    "digest": "sha256:55bc1a5edbc8ac4da0081f4f5731ed2d1ed10c57cb37a820b2a0dbc7cad742e9",
+    "name": "cpython-3.12.13+20260510-aarch64-apple-darwin-install_only_stripped.tar.gz",
+    "size": 24942229
+  },
+  "archives": {
+    "python": {
+      "name": "python.tar.gz",
+      "bytes": 24942229,
+      "sha256": "55bc1a5edbc8ac4da0081f4f5731ed2d1ed10c57cb37a820b2a0dbc7cad742e9",
+      "parts": [
+        {
+          "name": "python.tar.gz.part-000",
+          "bytes": 24942229,
+          "sha256": "55bc1a5edbc8ac4da0081f4f5731ed2d1ed10c57cb37a820b2a0dbc7cad742e9"
+        }
+      ]
+    },
+    "wheels": {
+      "name": "wheels.tar.gz",
+      "bytes": 199239435,
+      "sha256": "7418397485a8b0057fc54e9661eeac4e6f062f88cb5101b2c48d65b126395878",
+      "parts": [
+        {
+          "name": "wheels.tar.gz.part-000",
+          "bytes": 47185920,
+          "sha256": "68bf4d9241fd944df39159c798a9200f0f2534bb424a901221ead19080850974"
+        },
+        {
+          "name": "wheels.tar.gz.part-001",
+          "bytes": 47185920,
+          "sha256": "639c46ff9af29bb8d29d54d6c6d355d85d596e8cef37f2429471d27b0f273bdd"
+        },
+        {
+          "name": "wheels.tar.gz.part-002",
+          "bytes": 47185920,
+          "sha256": "f46145fa0b090183df4ee351bf8a705e5099345e6f4cb7614e3501d8088a0fd7"
+        },
+        {
+          "name": "wheels.tar.gz.part-003",
+          "bytes": 47185920,
+          "sha256": "d8b6753f944c4e19f7f1a90da78eec377c59320de19aa390e9732cb3fab1332b"
+        },
+        {
+          "name": "wheels.tar.gz.part-004",
+          "bytes": 10495755,
+          "sha256": "382cf4a191839061b8cad26fd53b9f31aea0945e061f1cd5862036b8b611d8fb"
+        }
+      ],
+      "files": {
+        "aaa_gemsearch-0.2.0-py3-none-any.whl": {
+          "bytes": 16576,
+          "sha256": "61966a590ede9f1809fd6f7d0cbc66307b68fc7b2b41d24059e3b4ec529c3387"
+        },
+        "annotated_doc-0.0.5-py3-none-any.whl": {
+          "bytes": 5302,
+          "sha256": "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101"
+        },
+        "anyio-4.15.1-py3-none-any.whl": {
+          "bytes": 132079,
+          "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"
+        },
+        "certifi-2026.7.22-py3-none-any.whl": {
+          "bytes": 136983,
+          "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775"
+        },
+        "click-8.5.0-py3-none-any.whl": {
+          "bytes": 125251,
+          "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360"
+        },
+        "cloudpickle-3.1.2-py3-none-any.whl": {
+          "bytes": 22228,
+          "sha256": "9acb47f6afd73f60dc1df93bb801b472f05ff42fa6c84167d25cb206be1fbf4a"
+        },
+        "filelock-4.1.1-py3-none-any.whl": {
+          "bytes": 132460,
+          "sha256": "3f4a557945a7b0f95efeb1f432267affe5d45ac8ddde2aed1b97ebb62382c089"
+        },
+        "fsspec-2026.9.0-py3-none-any.whl": {
+          "bytes": 221738,
+          "sha256": "8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f"
+        },
+        "h11-0.16.0-py3-none-any.whl": {
+          "bytes": 37515,
+          "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
+        },
+        "hf_xet-1.7.0-cp38-abi3-macosx_11_0_arm64.whl": {
+          "bytes": 3560352,
+          "sha256": "59fba37039233c7fcbe196817d6cdcf1b40dfb17b410f229d85b0cf0a1848da4"
+        },
+        "httpcore-1.0.9-py3-none-any.whl": {
+          "bytes": 78784,
+          "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"
+        },
+        "httpx-0.28.1-py3-none-any.whl": {
+          "bytes": 73517,
+          "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
+        },
+        "huggingface_hub-1.33.0-py3-none-any.whl": {
+          "bytes": 846435,
+          "sha256": "04e434b06e100eddbce9a6e817d72693a7884b10a79bd67ab48080d5c07eb899"
+        },
+        "idna-3.20-py3-none-any.whl": {
+          "bytes": 69583,
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c"
+        },
+        "jinja2-3.1.6-py3-none-any.whl": {
+          "bytes": 134899,
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"
+        },
+        "joblib-1.6.0-py3-none-any.whl": {
+          "bytes": 306115,
+          "sha256": "3dbbf9f6e4b592a2357b854608e980fe6390d131d7a82f011a377ef2ebef7aba"
+        },
+        "markdown_it_py-4.2.0-py3-none-any.whl": {
+          "bytes": 91687,
+          "sha256": "9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a"
+        },
+        "markupsafe-3.0.4-cp312-cp312-macosx_11_0_arm64.whl": {
+          "bytes": 12050,
+          "sha256": "0930db9bdc62d22944e10b066448bb65dc9abe9112880c7cab8da54db4284d5f"
+        },
+        "mdurl-0.1.2-py3-none-any.whl": {
+          "bytes": 9979,
+          "sha256": "84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"
+        },
+        "mpmath-1.3.0-py3-none-any.whl": {
+          "bytes": 536198,
+          "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"
+        },
+        "narwhals-2.27.1-py3-none-any.whl": {
+          "bytes": 483211,
+          "sha256": "d057df13f5852b8e157596e82eb5e955fad267425df5e420e0ee9863da483b31"
+        },
+        "networkx-3.7-py3-none-any.whl": {
+          "bytes": 2142205,
+          "sha256": "e3fd2c13a7814cee3746340d8d7f8598a67f16a58bf47fb7f8793fab6efca1b0"
+        },
+        "numpy-2.5.4-cp312-cp312-macosx_14_0_arm64.whl": {
+          "bytes": 5451717,
+          "sha256": "9cb18a327b49c5c337f972b03682f6a49855525faaf3c0d3e9c96cd0fd8880a8"
+        },
+        "packaging-26.3-py3-none-any.whl": {
+          "bytes": 129956,
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+        },
+        "pillow-12.3.0-cp312-cp312-macosx_11_0_arm64.whl": {
+          "bytes": 4780323,
+          "sha256": "ffd0c5368496f41b0944be820fcb7a838aa6e623d250b01acf2643939c3f99d7"
+        },
+        "pygments-2.21.0-py3-none-any.whl": {
+          "bytes": 1250147,
+          "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9"
+        },
+        "pypdf-6.20.1-py3-none-any.whl": {
+          "bytes": 402665,
+          "sha256": "aa5a55ddcffdc5e5ab291d5decb23f6383f4e56f8e3263dc39af41fff03885ad"
+        },
+        "pyyaml-6.0.3-cp312-cp312-macosx_11_0_arm64.whl": {
+          "bytes": 173973,
+          "sha256": "fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0"
+        },
+        "regex-2026.9.29-cp312-cp312-macosx_11_0_arm64.whl": {
+          "bytes": 293633,
+          "sha256": "f57dc6b8fef170f105d2cf5cdce254f47b137d7755086cf7050f47e16582abba"
+        },
+        "rich-15.0.0-py3-none-any.whl": {
+          "bytes": 310654,
+          "sha256": "33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"
+        },
+        "safetensors-0.8.0-cp310-abi3-macosx_11_0_arm64.whl": {
+          "bytes": 484562,
+          "sha256": "c80201d22cbf405b80647a60ada77bba06c8fba2da2743ba1e89cdcc39a81f25"
+        },
+        "scikit_learn-1.9.1-cp312-cp312-macosx_12_0_arm64.whl": {
+          "bytes": 8295541,
+          "sha256": "8c14ce41d561f7749f990b41d6703fe02c4669fbc485e598e069e0a1967b488e"
+        },
+        "scipy-1.18.1-cp312-cp312-macosx_14_0_arm64.whl": {
+          "bytes": 20475078,
+          "sha256": "7bbf207c4453ce1ad2e00b17313852b33310b83090c2311bdaf97f93c0380d12"
+        },
+        "sentence_transformers-6.1.0-py3-none-any.whl": {
+          "bytes": 740560,
+          "sha256": "eb8122f4d180f552eda26dc3d77e84e8c11dc2b1d456a406b9f24abb70ceeadd"
+        },
+        "setuptools-84.0.0-py3-none-any.whl": {
+          "bytes": 818216,
+          "sha256": "51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670"
+        },
+        "shellingham-1.5.4-py2.py3-none-any.whl": {
+          "bytes": 9755,
+          "sha256": "7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"
+        },
+        "sympy-1.14.0-py3-none-any.whl": {
+          "bytes": 6299353,
+          "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"
+        },
+        "threadpoolctl-3.7.0-py3-none-any.whl": {
+          "bytes": 26362,
+          "sha256": "cd8b60b5641b45c67bbf73c64c843235fc2d8a480c87389f52f5dbee893b86be"
+        },
+        "tokenizers-0.23.3-cp310-abi3-macosx_11_0_arm64.whl": {
+          "bytes": 3101381,
+          "sha256": "68649e97d5b43c44c031d8d848874a6eecae8f8fe40ea989aa777a5a83aca716"
+        },
+        "torch-2.14.1-cp312-cp312-macosx_14_0_arm64.whl": {
+          "bytes": 127307099,
+          "sha256": "420dbf314c180ee4b86e9bc00aee5746a7d6e5bacdd7df925af671ed393f0b2e"
+        },
+        "torchvision-0.29.1-cp312-cp312-macosx_14_0_arm64.whl": {
+          "bytes": 1813847,
+          "sha256": "3b6eb9d2f8fe9b93d9d37637749df361efeed133d96ddd503184a1b5b12bb27f"
+        },
+        "tqdm-4.70.1-py3-none-any.whl": {
+          "bytes": 80199,
+          "sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73"
+        },
+        "transformers-5.19.0-py3-none-any.whl": {
+          "bytes": 12599123,
+          "sha256": "afcd2dd5f603ed28c1e1fcb00a338ccbb4ef5f878ed289635df8b58187afb518"
+        },
+        "typer-0.27.3-py3-none-any.whl": {
+          "bytes": 123312,
+          "sha256": "e50022f28b82a86313e54501317a1db64bf8f8d036ff8cfe5ca7e47675454aff"
+        },
+        "typing_extensions-4.16.0-py3-none-any.whl": {
+          "bytes": 45571,
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+        }
+      }
+    },
+    "model": {
+      "name": "model.tar.gz",
+      "bytes": 839959832,
+      "sha256": "2b02e00e2590fc1a21452b57b2b8030b31161fc49542f7223e552d15a8c523ac",
+      "parts": [
+        {
+          "name": "model.tar.gz.part-000",
+          "bytes": 47185920,
+          "sha256": "29b9c19be9d3671520db80d07907c6c32727bc676b77ea433aad118590784ad4"
+        },
+        {
+          "name": "model.tar.gz.part-001",
+          "bytes": 47185920,
+          "sha256": "18ebe8f3540eb3ef99c119457d7dc1000c77389b262cfafe8cdad3e96866fd10"
+        },
+        {
+          "name": "model.tar.gz.part-002",
+          "bytes": 47185920,
+          "sha256": "7324b1794f3a0e504d48c98206560e33b2d7789f354ec1be4a0bcb3e6700fc41"
+        },
+        {
+          "name": "model.tar.gz.part-003",
+          "bytes": 47185920,
+          "sha256": "e05f470276f7be19486095bc2f6b62e712236eb9ceefde43222bc5a04ca4f3ec"
+        },
+        {
+          "name": "model.tar.gz.part-004",
+          "bytes": 47185920,
+          "sha256": "0ed50b97669d3ec04cdbdbdb66ae019e3908b37bb691197596d1c0b391fad06e"
+        },
+        {
+          "name": "model.tar.gz.part-005",
+          "bytes": 47185920,
+          "sha256": "2de446510c38ab1cd585d5fde19341b098096c2e9afb6bfb019572f46231bcc1"
+        },
+        {
+          "name": "model.tar.gz.part-006",
+          "bytes": 47185920,
+          "sha256": "87f8ee938c82806d32cf9678dff679e770c521141160a6e07c58f4ec41e583ce"
+        },
+        {
+          "name": "model.tar.gz.part-007",
+          "bytes": 47185920,
+          "sha256": "ad32c96c835cc0309d8ded9367c819d6f7ec7028424909398975b802c6df33c7"
+        },
+        {
+          "name": "model.tar.gz.part-008",
+          "bytes": 47185920,
+          "sha256": "86b90851e10060fc821220d74a2a60e3bd0fbc1193c96142a3f92f6019518e50"
+        },
+        {
+          "name": "model.tar.gz.part-009",
+          "bytes": 47185920,
+          "sha256": "71c8c7700923aa0f449ab7568f81329ab46f24be7a21cb53cf63c9f8fb4ecb4b"
+        },
+        {
+          "name": "model.tar.gz.part-010",
+          "bytes": 47185920,
+          "sha256": "1d8fd9899415073846dafc227bb7cfffd6548d4e71886c32b160dc940d0e35bc"
+        },
+        {
+          "name": "model.tar.gz.part-011",
+          "bytes": 47185920,
+          "sha256": "2f202f4f1e7b4a961f2b649164c38b35eba4b4456f3ea443edc7cb04a1ea2891"
+        },
+        {
+          "name": "model.tar.gz.part-012",
+          "bytes": 47185920,
+          "sha256": "9906034d82c6267a1c20732c6b10af46b4de6fc5d7d2dbf3f869325d80d41291"
+        },
+        {
+          "name": "model.tar.gz.part-013",
+          "bytes": 47185920,
+          "sha256": "37920d2f209f177512b491a08ea3166ccf31a0ee5c83c01b021e4442492f6e6a"
+        },
+        {
+          "name": "model.tar.gz.part-014",
+          "bytes": 47185920,
+          "sha256": "7b12347c5bc3ee92e8acd541dfa23afdc425fc073a87a6d6e9469470571f90d9"
+        },
+        {
+          "name": "model.tar.gz.part-015",
+          "bytes": 47185920,
+          "sha256": "ac59e651e527f2fc5a85ea0e1a26e9702723255137e12e774eb0901931c24811"
+        },
+        {
+          "name": "model.tar.gz.part-016",
+          "bytes": 47185920,
+          "sha256": "fe7515c0b1b36483a5e6b1c7fc0530ac2e6b09999ad16daf5bc7dc5467995fee"
+        },
+        {
+          "name": "model.tar.gz.part-017",
+          "bytes": 37799192,
+          "sha256": "5537c0828ea6f97e99f13d2844f35e7b215a5c8eb14ea0b93d6a7301b5b77335"
+        }
+      ],
+      "files": {
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/.gitattributes": {
+          "bytes": 1301,
+          "sha256": "bcdccfaa66bc1240c7192dbd374cfb39b695bb1d8ff6b7ce0113aa5e9ac21a44"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/1_Pooling/config.json": {
+          "bytes": 90,
+          "sha256": "8759bdf7c77efc7df7723f64856a593c8943b71ee38baf2a88771fbaf78438f9"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/2_Normalize/config.json": {
+          "bytes": 97,
+          "sha256": "cdb09dfca347a56aa2d691744e38d5ad3c7cbc2834e7181272b9a15328b82524"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/LICENSE": {
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/README.md": {
+          "bytes": 21730,
+          "sha256": "b677a0ee2818c36f091b65fd3d9b4baea9f04d53b02b49cae916c74bf9682037"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/chat_template.jinja": {
+          "bytes": 1016,
+          "sha256": "4b852efc0b9960283e735363331e6f325b33bc74bdbaa076f595bc4e9b94d85e"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/config.json": {
+          "bytes": 4455,
+          "sha256": "b8f1e9931b57fbc054acdb445c41765d55b0074c58d145fa82839941ad1b5bb3"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/config_sentence_transformers.json": {
+          "bytes": 1565,
+          "sha256": "031e56a498d33c349ab489a21885bcfe25b4fcba841149dc99e1e90d4a7c28f5"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/model.safetensors": {
+          "bytes": 1488915288,
+          "sha256": "197a32965d4b1105faf060417baa899e193fb73cd401f42ec9295234d5553d79"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/modules.json": {
+          "bytes": 413,
+          "sha256": "3d02572a0455b832de67fb8e63a54981bc7e8b46e337c95e917bd8122a533bfd"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/preprocessor_config.json": {
+          "bytes": 511,
+          "sha256": "ea2ae257e901064abdd98dceb19f2b0da06af600bed15e0f99f5c85c37ee9d78"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/processor_config.json": {
+          "bytes": 1788,
+          "sha256": "168f6a08522f3ce5dea596d94d003af2fd691742d4f41fe1f9d8cce76bfbf69c"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/sentence_bert_config.json": {
+          "bytes": 747,
+          "sha256": "b1bcd9f2dce3ae863b359e87d0710b5dbc3314a59ecb4e2f97c7778fc8e4b228"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/tokenizer.json": {
+          "bytes": 32170510,
+          "sha256": "4d777ef5bdc1aa36227abdfb77c3e49e7b9c892d16e1b6bda41c393504828be4"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/tokenizer.model": {
+          "bytes": 4689013,
+          "sha256": "e594c8a90eb08d8bda498ff4747977dc827ae0c3c56b5c0d41a605a22d02ef03"
+        },
+        "model-cache/models--google--embeddinggemma-2/snapshots/914f7f89142e33e77833254d9c9b90c3cef7303b/tokenizer_config.json": {
+          "bytes": 1599,
+          "sha256": "17bd5d6e9364ca49a534e1502076593317c298d4a663623091ed45388f004874"
+        },
+        "model-cache/models--google--embeddinggemma-2/trees/914f7f89142e33e77833254d9c9b90c3cef7303b.json": {
+          "bytes": 2210,
+          "sha256": "51be445066e66ba4b2fc72e9d67bfaf55b1414b2d701f4407b1e3f5934971b56"
+        }
+      }
+    }
+  }
+}

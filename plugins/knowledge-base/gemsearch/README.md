@@ -6,30 +6,44 @@ The default device is PyTorch MPS on Apple Silicon; `--device cpu` is explicit f
 
 ## Install on an M3 Mac
 
-Requires native arm64 macOS 14+ and Python 3.12, disk space for the Python runtime
-and model weights, and internet access during installation and model download.
-Start with batch size 4; use 1 on memory-constrained machines. Model weights are
-downloaded, rather than committed to this repository.
+The full repository includes compressed **Python 3.12.13**, all runtime dependency
+wheels, the gemsearch wheel, and the pinned model weights under `offline/`.
+Requires native arm64 macOS 14+ and approximately 8 GiB free for installation and
+staging. No preinstalled Python, pip, Homebrew, PyPI access, Hugging Face access,
+Git LFS, or inference server is needed for the default installation.
 
-From this repository:
+From the full checkout or GitHub source archive:
 
 ```bash
-brew install python@3.12  # only if Python 3.12 is missing
 bash plugins/knowledge-base/gemsearch/install-macos.sh
 export PATH="$HOME/Library/Application Support/aaa-gemsearch/runtime/bin:$PATH"
-gemsearch download-model
 gemsearch doctor --device mps
 ```
 
-The installer uses `requirements-macos.lock` (Python 3.12, macOS arm64, hashes),
-then installs this self-contained package. It needs no files outside `gemsearch/`.
+The default is `--offline`: verify committed archive checksums, unpack the
+portable interpreter, create a virtual environment, install local wheels with
+`--no-index` and dependency hashes, then restore the model into the installed
+runtime. **Do not run `download-model` for an offline installation.** Archive
+parts are normal Git files, so a shallow clone or source ZIP includes them.
+A sparse/filtered download must include every `offline/*.part-*` file.
+See [offline bundle inventory and provenance](offline/README.md).
+
 Set `GEMSEARCH_INSTALL_DIR` to change the installation location; the plugin's
-`bin/gemsearch` respects it too. A cached marketplace plugin can use this same
-installer without writing into the plugin cache. To update, rerun the installer
-from the new plugin version.
+`bin/gemsearch` respects it too. To update, rerun the installer from the new
+plugin version. Start with batch size 4; use 1 on memory-constrained machines.
+The bundled profile supports macOS arm64 and Python 3.12 only.
+
+An explicit online installation remains available:
+
+```bash
+# Requires an existing native Python 3.12 and access to PyPI/Hugging Face.
+bash plugins/knowledge-base/gemsearch/install-macos.sh --online
+export PATH="$HOME/Library/Application Support/aaa-gemsearch/runtime/bin:$PATH"
+gemsearch download-model
+```
 
 For other Python development environments: `python -m pip install .` from this
-directory. The macOS installer and lockfile are the supported M3 installation path.
+directory. The bundled macOS profile is the supported M3 installation path.
 
 ## Index and search
 
@@ -93,7 +107,10 @@ The text-only backbone loads in float32, with vision/audio encoders disabled.
 The model card documents these inference settings and task prompts:
 [Google's model card](https://huggingface.co/google/embeddinggemma-2).
 
-Model cache: `~/.cache/gemsearch/models` (`GEMSEARCH_MODEL_CACHE` overrides).
+Offline model cache: `<install-dir>/share/gemsearch/model-cache`.
+Online fallback: `~/.cache/gemsearch/models`. `GEMSEARCH_MODEL_CACHE` overrides
+both when set. Indexing/search load the installed snapshot without contacting
+Hugging Face.
 Index: `~/Library/Application Support/aaa-gemsearch/gemsearch/<root-hash>/index.sqlite3`.
 `GEMSEARCH_DATA`, or `CLAUDE_PLUGIN_DATA` when set, overrides its base directory.
 `--db` selects a separate cache path, which must be outside the indexed root.
@@ -125,10 +142,14 @@ performs real inference and verifies finite, normalized 768-dimensional output.
 On an MPS error, retry with `--device cpu`; fallback is never silent after an
 inference failure. Run `download-model` again if the cache is incomplete.
 
-Local validation on 2026-10-13: the locked installer, real MPS semantic/hybrid
+Original runtime validation on 2026-10-13: the locked installer, real MPS semantic/hybrid
 retrieval smoke test and CPU inference passed on an arm64 M5 Max. CPU inference
 also passed with socket connections blocked. M3 uses the same native arm64/MPS
 installation path; a physical M3 was not available for hardware validation.
+
+Offline bundle validation on 2026-10-14: fresh installation and real MPS search
+passed with networking, the previous model cache and Homebrew access denied on
+an M5 Max. No physical M3 was available. Bundle verification also runs in CI.
 
 To regenerate dependency hashes with uv: `MACOSX_DEPLOYMENT_TARGET=14.0 uv pip compile pyproject.toml
 --python-version 3.12 --python-platform aarch64-apple-darwin --generate-hashes

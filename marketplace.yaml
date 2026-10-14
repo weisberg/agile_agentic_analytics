@@ -273,7 +273,7 @@ plugins:
     displayName: Knowledge Base
     path: plugins/knowledge-base
     description: Knowledge base workflows for capturing, organizing, retrieving, and maintaining reusable domain knowledge.
-    version: 0.2.1
+    version: 0.3.0
     homepage: https://github.com/weisberg/agile_agentic_analytics/tree/main/plugins/knowledge-base
     repository: https://github.com/weisberg/agile_agentic_analytics
     keywords:

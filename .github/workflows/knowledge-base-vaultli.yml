@@ -54,6 +54,9 @@ jobs:
       - name: Run plugin tests
         run: pytest tests/test_plugins tests/test_knowledge_base
 
+      - name: Verify committed offline gemsearch bundle
+        run: python plugins/knowledge-base/gemsearch/scripts/offline_bundle.py verify --source plugins/knowledge-base/gemsearch
+
   rust-vaultli:
     runs-on: ubuntu-latest
 
